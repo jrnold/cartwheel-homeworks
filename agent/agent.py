@@ -100,11 +100,11 @@ def prompt_version(rendered_prompt: str) -> str:
 # Models. Three course models; any other value is passed to LiteLLM as-is.
 # ---------------------------------------------------------------------------
 
-DEFAULT_MODEL = "gpt-5.5"
+DEFAULT_MODEL = "gpt-5.6"
 
 # Course model name -> LiteLLM model string (for the non-OpenAI models).
 LITELLM_COURSE_MODELS = {
-    "claude-opus-4-6": "anthropic/claude-opus-4-6",
+    "claude-opus-4-6": "anthropic/claude-opus-5",
     "glm-5.2": "together_ai/zai-org/GLM-5.2",
 }
 
