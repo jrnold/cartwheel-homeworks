@@ -159,8 +159,7 @@ def search_products(
         )
     limit = max(1, min(limit, MAX_SEARCH_LIMIT))
 
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         store_id: int | None = None
         if store is not None:
             matched_store = db.get_store_by_name(conn, store)
@@ -176,8 +175,6 @@ def search_products(
             if max_price_usd is not None and product.price_usd > max_price_usd:
                 continue
             matches.append(product)
-    finally:
-        conn.close()
 
     matches.sort(key=lambda p: (p.price_usd, p.id))
     products = [
@@ -220,8 +217,7 @@ def list_my_orders(ctx: AuthContext) -> dict[str, Any]:
             "look up a specific order with get_order instead"
         )
 
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         if ctx.role == "merchant":
             orders = db.list_orders_for_store(
                 conn, ctx.store_id, limit=DEFAULT_ORDER_LIMIT
@@ -230,8 +226,6 @@ def list_my_orders(ctx: AuthContext) -> dict[str, Any]:
             orders = db.list_orders_for_user(
                 conn, ctx.user_id, limit=DEFAULT_ORDER_LIMIT
             )
-    finally:
-        conn.close()
 
     payload = [order.to_public_dict() for order in orders]
     return {"ok": True, "orders": payload, "count": len(payload)}
@@ -280,8 +274,7 @@ def cancel_order(ctx: AuthContext, order_id: int, reason: str) -> dict[str, Any]
     if paused is not None:
         return {"ok": False, "error": "paused", "reason": paused}
 
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         order = db.get_order(conn, order_id)
         if order is None:
             return _not_found(f"no order #{order_id}")
@@ -298,8 +291,6 @@ def cancel_order(ctx: AuthContext, order_id: int, reason: str) -> dict[str, Any]
             )
         db.set_order_status(conn, order_id, "cancelled")
         return {"ok": True, "order_id": order_id, "status": "cancelled"}
-    finally:
-        conn.close()
 
 
 def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
@@ -331,8 +322,7 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
     if not query:
         return {"ok": True, "orders": []}
 
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         matched = _match_product_titles(conn, query)
         if not matched:
             return {"ok": True, "orders": []}
@@ -360,8 +350,6 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
             _order_match_dict(order, matched[order.product_id])
             for order in hits[:FIND_ORDER_LIMIT]
         ]
-    finally:
-        conn.close()
     return {"ok": True, "orders": orders}
 
 
@@ -507,8 +495,7 @@ def check_return_eligibility(ctx: AuthContext, order_id: int) -> dict[str, Any]:
         permission_denied for an order outside the caller's scope.
     """
     facts = load_facts()
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         order = db.get_order(conn, order_id)
         if order is None:
             return _not_found(f"no order #{order_id}")
@@ -519,8 +506,6 @@ def check_return_eligibility(ctx: AuthContext, order_id: int) -> dict[str, Any]:
         store = db.get_store(conn, order.store_id)
         as_of = db.world_asof(conn)
         store_policy_id = _store_policy_id(store)
-    finally:
-        conn.close()
 
     override = store.return_window_days_override if store else None
     window = effective_return_window_days(facts["return_window_days"], override)
@@ -594,8 +579,7 @@ def track_shipment(ctx: AuthContext, order_id: int) -> dict[str, Any]:
         permission_denied for an order outside the caller's scope.
     """
     facts = load_facts()
-    conn = db.connect()
-    try:
+    with db.connection() as conn:
         order = db.get_order(conn, order_id)
         if order is None:
             return _not_found(f"no order #{order_id}")
@@ -604,8 +588,6 @@ def track_shipment(ctx: AuthContext, order_id: int) -> dict[str, Any]:
                 f"role {ctx.role!r} (user {ctx.user_id}) may not view order #{order_id}"
             )
         as_of = db.world_asof(conn)
-    finally:
-        conn.close()
 
     handling = facts["shipping_handling_days_max"]
     transit = facts["shipping_transit_days_max"]
