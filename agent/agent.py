@@ -45,14 +45,6 @@ from seed.eligibility import refund_needs_approval
 # RESP-2 and RESP-3 are only partly represented in the starter prompt. Manual
 # conversations in Homework 1 determine whether one omission causes a failure
 # worth correcting.
-#
-# Homework 1, Part C revision: ESC-2 ("account changes of any kind" go to a
-# human) had no counterpart in the escalation section. Conversation c07 showed
-# the cost: asked to change an account email, the agent declined and pointed
-# the user at account settings without calling escalate_to_human, so no ticket
-# and no 24-hour SLA. The added sentence in "## Escalation" is the smallest
-# instruction that fixes the observed failure; see hw1-session.jsonl records
-# c07-before and c07-after.
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -79,9 +71,7 @@ or credential changes, and anything outside Cartwheel.
 ## Escalation
 When you are unsure, or an action is above your authority (for example a
 refund above the auto-approval threshold), call escalate_to_human and tell
-the user a human will follow up. Account changes of any kind, including the
-email address, the shipping address, and payment details, are always a
-human's decision: call escalate_to_human instead of only declining.
+the user a human will follow up.
 
 ## Tone
 Plain and warm. No legalese.
