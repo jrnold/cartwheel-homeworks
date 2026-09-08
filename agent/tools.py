@@ -18,15 +18,62 @@ They are marked xfail and flip to passing as you implement each function.
 
 from __future__ import annotations
 
-from typing import Any
+import re
+from datetime import date, timedelta
+from typing import Any, NamedTuple
+
+from rapidfuzz import fuzz
 
 from agent import db
-from agent.auth import AuthContext, can_cancel_order, permission_denied
+from agent.auth import (
+    AuthContext,
+    can_cancel_order,
+    can_view_order,
+    permission_denied,
+)
+from agent.config import load_facts
 from agent.helpcenter import load_policy_docs
 from agent.killswitch import kill_switch
+from seed.eligibility import effective_return_window_days, is_refund_eligible
 
 MAX_SEARCH_LIMIT = 25
 DEFAULT_ORDER_LIMIT = 20
+
+# find_order tuning. FIND_ORDER_SCAN_LIMIT bounds how much order history one
+# search reads; FIND_ORDER_MIN_TOKEN_SCORE is the rapidfuzz cutoff at which one
+# query word is taken to name one word of a product title.
+FIND_ORDER_LIMIT = 5
+FIND_ORDER_SCAN_LIMIT = 200
+FIND_ORDER_MIN_TOKEN_SCORE = 80.0
+MAX_PRODUCTS_PER_SCAN = 400
+
+_WORD_RE = re.compile(r"[a-z0-9]+")
+
+# Words a shopper wraps around the product name ("the mug I bought last week").
+# They carry no product signal, and leaving them in drags every whole-string
+# similarity score below any usable cutoff.
+_FILLER_WORDS = frozenset(
+    {
+        "and", "any", "are", "buy", "bought", "can", "day", "days", "for",
+        "from", "get", "got", "had", "has", "have", "item", "items", "last",
+        "mine", "month", "months", "new", "one", "order", "ordered", "orders",
+        "purchase", "purchased", "recent", "some", "that", "the", "thing",
+        "things", "this", "was", "week", "weeks", "were", "with", "year",
+        "years", "you", "your",
+    }
+)
+
+
+def _not_found(reason: str) -> dict[str, Any]:
+    return {"ok": False, "error": "not_found", "reason": reason}
+
+
+def _invalid_argument(reason: str) -> dict[str, Any]:
+    return {"ok": False, "error": "invalid_argument", "reason": reason}
+
+
+def _not_eligible(reason: str) -> dict[str, Any]:
+    return {"ok": False, "error": "not_eligible", "reason": reason}
 
 
 def get_policy(ctx: AuthContext, policy_id: str) -> dict[str, Any]:
@@ -52,8 +99,16 @@ def get_policy(ctx: AuthContext, policy_id: str) -> dict[str, Any]:
     Implementation notes:
         agent.helpcenter.load_policy_docs() returns every parsed doc.
     """
-    ### YOUR CODE HERE (HW1)
-    raise NotImplementedError("HW1: implement get_policy")
+    for doc in load_policy_docs():
+        if doc.policy_id == policy_id:
+            return {
+                "ok": True,
+                "policy_id": doc.policy_id,
+                "title": doc.title,
+                "audience": doc.audience,
+                "body": doc.body,
+            }
+    return _not_found(f"no policy doc with id {policy_id!r}")
 
 
 def search_products(
@@ -95,8 +150,46 @@ def search_products(
         agent.db.list_products(conn, store_id) gives the candidate set.
         Use `with db.connection() as conn:` to close the database automatically.
     """
-    ### YOUR CODE HERE (HW1)
-    raise NotImplementedError("HW1: implement search_products")
+    tokens = query.lower().split()
+    if not tokens:
+        return _invalid_argument("query must not be empty")
+    if max_price_usd is not None and max_price_usd <= 0:
+        return _invalid_argument(
+            f"max_price_usd must be positive, got {max_price_usd}"
+        )
+    limit = max(1, min(limit, MAX_SEARCH_LIMIT))
+
+    conn = db.connect()
+    try:
+        store_id: int | None = None
+        if store is not None:
+            matched_store = db.get_store_by_name(conn, store)
+            if matched_store is None:
+                return _not_found(f"no store named {store!r}")
+            store_id = matched_store.id
+
+        matches = []
+        for product in db.list_products(conn, store_id):
+            haystack = f"{product.title} {product.description}".lower()
+            if not all(token in haystack for token in tokens):
+                continue
+            if max_price_usd is not None and product.price_usd > max_price_usd:
+                continue
+            matches.append(product)
+    finally:
+        conn.close()
+
+    matches.sort(key=lambda p: (p.price_usd, p.id))
+    products = [
+        {
+            "product_id": p.id,
+            "store_id": p.store_id,
+            "title": p.title,
+            "price_usd": p.price_usd,
+        }
+        for p in matches[:limit]
+    ]
+    return {"ok": True, "products": products, "count": len(products)}
 
 
 def list_my_orders(ctx: AuthContext) -> dict[str, Any]:
@@ -121,8 +214,27 @@ def list_my_orders(ctx: AuthContext) -> dict[str, Any]:
         scope is baked into which query you run. That is the point of the
         tool: the model cannot ask for someone else's orders through it.
     """
-    ### YOUR CODE HERE (HW1)
-    raise NotImplementedError("HW1: implement list_my_orders")
+    if ctx.role == "support":
+        return _invalid_argument(
+            "support staff have no orders of their own; "
+            "look up a specific order with get_order instead"
+        )
+
+    conn = db.connect()
+    try:
+        if ctx.role == "merchant":
+            orders = db.list_orders_for_store(
+                conn, ctx.store_id, limit=DEFAULT_ORDER_LIMIT
+            )
+        else:
+            orders = db.list_orders_for_user(
+                conn, ctx.user_id, limit=DEFAULT_ORDER_LIMIT
+            )
+    finally:
+        conn.close()
+
+    payload = [order.to_public_dict() for order in orders]
+    return {"ok": True, "orders": payload, "count": len(payload)}
 
 
 def cancel_order(ctx: AuthContext, order_id: int, reason: str) -> dict[str, Any]:
@@ -167,8 +279,27 @@ def cancel_order(ctx: AuthContext, order_id: int, reason: str) -> dict[str, Any]
     paused = kill_switch("cancel_order")
     if paused is not None:
         return {"ok": False, "error": "paused", "reason": paused}
-    ### YOUR CODE HERE (HW1)
-    raise NotImplementedError("HW1: implement cancel_order")
+
+    conn = db.connect()
+    try:
+        order = db.get_order(conn, order_id)
+        if order is None:
+            return _not_found(f"no order #{order_id}")
+        # Scope before status: an out-of-scope caller must not learn the
+        # order's state from the error code.
+        if not can_cancel_order(ctx, order.user_id, order.store_id):
+            return permission_denied(
+                f"role {ctx.role!r} (user {ctx.user_id}) may not cancel order #{order_id}"
+            )
+        if order.status != "placed":
+            return _not_eligible(
+                f"order #{order_id} has status {order.status!r}; "
+                f"orders can be cancelled only before shipment"
+            )
+        db.set_order_status(conn, order_id, "cancelled")
+        return {"ok": True, "order_id": order_id, "status": "cancelled"}
+    finally:
+        conn.close()
 
 
 def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
@@ -196,5 +327,311 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
         (at most 5), each as the dict returned by agent.db. If no orders
         match, return {"ok": True, "orders": []}.
     """
-    ### YOUR CODE HERE (HW1)
-    raise NotImplementedError("HW1: implement find_order")
+    query = query.strip()
+    if not query:
+        return {"ok": True, "orders": []}
+
+    conn = db.connect()
+    try:
+        matched = _match_product_titles(conn, query)
+        if not matched:
+            return {"ok": True, "orders": []}
+        if ctx.role == "shopper":
+            candidates = db.list_orders_for_user(
+                conn, ctx.user_id, limit=FIND_ORDER_SCAN_LIMIT
+            )
+        elif ctx.role == "merchant":
+            candidates = db.list_orders_for_store(
+                conn, ctx.store_id, limit=FIND_ORDER_SCAN_LIMIT
+            )
+        else:
+            candidates = _orders_for_products(conn, matched, FIND_ORDER_LIMIT)
+        hits = [order for order in candidates if order.product_id in matched]
+        # Most query words matched first, then best word score, then newest.
+        hits.sort(
+            key=lambda o: (
+                -matched[o.product_id].words_matched,
+                -matched[o.product_id].score,
+                -o.ordered_at.toordinal(),
+                -o.id,
+            )
+        )
+        orders = [
+            _order_match_dict(order, matched[order.product_id])
+            for order in hits[:FIND_ORDER_LIMIT]
+        ]
+    finally:
+        conn.close()
+    return {"ok": True, "orders": orders}
+
+
+class _ProductMatch(NamedTuple):
+    """How well one product title answers the query."""
+
+    title: str
+    score: float
+    words_matched: int
+
+
+def _query_words(query: str) -> list[str]:
+    """The words of a query that could plausibly name a product."""
+    return [
+        word
+        for word in _WORD_RE.findall(query.lower())
+        if len(word) >= 3 and word not in _FILLER_WORDS
+    ]
+
+
+def _score_title(words: list[str], title: str) -> _ProductMatch:
+    """Score a title word by word rather than as a whole string.
+
+    A query is a sentence and a title is two or three words, so whole-string
+    similarity is dominated by the length gap: WRatio scores "the vase I
+    bought last month" against "Matte Vase" at 60, below any cutoff that also
+    excludes unrelated titles. Comparing word to word instead lets one strong
+    hit ("vase" against "Vase") carry the match. Whole-word ratio, rather
+    than substring containment, is what keeps "blue lamp" off a "Bluetooth
+    Speaker" while still matching plurals ("vases") and typos ("earmufs").
+    """
+    title_words = _WORD_RE.findall(title.lower())
+    best = 0.0
+    matched = 0
+    for word in words:
+        word_best = max(
+            float(fuzz.ratio(word, title_word)) for title_word in title_words
+        )
+        if word_best >= FIND_ORDER_MIN_TOKEN_SCORE:
+            matched += 1
+        best = max(best, word_best)
+    return _ProductMatch(title, round(best, 1), matched)
+
+
+def _match_product_titles(conn: Any, query: str) -> dict[int, _ProductMatch]:
+    """Product id -> match, for every title the query plausibly names."""
+    words = _query_words(query)
+    if not words:
+        return {}
+    matched: dict[int, _ProductMatch] = {}
+    for product in db.list_products(conn):
+        if not product.title.strip():
+            continue
+        match = _score_title(words, product.title)
+        if match.words_matched:
+            matched[product.id] = match
+    return matched
+
+
+def _orders_for_products(
+    conn: Any, matched: dict[int, _ProductMatch], limit: int
+) -> list[db.Order]:
+    """Newest orders for the matched products, across every user and store.
+
+    Only support callers reach this: they may search any order, and agent.db
+    exposes no all-orders helper. The query selects ids only and the rows are
+    then read back through db.get_order, so row parsing stays in agent.db.
+
+    The product list is capped before it becomes an IN clause: SQLite refuses
+    a statement with more bound variables than its compile-time limit, and a
+    loose query against a production-scale catalog could otherwise exceed it.
+    """
+    best_products = sorted(
+        matched,
+        key=lambda pid: (-matched[pid].words_matched, -matched[pid].score, pid),
+    )[:MAX_PRODUCTS_PER_SCAN]
+    placeholders = ",".join("?" for _ in best_products)
+    rows = conn.execute(
+        f"SELECT id FROM orders WHERE product_id IN ({placeholders}) "
+        "ORDER BY ordered_at DESC, id DESC LIMIT ?",
+        (*best_products, limit),
+    ).fetchall()
+    orders = [db.get_order(conn, row["id"]) for row in rows]
+    return [order for order in orders if order is not None]
+
+
+def _order_match_dict(order: db.Order, match: _ProductMatch) -> dict[str, Any]:
+    """One find_order hit: the public order fields plus what matched.
+
+    Keyed "id" as well as "order_id" so a caller can chain the result into
+    get_order, issue_refund, or cancel_order without a rename.
+    """
+    payload = order.to_public_dict()
+    payload["id"] = order.id
+    payload["product_title"] = match.title
+    payload["match_score"] = match.score
+    return payload
+
+
+# ---------------------------------------------------------------------------
+# Tools added beyond the required five (Homework 1, Part A).
+#
+# Both fill gaps found during the Part B conversations. Neither changes state,
+# so both are read tools, and both check the access matrix before saying
+# anything about an order: an out-of-scope caller learns nothing, exactly as
+# get_order and cancel_order behave.
+# ---------------------------------------------------------------------------
+
+
+def _store_policy_id(store: db.Store | None) -> str | None:
+    """The store's own policy doc id, when the store publishes one.
+
+    facts.yaml requires an override to be visible in the store's policy doc
+    (`store_overrides.must_be_visible_in_store_policy_doc`), so an answer that
+    relies on an override has to be able to cite that doc.
+    """
+    if store is None:
+        return None
+    candidate = f"store-{store.slug}-policy"
+    published = any(doc.policy_id == candidate for doc in load_policy_docs())
+    return candidate if published else None
+
+
+def check_return_eligibility(ctx: AuthContext, order_id: int) -> dict[str, Any]:
+    """Check whether one order can still be returned or refunded, and why.
+
+    Answers "can I still send this back?" without starting a refund. The
+    window counts from the delivery date, and a store override takes
+    precedence over the platform default (facts.yaml `store_overrides`), so
+    the result names which window applied and which policy docs to cite.
+
+    Args:
+        ctx: The caller's auth context.
+        order_id: The order to check.
+
+    Returns:
+        On success: {"ok": True, "order_id": int, "eligible": bool,
+        "status": str, "delivered_at": str | None, "as_of": str,
+        "return_window_days": int, "window_source": "platform_default" |
+        "store_override", "days_since_delivery": int | None,
+        "days_left": int, "policy_ids": [str], "reason": str}.
+        {"ok": False, "error": "not_found"} for an unknown order and
+        permission_denied for an order outside the caller's scope.
+    """
+    facts = load_facts()
+    conn = db.connect()
+    try:
+        order = db.get_order(conn, order_id)
+        if order is None:
+            return _not_found(f"no order #{order_id}")
+        if not can_view_order(ctx, order.user_id, order.store_id):
+            return permission_denied(
+                f"role {ctx.role!r} (user {ctx.user_id}) may not view order #{order_id}"
+            )
+        store = db.get_store(conn, order.store_id)
+        as_of = db.world_asof(conn)
+        store_policy_id = _store_policy_id(store)
+    finally:
+        conn.close()
+
+    override = store.return_window_days_override if store else None
+    window = effective_return_window_days(facts["return_window_days"], override)
+    eligible = is_refund_eligible(
+        status=order.status,
+        delivered_at=order.delivered_at,
+        as_of=as_of,
+        return_window_days=window,
+    )
+    days_since = (as_of - order.delivered_at).days if order.delivered_at else None
+
+    if order.status != "delivered":
+        reason = (
+            f"order #{order_id} has status {order.status!r}; "
+            f"only delivered orders can be returned"
+        )
+    elif days_since is None:
+        reason = f"order #{order_id} has no delivery date on record"
+    elif eligible:
+        reason = (
+            f"delivered {days_since} days ago, inside the {window}-day return "
+            f"window"
+        )
+    else:
+        reason = (
+            f"delivered {days_since} days ago, past the {window}-day return "
+            f"window"
+        )
+
+    policy_ids = ["cw-returns"]
+    if override is not None and store_policy_id:
+        policy_ids.append(store_policy_id)
+    window_source = "store_override" if override is not None else "platform_default"
+    in_window = eligible and days_since is not None
+    days_left = max(window - days_since, 0) if in_window else 0
+
+    return {
+        "ok": True,
+        "order_id": order_id,
+        "eligible": eligible,
+        "status": order.status,
+        "delivered_at": order.delivered_at.isoformat() if order.delivered_at else None,
+        "as_of": as_of.isoformat(),
+        "return_window_days": window,
+        "window_source": window_source,
+        "days_since_delivery": days_since,
+        "days_left": days_left,
+        "policy_ids": policy_ids,
+        "reason": reason,
+    }
+
+
+def track_shipment(ctx: AuthContext, order_id: int) -> dict[str, Any]:
+    """Report where one order is in shipping, with an expected delivery date.
+
+    The estimate comes from facts.yaml (`shipping_handling_days_max` and
+    `shipping_transit_days_max`), never from the model, and is a latest-by
+    date rather than a promise. A delivered order reports its real delivery
+    date and no estimate.
+
+    Args:
+        ctx: The caller's auth context.
+        order_id: The order to track.
+
+    Returns:
+        On success: {"ok": True, "order_id": int, "status": str,
+        "stage": str, "ordered_at": str, "shipped_at": str | None,
+        "delivered_at": str | None, "expected_delivery_by": str | None,
+        "as_of": str, "policy_ids": [str]}.
+        {"ok": False, "error": "not_found"} for an unknown order and
+        permission_denied for an order outside the caller's scope.
+    """
+    facts = load_facts()
+    conn = db.connect()
+    try:
+        order = db.get_order(conn, order_id)
+        if order is None:
+            return _not_found(f"no order #{order_id}")
+        if not can_view_order(ctx, order.user_id, order.store_id):
+            return permission_denied(
+                f"role {ctx.role!r} (user {ctx.user_id}) may not view order #{order_id}"
+            )
+        as_of = db.world_asof(conn)
+    finally:
+        conn.close()
+
+    handling = facts["shipping_handling_days_max"]
+    transit = facts["shipping_transit_days_max"]
+    expected: date | None = None
+    if order.status == "delivered":
+        stage = "delivered"
+    elif order.status == "cancelled":
+        stage = "cancelled before shipment"
+    elif order.status == "refunded":
+        stage = "refunded"
+    elif order.shipped_at is not None:
+        stage = "in transit"
+        expected = order.shipped_at + timedelta(days=transit)
+    else:
+        stage = "awaiting shipment"
+        expected = order.ordered_at + timedelta(days=handling + transit)
+
+    return {
+        "ok": True,
+        "order_id": order_id,
+        "status": order.status,
+        "stage": stage,
+        "ordered_at": order.ordered_at.isoformat(),
+        "shipped_at": order.shipped_at.isoformat() if order.shipped_at else None,
+        "delivered_at": order.delivered_at.isoformat() if order.delivered_at else None,
+        "expected_delivery_by": expected.isoformat() if expected else None,
+        "as_of": as_of.isoformat(),
+        "policy_ids": ["cw-shipping"],
+    }
