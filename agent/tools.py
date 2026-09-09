@@ -215,6 +215,7 @@ def list_my_orders(ctx: AuthContext) -> dict[str, Any]:
 
     with db.connection() as conn:
         if ctx.role == "merchant":
+            assert ctx.store_id is not None
             orders = db.list_orders_for_store(
                 conn, ctx.store_id, limit=DEFAULT_ORDER_LIMIT
             )
@@ -327,6 +328,7 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
                 conn, ctx.user_id, limit=FIND_ORDER_SCAN_LIMIT
             )
         elif ctx.role == "merchant":
+            assert ctx.store_id is not None
             candidates = db.list_orders_for_store(
                 conn, ctx.store_id, limit=FIND_ORDER_SCAN_LIMIT
             )
