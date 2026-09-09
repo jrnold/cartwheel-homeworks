@@ -19,7 +19,6 @@ They are marked xfail and flip to passing as you implement each function.
 from __future__ import annotations
 
 import re
-from datetime import date, timedelta
 from typing import Any, NamedTuple
 
 from rapidfuzz import fuzz
@@ -28,13 +27,10 @@ from agent import db
 from agent.auth import (
     AuthContext,
     can_cancel_order,
-    can_view_order,
     permission_denied,
 )
-from agent.config import load_facts
 from agent.helpcenter import load_policy_docs
 from agent.killswitch import kill_switch
-from seed.eligibility import effective_return_window_days, is_refund_eligible
 
 MAX_SEARCH_LIMIT = 25
 DEFAULT_ORDER_LIMIT = 20
@@ -447,173 +443,3 @@ def _order_match_dict(order: db.Order, match: _ProductMatch) -> dict[str, Any]:
     payload["product_title"] = match.title
     payload["match_score"] = match.score
     return payload
-
-
-# ---------------------------------------------------------------------------
-# Tools added beyond the required five (Homework 1, Part A).
-#
-# Both fill gaps found during the Part B conversations. Neither changes state,
-# so both are read tools, and both check the access matrix before saying
-# anything about an order: an out-of-scope caller learns nothing, exactly as
-# get_order and cancel_order behave.
-# ---------------------------------------------------------------------------
-
-
-def _store_policy_id(store: db.Store | None) -> str | None:
-    """The store's own policy doc id, when the store publishes one.
-
-    facts.yaml requires an override to be visible in the store's policy doc
-    (`store_overrides.must_be_visible_in_store_policy_doc`), so an answer that
-    relies on an override has to be able to cite that doc.
-    """
-    if store is None:
-        return None
-    candidate = f"store-{store.slug}-policy"
-    published = any(doc.policy_id == candidate for doc in load_policy_docs())
-    return candidate if published else None
-
-
-def check_return_eligibility(ctx: AuthContext, order_id: int) -> dict[str, Any]:
-    """Check whether one order can still be returned or refunded, and why.
-
-    Answers "can I still send this back?" without starting a refund. The
-    window counts from the delivery date, and a store override takes
-    precedence over the platform default (facts.yaml `store_overrides`), so
-    the result names which window applied and which policy docs to cite.
-
-    Args:
-        ctx: The caller's auth context.
-        order_id: The order to check.
-
-    Returns:
-        On success: {"ok": True, "order_id": int, "eligible": bool,
-        "status": str, "delivered_at": str | None, "as_of": str,
-        "return_window_days": int, "window_source": "platform_default" |
-        "store_override", "days_since_delivery": int | None,
-        "days_left": int, "policy_ids": [str], "reason": str}.
-        {"ok": False, "error": "not_found"} for an unknown order and
-        permission_denied for an order outside the caller's scope.
-    """
-    facts = load_facts()
-    with db.connection() as conn:
-        order = db.get_order(conn, order_id)
-        if order is None:
-            return _not_found(f"no order #{order_id}")
-        if not can_view_order(ctx, order.user_id, order.store_id):
-            return permission_denied(
-                f"role {ctx.role!r} (user {ctx.user_id}) may not view order #{order_id}"
-            )
-        store = db.get_store(conn, order.store_id)
-        as_of = db.world_asof(conn)
-        store_policy_id = _store_policy_id(store)
-
-    override = store.return_window_days_override if store else None
-    window = effective_return_window_days(facts["return_window_days"], override)
-    eligible = is_refund_eligible(
-        status=order.status,
-        delivered_at=order.delivered_at,
-        as_of=as_of,
-        return_window_days=window,
-    )
-    days_since = (as_of - order.delivered_at).days if order.delivered_at else None
-
-    if order.status != "delivered":
-        reason = (
-            f"order #{order_id} has status {order.status!r}; "
-            f"only delivered orders can be returned"
-        )
-    elif days_since is None:
-        reason = f"order #{order_id} has no delivery date on record"
-    elif eligible:
-        reason = (
-            f"delivered {days_since} days ago, inside the {window}-day return "
-            f"window"
-        )
-    else:
-        reason = (
-            f"delivered {days_since} days ago, past the {window}-day return "
-            f"window"
-        )
-
-    policy_ids = ["cw-returns"]
-    if override is not None and store_policy_id:
-        policy_ids.append(store_policy_id)
-    window_source = "store_override" if override is not None else "platform_default"
-    in_window = eligible and days_since is not None
-    days_left = max(window - days_since, 0) if in_window else 0
-
-    return {
-        "ok": True,
-        "order_id": order_id,
-        "eligible": eligible,
-        "status": order.status,
-        "delivered_at": order.delivered_at.isoformat() if order.delivered_at else None,
-        "as_of": as_of.isoformat(),
-        "return_window_days": window,
-        "window_source": window_source,
-        "days_since_delivery": days_since,
-        "days_left": days_left,
-        "policy_ids": policy_ids,
-        "reason": reason,
-    }
-
-
-def track_shipment(ctx: AuthContext, order_id: int) -> dict[str, Any]:
-    """Report where one order is in shipping, with an expected delivery date.
-
-    The estimate comes from facts.yaml (`shipping_handling_days_max` and
-    `shipping_transit_days_max`), never from the model, and is a latest-by
-    date rather than a promise. A delivered order reports its real delivery
-    date and no estimate.
-
-    Args:
-        ctx: The caller's auth context.
-        order_id: The order to track.
-
-    Returns:
-        On success: {"ok": True, "order_id": int, "status": str,
-        "stage": str, "ordered_at": str, "shipped_at": str | None,
-        "delivered_at": str | None, "expected_delivery_by": str | None,
-        "as_of": str, "policy_ids": [str]}.
-        {"ok": False, "error": "not_found"} for an unknown order and
-        permission_denied for an order outside the caller's scope.
-    """
-    facts = load_facts()
-    with db.connection() as conn:
-        order = db.get_order(conn, order_id)
-        if order is None:
-            return _not_found(f"no order #{order_id}")
-        if not can_view_order(ctx, order.user_id, order.store_id):
-            return permission_denied(
-                f"role {ctx.role!r} (user {ctx.user_id}) may not view order #{order_id}"
-            )
-        as_of = db.world_asof(conn)
-
-    handling = facts["shipping_handling_days_max"]
-    transit = facts["shipping_transit_days_max"]
-    expected: date | None = None
-    if order.status == "delivered":
-        stage = "delivered"
-    elif order.status == "cancelled":
-        stage = "cancelled before shipment"
-    elif order.status == "refunded":
-        stage = "refunded"
-    elif order.shipped_at is not None:
-        stage = "in transit"
-        expected = order.shipped_at + timedelta(days=transit)
-    else:
-        stage = "awaiting shipment"
-        expected = order.ordered_at + timedelta(days=handling + transit)
-
-    return {
-        "ok": True,
-        "order_id": order_id,
-        "status": order.status,
-        "stage": stage,
-        "ordered_at": order.ordered_at.isoformat(),
-        "shipped_at": order.shipped_at.isoformat() if order.shipped_at else None,
-        "delivered_at": order.delivered_at.isoformat() if order.delivered_at else None,
-        "expected_delivery_by": expected.isoformat() if expected else None,
-        "as_of": as_of.isoformat(),
-        "policy_ids": ["cw-shipping"],
-    }

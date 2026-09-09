@@ -407,22 +407,6 @@ def find_order(
     return _call(wrapper, hw_tools.find_order, query)
 
 
-@function_tool
-def check_return_eligibility(
-    wrapper: RunContextWrapper[AuthContext], order_id: int
-) -> dict[str, Any]:
-    """Check whether an order is still inside its return window, without starting a refund. Reports the window that applied, any store override, and the policy ids to cite."""
-    return _call(wrapper, hw_tools.check_return_eligibility, order_id)
-
-
-@function_tool
-def track_shipment(
-    wrapper: RunContextWrapper[AuthContext], order_id: int
-) -> dict[str, Any]:
-    """Report where an order is in shipping and the date it should arrive by. Use for 'where is my order' questions."""
-    return _call(wrapper, hw_tools.track_shipment, order_id)
-
-
 # Progressive disclosure: a session exposes only the tools its role can use.
 # Fewer tools mean fewer wrong choices and cleaner evals. At dev scale the
 # only difference is that support staff, who have no orders of their own,
@@ -432,8 +416,6 @@ _COMMON_TOOLS = [
     get_policy,
     search_products,
     get_order,
-    check_return_eligibility,
-    track_shipment,
     issue_refund,
     cancel_order,
     escalate_to_human,
