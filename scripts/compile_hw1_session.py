@@ -16,7 +16,7 @@ from typing import Any
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = REPO_ROOT / "homework" / "hw1-session.yaml"
+DEFAULT_INPUT = REPO_ROOT / "homework" / "module-1" / "hw1-session.yaml"
 DEFAULT_OUTPUT = REPO_ROOT / "homework" / "module-1" / "hw1-session.jsonl"
 
 
