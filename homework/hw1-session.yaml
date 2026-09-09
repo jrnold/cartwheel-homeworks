@@ -1,0 +1,296 @@
+- id: 1
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: when was my order 4127 delivered?
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4127
+    result:
+      ok: true
+      order:
+        order_id: 4127
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 84.0
+        status: delivered
+        ordered_at: '2026-06-14'
+        shipped_at: '2026-06-16'
+        delivered_at: '2026-06-19'
+        refund_eligible: true
+        store_name: Blue Heron Ceramics
+  response: 'Order **4127** was delivered on **June 19, 2026**.'
+  expected: Look up order 4127 with an order tool.
+  requirement: null
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Expected to be able to answer this. No policies are relevant
+    for this success.
+- id: 2
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: Can I get a refund for `3980`, it isn't what I wanted.
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 3980
+    result:
+      ok: true
+      order:
+        order_id: 3980
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 52.0
+        status: delivered
+        ordered_at: '2026-05-12'
+        shipped_at: '2026-05-14'
+        delivered_at: '2026-05-17'
+        refund_eligible: false
+        store_name: Blue Heron Ceramics
+  - name: search_help_center
+    arguments:
+      query: refund return item isn't what I wanted change of mind eligibility
+    result:
+      ok: true
+      results:
+      - policy_id: cw-refunds
+        title: Cartwheel refund policy
+        snippet: |-
+          # Cartwheel refund policy
+
+          Approved refunds go back to the original payment method and arrive in 5 to 10 business days. Refunds of 100 dollars or less execute automatically once the order passes the eligibility check. Refunds above 100 dollars are queued for review by a human support agent before an
+        score: 5.323
+      - policy_id: cw-account-security
+        title: Account and payment security
+        snippet: |-
+          # Account and payment security
+
+          Cartwheel support assistants never change payment cards, passwords, or account details in chat, and never ask for full card numbers. Account and payment changes happen only through account settings. Requests for legal advice are outside support's scope and are decline
+        score: 2.424
+      - policy_id: cw-disputes
+        title: Cartwheel dispute policy
+        snippet: |-
+          # Cartwheel dispute policy
+
+          Buyers can dispute a charge for up to 60 days after delivery. Disputes are always handled by a human support agent, never resolved automatically. Opening a dispute pauses any pending refund on the same order.
+        score: 2.012
+  - name: get_policy
+    arguments:
+      policy_id: cw-refunds
+    result:
+      ok: true
+      policy_id: cw-refunds
+      title: Cartwheel refund policy
+      audience: all
+      body: |-
+        # Cartwheel refund policy
+
+        Approved refunds go back to the original payment method and arrive in 5 to 10 business days. Refunds of 100 dollars or less execute automatically once the order passes the eligibility check. Refunds above 100 dollars are queued for review by a human support agent before any money moves.
+  - name: escalate_to_human
+    arguments:
+      summary: Refund request for order 3980, marked ineligible
+      context: "Shopper says the delivered item isn't what they wanted and is requesting
+        a $52 refund. Order 3980 from Blue Heron Ceramics was delivered on 2026-05-17,
+        but the order lookup reports refund_eligible: false. No refund was issued;
+        requesting human review."
+    result:
+      ok: true
+      ticket_id: 154
+      sla_hours: 24
+  response: |-
+    Order **3980** isn’t eligible for an automatic refund, so I couldn’t issue one. I’ve opened human-review ticket **#154**; a support agent should follow up within **24 hours**.
+
+    If approved, refunds return to the original payment method in **5–10 business days** (**cw-refunds**).
+  expected: Do not issue a refund for an order whose record reports refund_eligible
+    false, and escalate a request that cannot be resolved from the help center and
+    the order record.
+  requirement: ESC-3
+  met_requirement: false
+  problem_source: tool
+  _comment: |-
+    The agent correctly escalates to the human. However it cited the wrong policy. The reason the order
+    is ineligible is due to the 30-day return window, which is covered by `cw-returns`. The `search_help_center`
+    did not return that.
+- id: 3
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: 'I want a refund for my order #4455'
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4455
+    result:
+      ok: true
+      order:
+        order_id: 4455
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 240.0
+        status: delivered
+        ordered_at: '2026-06-21'
+        shipped_at: '2026-06-23'
+        delivered_at: '2026-06-26'
+        refund_eligible: true
+        store_name: Blue Heron Ceramics
+  - name: issue_refund
+    arguments:
+      order_id: 4455
+      amount_usd: 240
+      reason: Customer requested a full refund
+    result:
+      ok: true
+      status: queued_for_approval
+      refund_id: 576
+      order_id: 4455
+      amount_usd: 240.0
+      note: >-
+        amount is above the $100 auto-approval threshold; a human support agent
+        will review it
+  - name: escalate_to_human
+    arguments:
+      summary: 'Approval needed for $240 refund on order #4455'
+      context: >-
+        Shopper requested a full refund for delivered order #4455 from Blue Heron
+        Ceramics. The order is refund eligible. Refund request #576 for $240 was
+        queued because it exceeds the $100 auto-approval threshold.
+    result:
+      ok: true
+      ticket_id: 155
+      sla_hours: 24
+  response: |-
+    Your full **$240 refund request** for order **#4455** has been submitted for approval. Because it exceeds the automatic approval limit, a human support agent will review it within **24 hours**.
+
+    Refund request: **#576**
+    Support ticket: **#155**
+  expected: |-
+    A refund above the $100 auto-approval threshold is queued rather than
+    executed, and the agent explains that a human will review it instead of
+    claiming the money moved.
+  requirement: ESC-1
+  met_requirement: true
+  problem_source: null
+- id: 4
+  role: merchant
+  user_id: 9002
+  store_id: 2
+  request: Show me order 4127
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4127
+    result:
+      ok: false
+      error: permission_denied
+      reason: "role 'merchant' (user 9002) may not view order #4127"
+  response: |-
+    I can’t show order **#4127** because your merchant account doesn’t have permission to view it. You can only access orders associated with your store.
+  expected: |-
+    The tool layer denies a merchant access to another store's order, and the
+    agent reports the refusal without disclosing the order's contents, owner,
+    or store.
+  requirement: RESP-4
+  met_requirement: false
+  problem_source: prompt
+  _comment: |-
+    Order 4127 belongs to store 1; the caller is the store 2 merchant, so the agent
+    correctly does not show the order (AUTH-1). However, it fails RESP-4 because
+    the statement "you do not have permission" confirms that order 4127 exists and
+    leaks information.
+- id: 5
+  role: shopper
+  user_id: 432
+  store_id: null
+  request: Can I still return my cookbook?
+  tool_calls:
+  - name: find_order
+    arguments:
+      query: cookbook
+    result:
+      ok: true
+      orders:
+      - order_id: 8822
+        store_id: 7
+        product_id: 267
+        quantity: 1
+        total_usd: 182.5
+        status: delivered
+        ordered_at: '2026-05-14'
+        shipped_at: '2026-05-17'
+        delivered_at: '2026-05-19'
+        refund_eligible: true
+        id: 8822
+        product_title: Slim Cookbook
+        match_score: 100.0
+  - name: search_help_center
+    arguments:
+      query: return eligibility window cookbook return policy
+    result:
+      ok: true
+      results:
+      - policy_id: cw-returns
+        title: Cartwheel return policy
+        snippet: |-
+          # Cartwheel return policy
+
+          Items bought on Cartwheel can be returned within 30 days of delivery. The window counts from the delivery date, not the purchase date. Items must be in the condition described by the store's listing. Individual stores may override this window; see the store overrides polic
+        score: 3.804
+      - policy_id: cw-cancellations
+        title: Cartwheel order cancellation policy
+        snippet: |-
+          # Cartwheel order cancellation policy
+
+          An order can be cancelled at no cost any time before the store ships it. Once an order has shipped it can no longer be cancelled; the buyer should instead wait for delivery and request a return under the Cartwheel return policy.
+        score: 3.337
+      - policy_id: store-cascade-audio-policy
+        title: Cascade Audio store policy
+        snippet: |-
+          # Cascade Audio store policy
+
+          Cascade Audio follows the Cartwheel platform return window of 30 days from delivery. Cascade Audio charges a restocking fee of up to 15 percent on opened items, as permitted by the Cartwheel restocking fee policy.
+        score: 3.167
+  - name: get_policy
+    arguments:
+      policy_id: cw-returns
+    result:
+      ok: true
+      policy_id: cw-returns
+      title: Cartwheel return policy
+      audience: all
+      body: |-
+        # Cartwheel return policy
+
+        Items bought on Cartwheel can be returned within 30 days of delivery. The window counts from the delivery date, not the purchase date. Items must be in the condition described by the store's listing. Individual stores may override this window; see the store overrides policy and the store's own policy page.
+  response: |-
+    Yes—your **Slim Cookbook**, order **#8822**, is currently marked as eligible for return. It was delivered on **May 19, 2026**.
+
+    Cartwheel generally allows returns within 30 days of delivery, provided the item meets the store’s condition requirements; store-specific rules may apply (**cw-returns**).
+  expected: |-
+    Order 8822 is from Northwind Books, whose store policy sets a 45-day return
+    window in place of the platform default of 30 days. cw-returns and
+    cw-store-overrides both direct the reader to the store's own policy page, so
+    the agent should consult store-northwind-books-policy and state the 45-day
+    window that actually applies.
+  requirement: RESP-3
+  met_requirement: false
+  problem_source: tool
+  _comment: |-
+    The verdict is correct but the stated rule contradicts it. Delivery was
+    2026-05-19 and the world date is 2026-07-01, so the order is 43 days old:
+    outside the 30-day platform window the agent quoted, inside the 45-day
+    Northwind Books window that actually applies. A shopper doing the arithmetic
+    from this reply would conclude the opposite of its conclusion, and the agent
+    never stated the discrepancy. The agent deferred to refund_eligible rather
+    than reasoning from a window it had looked up.
+
+    Cause: the find_order result carries store_id 7 but no store_name, so the
+    agent could not name the store policy doc from what it had. get_order adds
+    store_name; _order_match_dict in agent/tools.py does not. search_help_center
+    also returned store-cascade-audio-policy, an unrelated store, rather than
+    the Northwind page.
