@@ -75,6 +75,7 @@ Successful results contain `ok: true` and the result fields. Expected failures c
 | TOOL-7 | `issue_refund` | order identifier, amount, reason | creates a refund record; marks the order refunded only for an automatically approved refund | write |
 | TOOL-8 | `cancel_order` | order identifier, reason | marks an eligible order cancelled | write |
 | TOOL-9 | `escalate_to_human` | summary, context | creates a support ticket | write |
+| TOOL-10 | `get_store_info` | store id, name, or slug | none | read |
 
 ### Success and failure contracts
 
@@ -89,6 +90,7 @@ Successful results contain `ok: true` and the result fields. Expected failures c
 | `issue_refund` | `refund_id`, `order_id`, `amount_usd`, and `status`. Status is `auto_approved` at or below the threshold and `queued_for_approval` above it. | `invalid_argument` for a nonpositive amount or an amount above the order total; `not_found` for an unknown order; `permission_denied` for an unauthorized caller; `not_eligible` for an ineligible order; `paused` when refunds are disabled. |
 | `cancel_order` | `order_id` and `status: cancelled` after updating an authorized order whose current status is `placed`. | `not_found` for an unknown order; `permission_denied` for an unauthorized caller; `not_eligible` when the order is no longer `placed`; `paused` when cancellations are disabled. |
 | `escalate_to_human` | `ticket_id` and `sla_hours` after creating the support ticket. | Execution exception if ticket creation fails. |
+| `get_store_info` | Public store fields plus `return_window_days`, the store's override where it has one and the platform default otherwise, `overrides_platform_window`, `restocking_fee_opt_in`, and `policy_id` for the store's own policy doc, or null when it has none. | `invalid_argument` for a blank store; `not_found` when no store matches. |
 
 ## 5. Escalation policy
 

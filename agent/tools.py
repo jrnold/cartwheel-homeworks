@@ -29,8 +29,10 @@ from agent.auth import (
     can_cancel_order,
     permission_denied,
 )
+from agent.config import load_facts
 from agent.helpcenter import load_policy_docs
 from agent.killswitch import kill_switch
+from seed.eligibility import effective_return_window_days
 
 MAX_SEARCH_LIMIT = 25
 DEFAULT_ORDER_LIMIT = 20
@@ -105,6 +107,89 @@ def get_policy(ctx: AuthContext, policy_id: str) -> dict[str, Any]:
                 "body": doc.body,
             }
     return _not_found(f"no policy doc with id {policy_id!r}")
+
+
+def _store_policy_id(slug: str) -> str | None:
+    """The id of a store's own policy doc, or None when it has no page.
+
+    The corpus names these `store-<slug>-policy`. The id is confirmed against
+    the loaded docs rather than returned on the strength of the naming
+    convention, so a caller never receives an id that get_policy cannot fetch.
+    """
+    candidate = f"store-{slug}-policy"
+    return next(
+        (candidate for doc in load_policy_docs() if doc.policy_id == candidate),
+        None,
+    )
+
+
+def get_store_info(ctx: AuthContext, store: str) -> dict[str, Any]:
+    """Public store details and the return window in force there. Risk tier: read.
+
+    Store pages are public help-center content, so every role may read them
+    and this tool needs no permission check.
+
+    A return answer depends on the store: `cw-returns` and
+    `cw-store-overrides` both defer to the store's own policy page, and an
+    order record names a store without saying which window applies to it.
+    This tool closes that gap in one lookup.
+
+    Args:
+        ctx: The caller's auth context. Unused here, but every tool takes it.
+        store: A store id ("7"), name ("Northwind Books"), or slug
+            ("northwind-books"). An all-digit string is read as an id;
+            anything else is matched case-insensitively against the name and
+            then the slug, through agent.db.get_store_by_name.
+
+    Returns:
+        On success: {"ok": True, "store_id": int, "name": str, "slug": str,
+        "category": str, "return_window_days": int,
+        "platform_return_window_days": int, "overrides_platform_window": bool,
+        "restocking_fee_opt_in": bool, "policy_id": str | None}.
+
+        `return_window_days` is the window that actually applies: the store's
+        override where it has one, the platform default otherwise. Quote this
+        number, not the platform default, when answering about a specific
+        order. `policy_id` names the store's own policy doc for a follow-up
+        get_policy call, and is None when the store has no page of its own.
+
+        {"ok": False, "error": "invalid_argument", ...} for a blank store, and
+        {"ok": False, "error": "not_found", ...} when no store matches.
+
+    Implementation notes:
+        The effective window comes from seed.eligibility, the same pure
+        function the seed uses to stamp `refund_eligible` on every order, so
+        this tool cannot drift from an order's eligibility flag.
+    """
+    store = store.strip()
+    if not store:
+        return _invalid_argument("store must not be empty")
+
+    with db.connection() as conn:
+        record = (
+            db.get_store(conn, int(store))
+            if store.isdigit()
+            else db.get_store_by_name(conn, store)
+        )
+
+    if record is None:
+        return _not_found(f"no store matching {store!r}")
+
+    platform_window = load_facts()["return_window_days"]
+    return {
+        "ok": True,
+        "store_id": record.id,
+        "name": record.name,
+        "slug": record.slug,
+        "category": record.category,
+        "return_window_days": effective_return_window_days(
+            platform_window, record.return_window_days_override
+        ),
+        "platform_return_window_days": platform_window,
+        "overrides_platform_window": record.return_window_days_override is not None,
+        "restocking_fee_opt_in": record.restocking_fee_opt_in,
+        "policy_id": _store_policy_id(record.slug),
+    }
 
 
 def search_products(
