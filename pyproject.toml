@@ -17,11 +17,13 @@ dependencies = [
     "pyyaml>=6.0",
     "numpy>=1.24",
     "docetl>=0.2",
+    "rapidfuzz>=3.14.5",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "ty>=0.0.79",
 ]
 
 [project.optional-dependencies]
@@ -38,3 +40,25 @@ packages = ["agent", "observability", "scenarios", "seed", "server", "analysis",
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+# Type checking. Run with: uv run ty check
+#
+# ty is advisory for now: the tree has pre-existing diagnostics and no CI job
+# gates on it. Treat a clean `ty check` on the files you touched as the bar,
+# not a clean run repository-wide.
+[tool.ty.environment]
+# Matches project.requires-python and .python-version. Stated explicitly so a
+# contributor on a newer interpreter still gets 3.12 semantics.
+python-version = "3.12"
+
+[tool.ty.terminal]
+output-format = "concise"
+
+# gepa ships only in the `optimization` optional extra, so a plain `uv sync`
+# cannot resolve this import. The failure is environmental, not a code defect.
+[[tool.ty.overrides]]
+include = ["optimize/gepa_adapter.py"]
+
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
+

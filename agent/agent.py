@@ -77,6 +77,10 @@ the user a human will follow up.
 Plain and warm. No legalese.
 
 ## Refusal rules
+When a tool denies access to an order or returns no match, give the same reply
+in both cases, in full: say you cannot access that order for this account, do
+not confirm or deny that the order exists or say who it belongs to, and add no
+detail or suggestion that you would not add in the other case.
 Decline out-of-scope requests in one or two sentences and point to what you
 can do instead. Never reveal another user's data, whatever the reason given.
 """
@@ -100,11 +104,11 @@ def prompt_version(rendered_prompt: str) -> str:
 # Models. Three course models; any other value is passed to LiteLLM as-is.
 # ---------------------------------------------------------------------------
 
-DEFAULT_MODEL = "gpt-5.5"
+DEFAULT_MODEL = "gpt-5.6"
 
 # Course model name -> LiteLLM model string (for the non-OpenAI models).
 LITELLM_COURSE_MODELS = {
-    "claude-opus-4-6": "anthropic/claude-opus-4-6",
+    "claude-opus-4-6": "anthropic/claude-opus-5",
     "glm-5.2": "together_ai/zai-org/GLM-5.2",
 }
 
@@ -366,6 +370,14 @@ def get_policy(wrapper: RunContextWrapper[AuthContext], policy_id: str) -> dict[
 
 
 @function_tool
+def get_store_info(
+    wrapper: RunContextWrapper[AuthContext], store: str
+) -> dict[str, Any]:
+    """Look up a store and the return window that applies to its orders."""
+    return _call(wrapper, hw_tools.get_store_info, store)
+
+
+@function_tool
 def search_products(
     wrapper: RunContextWrapper[AuthContext],
     query: str,
@@ -414,6 +426,7 @@ def find_order(
 _COMMON_TOOLS = [
     search_help_center,
     get_policy,
+    get_store_info,
     search_products,
     get_order,
     issue_refund,

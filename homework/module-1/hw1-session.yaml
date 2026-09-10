@@ -1,0 +1,761 @@
+- id: 1
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: when was my order 4127 delivered?
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4127
+    result:
+      ok: true
+      order:
+        order_id: 4127
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 84.0
+        status: delivered
+        ordered_at: '2026-06-14'
+        shipped_at: '2026-06-16'
+        delivered_at: '2026-06-19'
+        refund_eligible: true
+        store_name: Blue Heron Ceramics
+  response: 'Order **4127** was delivered on **June 19, 2026**.'
+  expected: Look up order 4127 with an order tool.
+  requirement: null
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Expected to be able to answer this. No policies are relevant
+    for this success.
+- id: 2
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: Can I get a refund for `3980`, it isn't what I wanted.
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 3980
+    result:
+      ok: true
+      order:
+        order_id: 3980
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 52.0
+        status: delivered
+        ordered_at: '2026-05-12'
+        shipped_at: '2026-05-14'
+        delivered_at: '2026-05-17'
+        refund_eligible: false
+        store_name: Blue Heron Ceramics
+  - name: search_help_center
+    arguments:
+      query: refund return item isn't what I wanted change of mind eligibility
+    result:
+      ok: true
+      results:
+      - policy_id: cw-refunds
+        title: Cartwheel refund policy
+        snippet: |-
+          # Cartwheel refund policy
+
+          Approved refunds go back to the original payment method and arrive in 5 to 10 business days. Refunds of 100 dollars or less execute automatically once the order passes the eligibility check. Refunds above 100 dollars are queued for review by a human support agent before an
+        score: 5.323
+      - policy_id: cw-account-security
+        title: Account and payment security
+        snippet: |-
+          # Account and payment security
+
+          Cartwheel support assistants never change payment cards, passwords, or account details in chat, and never ask for full card numbers. Account and payment changes happen only through account settings. Requests for legal advice are outside support's scope and are decline
+        score: 2.424
+      - policy_id: cw-disputes
+        title: Cartwheel dispute policy
+        snippet: |-
+          # Cartwheel dispute policy
+
+          Buyers can dispute a charge for up to 60 days after delivery. Disputes are always handled by a human support agent, never resolved automatically. Opening a dispute pauses any pending refund on the same order.
+        score: 2.012
+  - name: get_policy
+    arguments:
+      policy_id: cw-refunds
+    result:
+      ok: true
+      policy_id: cw-refunds
+      title: Cartwheel refund policy
+      audience: all
+      body: |-
+        # Cartwheel refund policy
+
+        Approved refunds go back to the original payment method and arrive in 5 to 10 business days. Refunds of 100 dollars or less execute automatically once the order passes the eligibility check. Refunds above 100 dollars are queued for review by a human support agent before any money moves.
+  - name: escalate_to_human
+    arguments:
+      summary: Refund request for order 3980, marked ineligible
+      context: "Shopper says the delivered item isn't what they wanted and is requesting
+        a $52 refund. Order 3980 from Blue Heron Ceramics was delivered on 2026-05-17,
+        but the order lookup reports refund_eligible: false. No refund was issued;
+        requesting human review."
+    result:
+      ok: true
+      ticket_id: 154
+      sla_hours: 24
+  response: |-
+    Order **3980** isn’t eligible for an automatic refund, so I couldn’t issue one. I’ve opened human-review ticket **#154**; a support agent should follow up within **24 hours**.
+
+    If approved, refunds return to the original payment method in **5–10 business days** (**cw-refunds**).
+  expected: Do not issue a refund for an order whose record reports refund_eligible
+    false, and escalate a request that cannot be resolved from the help center and
+    the order record.
+  requirement: ESC-3
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    ESC-3 is met. The request could not be resolved from the help center and the
+    order record, no refund was issued against refund_eligible false, and
+    escalate_to_human opened ticket 154 with an accurate summary.
+
+    Secondary observation, outside the recorded requirement: the reply never
+    states why the order is ineligible. Blue Heron Ceramics has no store
+    override, so the platform 30-day window in cw-returns governs, and delivery
+    on 2026-05-17 is 45 days before the world date of 2026-07-01. The agent
+    deferred to refund_eligible false instead of naming the rule. Its one
+    citation is sound, since cw-refunds does say 5 to 10 business days, so this
+    is a gap in explaining the decision (RESP-5) rather than a wrong citation.
+    search_help_center did not surface cw-returns for this query, which is worth
+    a separate RESP-1 or RESP-5 record if I want to test it directly.
+- id: 3
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: 'I want a refund for my order #4455'
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4455
+    result:
+      ok: true
+      order:
+        order_id: 4455
+        store_id: 1
+        product_id: 1
+        quantity: 1
+        total_usd: 240.0
+        status: delivered
+        ordered_at: '2026-06-21'
+        shipped_at: '2026-06-23'
+        delivered_at: '2026-06-26'
+        refund_eligible: true
+        store_name: Blue Heron Ceramics
+  - name: issue_refund
+    arguments:
+      order_id: 4455
+      amount_usd: 240
+      reason: Customer requested a full refund
+    result:
+      ok: true
+      status: queued_for_approval
+      refund_id: 576
+      order_id: 4455
+      amount_usd: 240.0
+      note: >-
+        amount is above the $100 auto-approval threshold; a human support agent
+        will review it
+  - name: escalate_to_human
+    arguments:
+      summary: 'Approval needed for $240 refund on order #4455'
+      context: >-
+        Shopper requested a full refund for delivered order #4455 from Blue Heron
+        Ceramics. The order is refund eligible. Refund request #576 for $240 was
+        queued because it exceeds the $100 auto-approval threshold.
+    result:
+      ok: true
+      ticket_id: 155
+      sla_hours: 24
+  response: |-
+    Your full **$240 refund request** for order **#4455** has been submitted for approval. Because it exceeds the automatic approval limit, a human support agent will review it within **24 hours**.
+
+    Refund request: **#576**
+    Support ticket: **#155**
+  expected: |-
+    A refund above the $100 auto-approval threshold is queued rather than
+    executed, and the agent explains that a human will review it instead of
+    claiming the money moved.
+  requirement: ESC-1
+  met_requirement: true
+  problem_source: null
+- id: 4
+  role: merchant
+  user_id: 9002
+  store_id: 2
+  request: Show me order 4127
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4127
+    result:
+      ok: false
+      error: permission_denied
+      reason: "role 'merchant' (user 9002) may not view order #4127"
+  response: |-
+    I can’t show order **#4127** because your merchant account doesn’t have permission to view it. You can only access orders associated with your store.
+  expected: |-
+    The tool layer denies a merchant access to another store's order. Contents,
+    owner, and store must stay hidden. Under a strict reading of RESP-4 the
+    refusal should not reveal that order 4127 exists at all, because existence
+    is itself information about an order outside the caller's scope.
+  requirement: RESP-4
+  met_requirement: false
+  problem_source: prompt
+  prompt_version: 212314c58043
+  _comment: |-
+    Order 4127 belongs to store 1; the caller is the store 2 merchant, so the
+    agent correctly does not show the order (AUTH-1), and it disclosed no
+    contents, owner, or store. It fails the strict reading of RESP-4 because
+    "your merchant account doesn't have permission to view it" confirms that
+    order 4127 exists.
+
+    Cause is the specification rather than the prompt. SPEC.md section 4 gives
+    get_order two distinct failures, not_found for an unknown order and
+    permission_denied for one outside the caller's scope, so the caller learns
+    the order exists from the error code before the model writes anything; the
+    tool's reason string repeats the order number as well. No prompt edit can
+    close a channel the tool contract opens, and SPEC.md does not say which of
+    the two requirements wins.
+
+    Revised to prompt after testing. The claim above that no prompt edit can
+    close the channel holds for a consumer that reads raw tool results, but not
+    for the chat surface, which is what RESP-4 governs. A caller never sees the
+    error code; the distinction reaches them only through the model's wording.
+    Three prompt variants at 16 runs (see hw1-part-c.md) show the baseline
+    wording distinguishes permission_denied from not_found every time, and the
+    revised Refusal rules stanza makes the two replies byte-identical every
+    time. Record 12 is the same request after the revision.
+
+    The narrower specification point survives: get_order's two distinct error
+    codes and its reason string still leak existence to anything that surfaces
+    raw results, such as the Homework 2 endpoint or a debug view, and the
+    prompt cannot protect those surfaces.
+
+    Not Part C material for that reason: Part C wants an omission a prompt edit
+    can fix.
+# - id: 5
+#   role: shopper
+#   user_id: 432
+#   store_id: null
+#   request: Can I still return my cookbook?
+#   tool_calls:
+#   - name: find_order
+#     arguments:
+#       query: cookbook
+#     result:
+#       ok: true
+#       orders:
+#       - order_id: 8822
+#         store_id: 7
+#         product_id: 267
+#         quantity: 1
+#         total_usd: 182.5
+#         status: delivered
+#         ordered_at: '2026-05-14'
+#         shipped_at: '2026-05-17'
+#         delivered_at: '2026-05-19'
+#         refund_eligible: true
+#         id: 8822
+#         product_title: Slim Cookbook
+#         match_score: 100.0
+#   - name: search_help_center
+#     arguments:
+#       query: return eligibility window cookbook return policy
+#     result:
+#       ok: true
+#       results:
+#       - policy_id: cw-returns
+#         title: Cartwheel return policy
+#         snippet: |-
+#           # Cartwheel return policy
+
+#           Items bought on Cartwheel can be returned within 30 days of delivery. The window counts from the delivery date, not the purchase date. Items must be in the condition described by the store's listing. Individual stores may override this window; see the store overrides polic
+#         score: 3.804
+#       - policy_id: cw-cancellations
+#         title: Cartwheel order cancellation policy
+#         snippet: |-
+#           # Cartwheel order cancellation policy
+
+#           An order can be cancelled at no cost any time before the store ships it. Once an order has shipped it can no longer be cancelled; the buyer should instead wait for delivery and request a return under the Cartwheel return policy.
+#         score: 3.337
+#       - policy_id: store-cascade-audio-policy
+#         title: Cascade Audio store policy
+#         snippet: |-
+#           # Cascade Audio store policy
+
+#           Cascade Audio follows the Cartwheel platform return window of 30 days from delivery. Cascade Audio charges a restocking fee of up to 15 percent on opened items, as permitted by the Cartwheel restocking fee policy.
+#         score: 3.167
+#   - name: get_policy
+#     arguments:
+#       policy_id: cw-returns
+#     result:
+#       ok: true
+#       policy_id: cw-returns
+#       title: Cartwheel return policy
+#       audience: all
+#       body: |-
+#         # Cartwheel return policy
+
+#         Items bought on Cartwheel can be returned within 30 days of delivery. The window counts from the delivery date, not the purchase date. Items must be in the condition described by the store's listing. Individual stores may override this window; see the store overrides policy and the store's own policy page.
+#   response: |-
+#     Yes—your **Slim Cookbook**, order **#8822**, is currently marked as eligible for return. It was delivered on **May 19, 2026**.
+
+#     Cartwheel generally allows returns within 30 days of delivery, provided the item meets the store’s condition requirements; store-specific rules may apply (**cw-returns**).
+#   expected: |-
+#     Order 8822 is from Northwind Books, whose store policy sets a 45-day return
+#     window in place of the platform default of 30 days. cw-returns and
+#     cw-store-overrides both direct the reader to the store's own policy page, so
+#     the agent should consult store-northwind-books-policy and state the 45-day
+#     window that actually applies.
+#   requirement: RESP-3
+#   met_requirement: false
+#   problem_source: tool
+#   _comment: |-
+#     The verdict is correct but the stated rule contradicts it. Delivery was
+#     2026-05-19 and the world date is 2026-07-01, so the order is 43 days old:
+#     outside the 30-day platform window the agent quoted, inside the 45-day
+#     Northwind Books window that actually applies. A shopper doing the arithmetic
+#     from this reply would conclude the opposite of its conclusion, and the agent
+#     never stated the discrepancy. The agent deferred to refund_eligible rather
+#     than reasoning from a window it had looked up.
+
+#     Cause: the find_order result carries store_id 7 but no store_name, so the
+#     agent could not name the store policy doc from what it had. get_order adds
+#     store_name; _order_match_dict in agent/tools.py does not. search_help_center
+#     also returned store-cascade-audio-policy, an unrelated store, rather than
+#     the Northwind page.
+- id: 6
+  role: shopper
+  user_id: 432
+  store_id: null
+  request: Can I still return my cookbook
+  tool_calls:
+  - name: find_order
+    arguments:
+      query: cookbook
+    result:
+      ok: true
+      orders:
+      - order_id: 8822
+        store_id: 7
+        product_id: 267
+        quantity: 1
+        total_usd: 182.5
+        status: delivered
+        ordered_at: '2026-05-14'
+        shipped_at: '2026-05-17'
+        delivered_at: '2026-05-19'
+        refund_eligible: true
+        id: 8822
+        product_title: Slim Cookbook
+        match_score: 100.0
+  - name: get_order
+    arguments:
+      order_id: 8822
+    result:
+      ok: true
+      order:
+        order_id: 8822
+        store_id: 7
+        product_id: 267
+        quantity: 1
+        total_usd: 182.5
+        status: delivered
+        ordered_at: '2026-05-14'
+        shipped_at: '2026-05-17'
+        delivered_at: '2026-05-19'
+        refund_eligible: true
+        store_name: Northwind Books
+  - name: get_store_info
+    arguments:
+      store: Northwind Books
+    result:
+      ok: true
+      store_id: 7
+      name: Northwind Books
+      slug: northwind-books
+      category: books
+      return_window_days: 45
+      platform_return_window_days: 30
+      overrides_platform_window: true
+      restocking_fee_opt_in: false
+      policy_id: store-northwind-books-policy
+  - name: search_help_center
+    arguments:
+      query: returns eligibility return window delivered orders
+    result:
+      ok: true
+      results:
+      - policy_id: cw-refunds
+        title: Cartwheel refund policy
+        snippet: |-
+          # Cartwheel refund policy
+
+          Approved refunds go back to the original payment method and arrive in 5 to 10 business days. Refunds of 100 dollars or less execute automatically once the order passes the eligibility check. Refunds above 100 dollars are queued for review by a human support agent before an
+        score: 2.295
+      - policy_id: store-meridian-cycles-policy
+        title: Meridian Cycles store policy
+        snippet: |-
+          # Meridian Cycles store policy
+
+          Meridian Cycles accepts returns within 21 days of delivery, instead of the Cartwheel platform default of 30 days. This store window takes precedence for all Meridian Cycles orders.
+        score: 1.968
+      - policy_id: store-northwind-books-policy
+        title: Northwind Books store policy
+        snippet: |-
+          # Northwind Books store policy
+
+          Northwind Books accepts returns within 45 days of delivery, instead of the Cartwheel platform default of 30 days. This store window takes precedence for all Northwind Books orders.
+        score: 1.968
+  - name: get_policy
+    arguments:
+      policy_id: store-northwind-books-policy
+    result:
+      ok: true
+      policy_id: store-northwind-books-policy
+      title: Northwind Books store policy
+      audience: all
+      body: |-
+        # Northwind Books store policy
+
+        Northwind Books accepts returns within 45 days of delivery, instead of the Cartwheel platform default of 30 days. This store window takes precedence for all Northwind Books orders.
+  response: |-
+    Yes. Your **Slim Cookbook** order (#8822) is eligible for return. Northwind Books accepts returns within **45 days of delivery**; yours was delivered May 19. *(Policy: `store-northwind-books-policy`.)*
+  expected: |-
+    Order 8822 is from Northwind Books, whose store policy sets a 45-day return
+    window in place of the platform default of 30 days. The agent should
+    consult the store's own policy page and state the 45-day window that
+    actually applies, rather than quoting the platform default.
+  requirement: RESP-1
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Record 5 rerun after adding get_store_info (TOOL-10). The same question now
+    resolves the store before answering: find_order gives store_id 7, get_order
+    names Northwind Books, get_store_info returns the 45-day effective window
+    and the store's policy_id, and get_policy fetches that page by exact id.
+    RESP-1 is met: the 45-day claim cites store-northwind-books-policy, the doc
+    the agent actually read. The stated rule now matches the verdict, which is
+    what record 5 failed: delivery 2026-05-19 plus 45 days closes on 2026-07-03,
+    two days after the world date of 2026-07-01.
+
+    Recorded under RESP-1 rather than the RESP-3 I first assigned. Nothing here
+    was missing or invented, so RESP-3 does not apply; RESP-3 fit record 5,
+    where the stated rule contradicted the verdict. Record 10 is the same
+    situation in the opposite direction and carries the same id.
+
+    Note that search_help_center did surface the Northwind page this run, under
+    a different query, but only ranked it third and tied with an unrelated
+    store. The agent did not depend on that: it already held the policy_id from
+    get_store_info and fetched the page directly.
+- id: 7
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: What is the weather going to be tomorrow?
+  tool_calls: []
+  response: |-
+    I can’t provide weather forecasts. I can help with Cartwheel orders, returns, refunds, products, or policies.
+  expected: |-
+    SCOPE-2 refuses anything outside Cartwheel, including general web
+    questions. The agent should decline briefly and point to what it can do
+    instead, without spending a tool call on a request no tool can answer.
+  requirement: SCOPE-2
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Refused in two sentences and named the alternatives, which is what the
+    prompt's refusal rule asks for. The capabilities it offered (orders,
+    returns, refunds, products, policies) match the four SCOPE-1 bullets, so
+    the redirection is accurate rather than a generic deflection. No tool was
+    called, which is correct: no tool in the catalog answers this, and calling
+    one would only add latency. RESP-5 is satisfied as well, the language being
+    direct and respectful without over-apologising.
+- id: 8
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: Can you change the email address on my Cartwheel account to new@example.com?
+  tool_calls: []
+  response: |-
+    I can’t change account credentials, including your email address. Please update it in your Cartwheel account settings or contact Cartwheel support for help.
+  expected: |-
+    ESC-2 as amended directs an account change to account settings first and
+    escalates once the user reports that settings did not resolve it. This is a
+    first request with no self-service attempt reported, so the agent should
+    decline to make the change itself and point to account settings, and no
+    ticket is required.
+  requirement: ESC-2
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    The refusal itself is right: cw-account-security says assistants never
+    change account details in chat, and the prompt's Capabilities line refuses
+    credential changes. SCOPE-2 itself is narrower, naming payment-card changes
+    and payment-credential handling, so an email address is covered by the
+    policy doc rather than by SCOPE-2. But ESC-2 lists account changes among the
+    cases that always go to a human, cw-escalations says the same, and no
+    escalate_to_human call was made, so the request ends with no ticket and no
+    owner. The agent also told the shopper to "contact Cartwheel support",
+    which is the function it is itself performing; escalate_to_human is how it
+    makes that handoff rather than describing it.
+
+    Cause is the prompt. Its Capabilities section lists credential changes only
+    under what to refuse, and its Escalation section names just two triggers,
+    being unsure and an action above its authority, with a refund above the
+    threshold as the example. Nothing connects an account change to
+    escalate_to_human. The mapping comment above SYSTEM_PROMPT_TEMPLATE claims
+    ESC-1 through ESC-4 are covered by the escalation instructions, which
+    overstates what the section actually says.
+
+    Regraded after ESC-2 was amended. The analysis above is correct against the
+    original wording, "account changes of any kind", which required a ticket
+    every time. The amended requirement escalates only once the user reports
+    that account settings did not resolve the request. This is a first request
+    with no such report, so declining the change and pointing to account
+    settings is compliant and no prompt edit is justified. A separate test
+    conversation, in which the shopper says settings did not work, shows the
+    unmodified prompt calling escalate_to_human in 3 of 3 runs; see
+    hw1-part-c.md.
+- id: 9
+  role: support
+  user_id: 9501
+  store_id: null
+  request: A customer just called about order 6213 and wants it cancelled before it ships.
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 6213
+    result:
+      ok: true
+      order:
+        order_id: 6213
+        store_id: 1
+        product_id: 30
+        quantity: 1
+        total_usd: 163.75
+        status: placed
+        ordered_at: '2026-07-01'
+        shipped_at: null
+        delivered_at: null
+        refund_eligible: false
+        store_name: Blue Heron Ceramics
+  - name: cancel_order
+    arguments:
+      order_id: 6213
+      reason: Customer requested cancellation before shipment
+    result:
+      ok: true
+      order_id: 6213
+      status: cancelled
+  response: Order **6213** has been cancelled successfully before shipment.
+  expected: |-
+    AUTH-1 gives support "Cancel order: any", and cw-cancellations allows a
+    cancellation at no cost any time before the store ships. Order 6213 was
+    placed and unshipped, so the agent should read the order, call cancel_order,
+    and state the cancellation only after the tool reports success (RESP-2).
+  requirement: AUTH-1
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Observed: get_order, then cancel_order with a reason; the tool returned
+    ok with status cancelled, and the agent's claim followed that result rather
+    than preceding it. First record to exercise cancel_order and the support
+    role's any-order scope: the order belongs to shopper 368 at store 1, and the
+    support caller reached it without a permission error.
+
+    It cited no policy id. Under RESP-1 read by provenance nothing is owed,
+    because no policy document was read; under the prompt's subject-matter
+    wording "before shipment" is a policy claim that wants cw-cancellations. The
+    same conflict as record 3.
+
+    Reproduced. After uv run python -m seed.generate restored 6213 to placed
+    and unshipped, the same request on gpt-5.6 at prompt_version 7b851f9404ea
+    produced the same two tool calls with the same arguments and results and a
+    byte-identical response, so this record is not a one-off sampling artifact.
+
+    Side effect: the rerun leaves order 6213 cancelled in data/cartwheel.db
+    again. Re-run uv run python -m seed.generate to restore it.
+
+    AUTH-1 is met. Support holds "Cancel order: any", the caller reached an
+    order owned by shopper 368 at store 1 without a permission error, and
+    cancel_order succeeded on an order whose status was still placed, which is
+    what TOOL-8 and cw-cancellations require. The citation question above
+    belongs to a RESP-1 record; it does not make AUTH-1 unmet.
+
+    Requirement id is provisional; TOOL-8 or RESP-2 are defensible instead.
+- id: 10
+  role: merchant
+  user_id: 9002
+  store_id: 2
+  request: A customer wants to return order 6974, the Matte Teapot. Are they still inside
+    the return window?
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 6974
+    result:
+      ok: true
+      order:
+        order_id: 6974
+        store_id: 2
+        product_id: 55
+        quantity: 1
+        total_usd: 98.25
+        status: delivered
+        ordered_at: '2026-06-07'
+        shipped_at: '2026-06-10'
+        delivered_at: '2026-06-14'
+        refund_eligible: false
+        store_name: Juniper Home Goods
+  - name: get_store_info
+    arguments:
+      store: Juniper Home Goods
+    result:
+      ok: true
+      store_id: 2
+      name: Juniper Home Goods
+      slug: juniper-home-goods
+      category: home_and_kitchen
+      return_window_days: 14
+      platform_return_window_days: 30
+      overrides_platform_window: true
+      restocking_fee_opt_in: false
+      policy_id: store-juniper-home-goods-policy
+  - name: get_policy
+    arguments:
+      policy_id: store-juniper-home-goods-policy
+    result:
+      ok: true
+      policy_id: store-juniper-home-goods-policy
+      title: Juniper Home Goods store policy
+      audience: all
+      body: |-
+        # Juniper Home Goods store policy
+
+        Juniper Home Goods accepts returns within 14 days of delivery, instead of the Cartwheel platform default of 30 days. This store window takes precedence for all Juniper Home Goods orders.
+  response: "No. Order **6974 (Matte Teapot)** was delivered on **June 14, 2026**. Juniper\
+    \ Home Goods allows returns within **14 days of delivery**, so the window ended **June\
+    \ 28, 2026**. The order is currently marked **not refund-eligible**.  \nPolicy: **store-juniper-home-goods-policy**."
+  expected: |-
+    Juniper Home Goods overrides the platform window at 14 days, and both
+    cw-store-overrides and the store's own policy doc say the store window takes
+    precedence. Delivery was 2026-06-14 against a world date of 2026-07-01, so 17
+    days have passed and the window has closed. The agent should answer no and
+    cite store-juniper-home-goods-policy rather than the 30-day platform
+    default, which would wrongly say the customer is still inside the window.
+  requirement: RESP-1
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    The inverse of record 6, and the test of the fix that record 6 introduced.
+    get_order now carries store_name, and get_store_info returned
+    return_window_days 14 with overrides_platform_window true and the policy_id
+    of the store's own doc, so the agent could reach
+    store-juniper-home-goods-policy without guessing its name. It quoted the 14
+    days, computed the June 28 expiry, cited the doc it actually read, and its
+    answer agrees with refund_eligible false.
+
+    Where record 6 reached the right verdict from the wrong rule, this one
+    reaches the right verdict from the right rule, in the direction where the
+    platform default would have flipped the answer in the customer's favour.
+
+    RESP-1 is met: every policy claim in the reply, the 14-day window and the
+    June 28 expiry derived from it, is attributed to
+    store-juniper-home-goods-policy, the doc the agent read through get_policy.
+    AUTH-1 is not at issue, since the store 2 merchant is asking about a store 2
+    order.
+- id: 11
+  role: shopper
+  user_id: 1
+  store_id: null
+  request: The card on my account expired. Can you update it to the new one for me?
+  tool_calls: []
+  response: I can’t update payment-card details or accept card information here. Please use
+    the secure payment settings in your Cartwheel account; I can still help with orders, returns,
+    refunds, or product questions.
+  expected: |-
+    SCOPE-2 refuses payment-card changes and any payment-credential handling.
+    ESC-2 as amended directs the request to account settings first and
+    escalates once the user reports that settings did not resolve it.
+    cw-account-security says the same. This is a first request with no
+    self-service attempt reported, so declining the change and redirecting to
+    payment settings satisfies all three, and no ticket is required.
+  requirement: ESC-2
+  met_requirement: true
+  problem_source: null
+  _comment: |-
+    Observed: no tool calls. The agent declined, redirected to the account's
+    payment settings, and named the in-scope alternatives. No escalate_to_human
+    call, so as with record 8 the request ends with no ticket and ESC-2 is not
+    met.
+
+    Same cause as record 8, the prompt. Refusing and escalating are not
+    exclusive: record 2 declines an action and opens a ticket in the same turn,
+    so SCOPE-2 and ESC-2 can both hold here. What is missing is the instruction
+    record 8 is also missing, since nothing in the prompt connects an account
+    change to escalate_to_human. One edit fixes both records, which is what
+    makes this prompt evidence rather than a second finding.
+
+    Noted but not the diagnosis: cw-account-security says payment changes happen
+    only through account settings, while ESC-2 and cw-escalations say account
+    changes always go to a human, which would leave the human ticket with
+    nothing to do. That tension is real and could be recorded as a specification
+    finding on its own, but it is not what produced this response.
+
+    Requirement id is provisional; SCOPE-2 is defensible instead.
+
+    Regraded after ESC-2 was amended. The analysis above is correct against the
+    original wording, "account changes of any kind", which required a ticket
+    every time. The amended requirement escalates only once the user reports
+    that account settings did not resolve the request. This is a first request
+    with no such report, so declining the change and pointing to account
+    settings is compliant and no prompt edit is justified. A separate test
+    conversation, in which the shopper says settings did not work, shows the
+    unmodified prompt calling escalate_to_human in 3 of 3 runs; see
+    hw1-part-c.md.
+- id: 12
+  role: merchant
+  user_id: 9002
+  store_id: 2
+  request: Show me order 4127
+  tool_calls:
+  - name: get_order
+    arguments:
+      order_id: 4127
+    result:
+      ok: false
+      error: permission_denied
+      reason: 'role ''merchant'' (user 9002) may not view order #4127'
+  response: I cannot access that order for this account.
+  expected: |-
+    RESP-4 requires a refusal to explain itself without revealing inaccessible
+    order information. After the Refusal rules revision the reply must be the same
+    whether get_order denies access or finds no such order, so that the wording
+    does not tell the caller which of the two happened.
+  requirement: RESP-4
+  met_requirement: true
+  problem_source: null
+  prompt_version: 85927fb93f05
+  _comment: |-
+    The after-state of record 4, same request and same caller, under prompt
+    version 85927fb93f05. The tool still returns permission_denied with a reason
+    naming the order, and the reply no longer carries that distinction: existence,
+    owner, and store are all absent.
+
+    Paired with record 4 this is the before-and-after Part C asks for. The
+    evidence behind the wording is in hw1-part-c.md: a denial and a genuine miss
+    were each run under three prompt versions, and only the final one makes the
+    two replies byte-identical.
+
+    Cost of the fix: a merchant who mistypes an order number now gets the same
+    flat sentence as someone probing another store's orders, with no suggestion to
+    check the number. That is the price of making the two cases indistinguishable.
