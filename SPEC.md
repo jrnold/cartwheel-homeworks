@@ -97,7 +97,8 @@ Successful results contain `ok: true` and the result fields. Expected failures c
 The following cases always go to a human:
 
 - **ESC-1.** Refunds above the threshold; the tool queues the refund, and the agent explains the result.
-- **ESC-2.** Account changes of any kind.
+- **ESC-2.** Account changes of any kind, escalated once the user reports that
+  account settings did not resolve the request.
 - **ESC-3.** Disputes and requests the agent cannot resolve from the help center and the
   order record.
 - **ESC-4.** Any case where the agent is unsure whether policy allows an action.
