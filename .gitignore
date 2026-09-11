@@ -19,3 +19,6 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Session progress notes (kept out of submissions per hw1-tutorial.md)
+homework/module-1/hw*-notes.md
