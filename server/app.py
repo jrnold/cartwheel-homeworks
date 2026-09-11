@@ -191,7 +191,7 @@ async def post_message(
     ctx = _authorize(session_id, authorization)
     _, session = _SESSIONS[session_id]
     agent = build_agent(ctx, model=body.model)
-    version = prompt_version(render_system_prompt(ctx))
+    version = prompt_version()
 
     with _tracer.start_as_current_span("cartwheel.session_message") as span:
         span.set_attribute("cartwheel.user_role", ctx.role)
