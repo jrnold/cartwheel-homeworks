@@ -46,6 +46,14 @@ from observability.instrument import load_env, setup_tracing
 MAX_TURNS = 12  # cap runaway loops; keeps conversations bounded
 SESSIONS_DB = REPO_ROOT / ".sessions.db"
 
+# OpenTelemetry semantic conventions, not Langfuse names: session.id and
+# user.id are defined by OTel (semconv _incubating session/user attributes),
+# and Langfuse maps them onto its Sessions and Users views. Its own
+# langfuse.* namespace is reserved for concepts OTel does not define. Named
+# here rather than inlined because both are still incubating conventions.
+OTEL_SESSION_ID = "session.id"
+OTEL_USER_ID = "user.id"
+
 _tracer = trace.get_tracer("cartwheel.server")
 
 
@@ -199,6 +207,11 @@ async def post_message(
         span.set_attribute("cartwheel.prompt_version", version)
         if body.scenario_id:
             span.set_attribute("cartwheel.scenario_id", body.scenario_id)
+        # Beyond the handout's attribute list: these group a session's turns
+        # into one Langfuse thread. cartwheel.user_id stays the application's
+        # own record; user.id exists only so the UI can filter by user.
+        span.set_attribute(OTEL_SESSION_ID, session_id)
+        span.set_attribute(OTEL_USER_ID, str(ctx.user_id))
         if _capture_content():
             span.set_attribute(
                 "gen_ai.input.messages",

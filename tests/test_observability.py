@@ -216,6 +216,10 @@ def test_root_span_parents_the_agent_spans(world, sessions, spans, monkeypatch) 
     assert root.attributes["cartwheel.prompt_version"] == response["prompt_version"]
     # Not supplied by this request, so it must be absent rather than null.
     assert "cartwheel.scenario_id" not in root.attributes
+    # OTel semantic-convention names Langfuse reads for its Sessions and Users
+    # views. The session id is the server's, so a session's turns thread together.
+    assert root.attributes[server_app.OTEL_SESSION_ID] == created["session_id"]
+    assert root.attributes[server_app.OTEL_USER_ID] == "1"
 
     messages = json.loads(root.attributes["gen_ai.input.messages"])
     assert messages == [
