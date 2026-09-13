@@ -17,6 +17,8 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from agents.tracing import set_trace_processors
+from agents.tracing.processors import default_processor
 from opentelemetry import trace
 
 if TYPE_CHECKING:
@@ -26,6 +28,28 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 log = logging.getLogger("cartwheel.instrument")
 
 _genai_instrumented = False
+_openai_tracing_enabled = False
+
+
+def configure_model_tracing(*, openai_model: bool) -> None:
+    """Remove implicit hosted export for non-OpenAI models.
+
+    SDK processors are process-wide. Preserve either explicitly selected course
+    destination; do not globally disable spans, which would also break Langfuse.
+    """
+    if not openai_model and not _genai_instrumented and not _openai_tracing_enabled:
+        set_trace_processors([])
+
+
+def setup_openai_tracing() -> bool:
+    """Explicitly select hosted tracing, including for non-OpenAI inference."""
+    global _openai_tracing_enabled
+    if not os.environ.get("OPENAI_API_KEY", "").strip():
+        raise ValueError("--trace-openai requires OPENAI_API_KEY; omit the flag for local chat")
+    set_trace_processors([default_processor()])
+    _openai_tracing_enabled = True
+    return True
+
 
 
 def instrument_genai(tracer_provider: Any) -> None:
@@ -98,10 +122,11 @@ def record_tool_result(ctx: "AuthContext", result: dict[str, Any]) -> None:
     span = trace.get_current_span()
     if not span.is_recording():
         return
-    ### YOUR CODE HERE (HW2)
-    raise NotImplementedError(
-        "HW2: add authenticated caller and permission attributes to the tool span"
-    )
+    span.set_attribute("cartwheel.user_role", ctx.role)
+    span.set_attribute("cartwheel.user_id", str(ctx.user_id))
+    if ctx.role == "merchant" and ctx.store_id is not None:
+        span.set_attribute("cartwheel.store_id", ctx.store_id)
+    _set_permission_denied_attributes(span, result)
 
 
 def _set_permission_denied_attributes(
@@ -125,5 +150,9 @@ def _set_permission_denied_attributes(
     the smoke report counts them and Module 3 asserts on them. This is the one place in the
     course where you touch instrumentation by hand.
     """
-    ### YOUR CODE HERE (HW2)
-    raise NotImplementedError("HW2: set the cartwheel.permission_denied span attribute")
+    denied = result.get("error") == "permission_denied"
+    span.set_attribute("cartwheel.permission_denied", denied)
+    if denied:
+        span.set_attribute(
+            "cartwheel.permission_denied.reason", result.get("reason", "")
+        )

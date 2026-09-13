@@ -37,13 +37,10 @@ from seed.eligibility import effective_return_window_days
 MAX_SEARCH_LIMIT = 25
 DEFAULT_ORDER_LIMIT = 20
 
-# find_order tuning. FIND_ORDER_SCAN_LIMIT bounds how much order history one
-# search reads; FIND_ORDER_MIN_TOKEN_SCORE is the rapidfuzz cutoff at which one
-# query word is taken to name one word of a product title.
+# find_order tuning. FIND_ORDER_MIN_TOKEN_SCORE is the rapidfuzz cutoff at
+# which one query word is taken to name one word of a product title.
 FIND_ORDER_LIMIT = 5
-FIND_ORDER_SCAN_LIMIT = 200
 FIND_ORDER_MIN_TOKEN_SCORE = 80.0
-MAX_PRODUCTS_PER_SCAN = 400
 
 _WORD_RE = re.compile(r"[a-z0-9]+")
 
@@ -381,15 +378,21 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
     Takes a natural-language query (e.g., "earmuffs I bought last week")
     and searches the authenticated user's orders for products whose name
     matches. Use fuzzy string matching (e.g., thefuzz.fuzz.partial_ratio
-    or SQLite LIKE) to find orders whose product name is close to the
+    or case-insensitive substring matching) to find orders whose product name is close to the
     query.
 
     Access rules: a shopper searches only the shopper's own orders, a
     merchant searches orders from the merchant's store, and support staff
-    can search any orders. Use agent.db.list_orders_for_user for shoppers
-    and agent.db.list_orders_for_store for merchants. For support staff,
-    use agent.db.list_orders_for_user with no user filter, or search
-    across all orders.
+    can search any orders. Use agent.db.list_order_search_candidates with
+    user_id=ctx.user_id for shoppers, store_id=ctx.store_id for merchants,
+    or all_orders=True only for support. Derive the scope from ctx, never
+    from the query; reject unsupported roles or missing required identity.
+    Use agent.db.list_products to map product IDs to product titles.
+
+    The helper returns the complete authorised scope, newest first with
+    order ID descending as the tie-breaker. Match product names first,
+    preserve that order, then return at most five matches. Do not search
+    only the 20 most recent orders. Convert matches with to_public_dict().
 
     Args:
         ctx: The caller's auth context.
@@ -409,30 +412,23 @@ def find_order(ctx: AuthContext, query: str) -> dict[str, Any]:
         if not matched:
             return {"ok": True, "orders": []}
         if ctx.role == "shopper":
-            candidates = db.list_orders_for_user(
-                conn, ctx.user_id, limit=FIND_ORDER_SCAN_LIMIT
-            )
+            candidates = db.list_order_search_candidates(conn, user_id=ctx.user_id)
         elif ctx.role == "merchant":
-            assert ctx.store_id is not None
-            candidates = db.list_orders_for_store(
-                conn, ctx.store_id, limit=FIND_ORDER_SCAN_LIMIT
-            )
+            if ctx.store_id is None:
+                return _invalid_argument("a merchant caller must belong to a store")
+            candidates = db.list_order_search_candidates(conn, store_id=ctx.store_id)
+        elif ctx.role == "support":
+            candidates = db.list_order_search_candidates(conn, all_orders=True)
         else:
-            candidates = _orders_for_products(conn, matched, FIND_ORDER_LIMIT)
-        hits = [order for order in candidates if order.product_id in matched]
-        # Most query words matched first, then best word score, then newest.
-        hits.sort(
-            key=lambda o: (
-                -matched[o.product_id].words_matched,
-                -matched[o.product_id].score,
-                -o.ordered_at.toordinal(),
-                -o.id,
-            )
-        )
+            return _invalid_argument(f"unsupported role {ctx.role!r}")
+        # The helper returns the whole authorised scope, newest first with the
+        # order id breaking ties. Match first and keep that order, so an old
+        # match is never lost to truncation, then take at most five.
         orders = [
-            _order_match_dict(order, matched[order.product_id])
-            for order in hits[:FIND_ORDER_LIMIT]
-        ]
+            order.to_public_dict()
+            for order in candidates
+            if order.product_id in matched
+        ][:FIND_ORDER_LIMIT]
     return {"ok": True, "orders": orders}
 
 
@@ -490,43 +486,3 @@ def _match_product_titles(conn: Any, query: str) -> dict[int, _ProductMatch]:
         if match.words_matched:
             matched[product.id] = match
     return matched
-
-
-def _orders_for_products(
-    conn: Any, matched: dict[int, _ProductMatch], limit: int
-) -> list[db.Order]:
-    """Newest orders for the matched products, across every user and store.
-
-    Only support callers reach this: they may search any order, and agent.db
-    exposes no all-orders helper. The query selects ids only and the rows are
-    then read back through db.get_order, so row parsing stays in agent.db.
-
-    The product list is capped before it becomes an IN clause: SQLite refuses
-    a statement with more bound variables than its compile-time limit, and a
-    loose query against a production-scale catalog could otherwise exceed it.
-    """
-    best_products = sorted(
-        matched,
-        key=lambda pid: (-matched[pid].words_matched, -matched[pid].score, pid),
-    )[:MAX_PRODUCTS_PER_SCAN]
-    placeholders = ",".join("?" for _ in best_products)
-    rows = conn.execute(
-        f"SELECT id FROM orders WHERE product_id IN ({placeholders}) "
-        "ORDER BY ordered_at DESC, id DESC LIMIT ?",
-        (*best_products, limit),
-    ).fetchall()
-    orders = [db.get_order(conn, row["id"]) for row in rows]
-    return [order for order in orders if order is not None]
-
-
-def _order_match_dict(order: db.Order, match: _ProductMatch) -> dict[str, Any]:
-    """One find_order hit: the public order fields plus what matched.
-
-    Keyed "id" as well as "order_id" so a caller can chain the result into
-    get_order, issue_refund, or cancel_order without a rename.
-    """
-    payload = order.to_public_dict()
-    payload["id"] = order.id
-    payload["product_title"] = match.title
-    payload["match_score"] = match.score
-    return payload
