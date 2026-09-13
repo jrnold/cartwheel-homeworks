@@ -28,7 +28,7 @@ services:
     depends_on: &langfuse-depends-on
       postgres:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -51,14 +51,14 @@ services:
       LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
       LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
       LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: miniosecret
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://seaweedfs:9000
       LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
       LANGFUSE_S3_EVENT_UPLOAD_PREFIX: "events/"
       LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
       LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
       LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
       LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: miniosecret
-      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://seaweedfs:9000
       LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: "media/"
       REDIS_HOST: redis
@@ -135,28 +135,45 @@ services:
       timeout: 3s
       retries: 10
 
-  minio:
-    # MinIO does not publish major-version tags; the official Langfuse
-    # compose also tracks latest. Pin a RELEASE.* tag here if you need
-    # stricter reproducibility.
-    image: minio/minio:latest
+  seaweedfs:
+    # S3-compatible object store for Langfuse's event and media uploads.
+    # Replaces MinIO, whose Docker Hub repository was withdrawn. SeaweedFS is
+    # Apache-2.0 and still publishes to Docker Hub, so no registry override is
+    # needed. Pinned rather than :latest for reproducibility.
+    image: chrislusf/seaweedfs:3.97
     restart: always
-    entrypoint: sh
-    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: miniosecret
+    entrypoint: ["sh", "-c"]
+    # weed binds the container IP by default, so -ip.bind=0.0.0.0 is what lets
+    # the healthcheck below reach it on localhost. The bucket is created after
+    # the server is up, which is SeaweedFS's equivalent of MinIO's mkdir: its
+    # buckets live in the filer namespace, not on the plain filesystem.
+    # $$ escapes a literal $ for Compose interpolation.
+    command:
+      - |
+        set -e
+        mkdir -p /etc/seaweedfs /data
+        cat > /etc/seaweedfs/s3.json <<'EOF'
+        {"identities":[{"name":"langfuse","credentials":[{"accessKey":"minio","secretKey":"miniosecret"}],"actions":["Admin","Read","Write","List","Tagging"]}]}
+        EOF
+        weed server -ip.bind=0.0.0.0 -dir=/data -master.volumeSizeLimitMB=1024 \
+          -filer -s3 -s3.port=9000 -s3.config=/etc/seaweedfs/s3.json &
+        pid=$$!
+        until wget -q -O /dev/null http://localhost:9333/cluster/healthz; do sleep 1; done
+        echo "s3.bucket.create -name langfuse" | weed shell -master=localhost:9333 || true
+        wait $$pid
     ports:
       - "127.0.0.1:9090:9000"
-      - "127.0.0.1:9091:9001"
+      - "127.0.0.1:9091:9333"
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      # Master healthz proves the process is up; the S3 port returning any HTTP
+      # response (403 unauthenticated) proves the S3 API is actually serving.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9333/cluster/healthz && wget -S -q -O /dev/null http://localhost:9000/ 2>&1 | grep -q 'HTTP/'"]
       interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 5s
+      retries: 20
+      start_period: 15s
     volumes:
-      - langfuse_minio_data:/data
+      - langfuse_seaweedfs_data:/data
 
 volumes:
   langfuse_postgres_data:
@@ -165,5 +182,5 @@ volumes:
     driver: local
   langfuse_clickhouse_logs:
     driver: local
-  langfuse_minio_data:
+  langfuse_seaweedfs_data:
     driver: local
