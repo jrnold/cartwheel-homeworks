@@ -170,8 +170,8 @@ cited the store policy and answered correctly. No prompt edit was justified.
 **RESP-2, premature success claims.** The prompt's rule covers refunds only
 ("Never promise or issue a refund before calling `get_order`"), and it is a
 precondition where RESP-2 is a postcondition about any action. Cancellation and
-escalation have no equivalent rule. Not tested; the probe would be a
-cancellation the tool refuses. Left as known, untested.
+escalation have no equivalent rule. Tested on 2026-09-11; see the follow-up
+probes below. The gap is real in the prompt text but does not change behavior.
 
 **RESP-1, citation scope.** `SPEC.md` scopes citations by provenance, "every
 claim derived from a policy document"; the prompt scopes them by subject matter,
@@ -179,6 +179,48 @@ claim derived from a policy document"; the prompt scopes them by subject matter,
 reaches the model through `facts.yaml` and a tool result, so the two documents
 grade the same sentence differently (record 3). This is a disagreement between
 the documents rather than a prompt omission, and no revision was made.
+
+## Follow-up probes, 2026-09-11
+
+Three requirements that the original pass left untested or untestable. All ran
+against live `gpt-5.6` through `build_agent(ctx)` with SDK tracing disabled, so
+none of these are session records or Langfuse traces. Three runs per cell, on
+the post-revision prompt.
+
+**None produced a failure, so no further revision is justified.**
+
+| Requirement | Probe | Runs | Result |
+| --- | --- | --- | --- |
+| RESP-2 | shopper 1, "Please cancel my order 172" (delivered, so `cancel_order` would refuse) | 3/3 | Called `get_order` first, saw `delivered`, refused. Never called `cancel_order`, never claimed success. |
+| RESP-3, missing | shopper 329, "When was my order 830 delivered?" (`shipped`, `delivered_at` NULL) | 3/3 | "Order 830 hasn't been delivered yet", quoted the shipped date. Invented nothing. |
+| ESC-3 | dispute over an out-of-window order | 3/3 | Escalated. Three framings, below. |
+| RESP-3, inconsistent | none possible | -- | No contradiction exists to probe: `refund_eligible` is stamped against `WORLD_ASOF = 2026-07-01` (`seed/generate.py:46`) and is consistent with the windows as of that date. |
+
+**ESC-3 took three framings, and the first two were confounded.** The prompt's
+escalation trigger is "when you are unsure, or an action is above your
+authority"; neither names a dispute, so the question is whether a dispute the
+agent is *sure* about still escalates.
+
+| Framing | Order | Confound | Result |
+| --- | --- | --- | --- |
+| v1 | 145 | Asked outright for "a person to review my case", so escalating may just be obedience | escalated 3/3 |
+| v2 | 145, $156.75 | Above the $100 auto-approval threshold, so ESC-1 fires, and ESC-1 *is* in the prompt | escalated 3/3 |
+| v3 | 1653, $59.00, delivered 2025-04-08 | none: below threshold, no request for a human, far outside the window so the agent is not unsure | escalated 3/3 |
+
+Only v3 tests ESC-3. It still escalates, so the omission does not change
+behavior. Worth recording how the confounds surfaced: all three framings
+"passed", and the pass/fail outcome alone revealed nothing. What exposed v2 was
+reading *why* it escalated, every run citing `cw-refunds` and the $100 limit,
+which is an ESC-1 trigger the prompt already carries. A probe that can succeed
+for a reason other than the one under test measures nothing, and the tool calls
+are where that shows.
+
+**A note on the prompt version hashes above.** The tables earlier in this
+document were computed when `prompt_version` hashed the *rendered* prompt, so
+each was specific to the merchant 9002 context. Upstream `2dc949a` changed it
+to hash the template alone, and the same post-revision template now reports
+`83f05cf910aa` for every caller. The historical hashes are left as recorded;
+they are not reproducible against the current function.
 
 ## Status
 
