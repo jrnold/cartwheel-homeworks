@@ -202,6 +202,7 @@ async def post_message(
     version = prompt_version()
 
     with _tracer.start_as_current_span("cartwheel.session_message") as span:
+        span.set_attribute("cartwheel.session_id", session_id)
         span.set_attribute("cartwheel.user_role", ctx.role)
         span.set_attribute("cartwheel.user_id", str(ctx.user_id))
         span.set_attribute("cartwheel.prompt_version", version)

@@ -132,8 +132,8 @@ def test_tool_span_records_denial_and_store(spans) -> None:
         instrument.record_tool_result(MERCHANT_STORE_2, permission_denied(reason))
 
     attrs = exporter.get_finished_spans()[0].attributes
-    assert attrs["cartwheel.store_id"] == 2
-    assert isinstance(attrs["cartwheel.store_id"], int)
+    # A string, like cartwheel.user_id, so both identifiers share one type.
+    assert attrs["cartwheel.store_id"] == "2"
     assert attrs["cartwheel.permission_denied.reason"] == reason
 
     # `is True`, not `== True`: an accidental 1 or "true" would pass equality.
@@ -211,6 +211,8 @@ def test_root_span_parents_the_agent_spans(world, sessions, spans, monkeypatch) 
     child = finished["openai.response"]
 
     assert response["reply"] == "Here are your recent orders."
+    # HW4's review interface groups a conversation's traces by this attribute.
+    assert root.attributes["cartwheel.session_id"] == created["session_id"]
     assert root.attributes["cartwheel.user_role"] == "shopper"
     assert root.attributes["cartwheel.user_id"] == "1"
     assert root.attributes["cartwheel.prompt_version"] == response["prompt_version"]
