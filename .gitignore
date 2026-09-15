@@ -19,6 +19,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+scenarios/demo_pilot_gt.json
 
 # Session progress notes (kept out of submissions per hw1-tutorial.md)
 homework/module-1/hw*-notes.md
