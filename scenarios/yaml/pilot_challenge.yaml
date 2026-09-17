@@ -1,0 +1,453 @@
+- data_quality_case_id: dq-order-missing-delivery-date
+  tuple:
+    role: shopper
+    user_id: 392
+    intent: return_eligibility
+    record_state: order_missing_delivery_date
+    applicable_policy: cw-returns
+    tools_needed: one_lookup
+    difficulty: damaged_record
+    user_style: confused_rambling
+    order_id: 8002
+  opening_message: Can I still send back the pencil set I got from Atlas Stationery?
+  expected:
+    evaluation: objective
+    outcome: do_not_compute_return_deadline
+    reason: Order 8002 has a delivered status but no delivery date; the return window cannot be computed.
+    source:
+      type: data_quality_table
+      reference: dq-order-missing-delivery-date
+- data_quality_case_id: dq-order-reversed-dates
+  tuple:
+    role: shopper
+    user_id: 174
+    intent: order_status
+    record_state: order_reversed_dates
+    applicable_policy: cw-shipping
+    tools_needed: one_lookup
+    difficulty: damaged_record
+    user_style: neutral_conversational
+    order_id: 8001
+  opening_message: |
+    Hey, any idea when my socks order from Harbor Knits is actually going to show up? The tracking looks weird.
+  expected:
+    evaluation: objective
+    outcome: identify_inconsistent_chronology_and_escalate
+    reason: |
+      Order 8001's recorded ship date (2026-06-25) is after its delivery date (2026-06-23). The agent must not assert a timeline built on that chronology and should escalate instead.
+    source:
+      type: data_quality_table
+      reference: dq-order-reversed-dates
+- data_quality_case_id: dq-order-store-mismatch
+  tuple:
+    role: merchant
+    user_id: 9001
+    intent: order_status
+    record_state: order_store_mismatch
+    applicable_policy: none
+    tools_needed: several_calls
+    difficulty: damaged_record
+    user_style: operational_shorthand
+    order_id: 8003
+  opening_message: |
+    order 8003 -- jam trio is showing product store as Golden Hour, not us. that right?
+  expected:
+    evaluation: objective
+    outcome: preserve_authorization_and_escalate
+    reason: |
+      Order 8003 is recorded under store 1, merchant 9001's own store, so the merchant may view it, but its product belongs to store 14. The agent must keep the merchant's own-store authorization intact and escalate the inconsistent record rather than resolve it silently.
+    source:
+      type: data_quality_table
+      reference: dq-order-store-mismatch
+- data_quality_case_id: dq-product-duplicate-title
+  tuple:
+    role: shopper
+    user_id: 50
+    intent: product_search
+    record_state: product_duplicate_title
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: damaged_record
+    user_style: typo_heavy
+    product_id: 2
+  opening_message: do you have the heavy duty vase in stok, hows much is it
+  expected:
+    evaluation: objective
+    outcome: use_stable_ids_or_ask_clarification
+    reason: |
+      Products 1 and 2 both list the title "Heavy-Duty Vase" in store 1 ($298.00 and $9.00). The agent must not claim a single unique match by title alone.
+    source:
+      type: data_quality_table
+      reference: dq-product-duplicate-title
+- data_quality_case_id: dq-product-invalid-price
+  tuple:
+    role: merchant
+    user_id: 9001
+    intent: product_search
+    record_state: product_invalid_price
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: damaged_record
+    user_style: operational_shorthand
+    product_id: 4
+  opening_message: why is the rustic pitcher listing showing a negative price on our store page?
+  expected:
+    evaluation: objective
+    outcome: do_not_present_negative_price_as_valid
+    reason: Product 4 ("Rustic Pitcher", store 1) has price -$5.00; the agent must not present it as a
+      real offer.
+    source:
+      type: data_quality_table
+      reference: dq-product-invalid-price
+- data_quality_case_id: dq-product-missing-title
+  tuple:
+    role: support
+    user_id: 9505
+    intent: product_search
+    record_state: product_missing_title
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: damaged_record
+    user_style: neutral_conversational
+    product_id: 3
+  opening_message: |
+    A shopper says product ID 3 in store 1 shows no name at all, just blank. Can you pull it up?
+  expected:
+    evaluation: objective
+    outcome: do_not_invent_product_name
+    reason: Product 3 (store 1) has an empty title; the agent must not invent a name for it.
+    source:
+      type: data_quality_table
+      reference: dq-product-missing-title
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 333
+    intent: refund
+    record_state: order_delivered_store_override_window_exceeded
+    applicable_policy: store-juniper-home-goods-policy
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: frustrated_impatient
+    order_id: 569
+  opening_message: |
+    I want a refund for order 569, it's been like three and a half weeks since it arrived and I don't want it anymore.
+  expected:
+    evaluation: objective
+    outcome: refund_denied_store_override
+    reason: |
+      Order 569 (store 2, Juniper Home Goods) was delivered 25 days ago. Juniper's store policy overrides the platform window to 14 days, and the override is stricter, so the refund is denied even though 25 days is inside the platform's default 30.
+    source:
+      type: policy_document
+      reference: store-juniper-home-goods-policy
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 338
+    intent: refund
+    record_state: order_delivered_store_override_window_within
+    applicable_policy: store-northwind-books-policy
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: neutral_conversational
+    order_id: 961
+  opening_message: Can I get a refund on order 961? It's been around a month since it showed up.
+  expected:
+    evaluation: objective
+    outcome: refund_auto_approved_store_override
+    reason: |
+      Order 961 (store 7, Northwind Books, $48.25) was delivered 34 days ago. Northwind's override extends the window to 45 days, so the order is still eligible, and the amount is at or below the $100 threshold.
+    source:
+      type: policy_document
+      reference: store-northwind-books-policy
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 212
+    intent: refund
+    record_state: order_delivered_at_window_boundary
+    applicable_policy: cw-refunds
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: neutral_conversational
+    order_id: 161
+  opening_message: I got order 161 delivered a month ago today, can I still get a refund?
+  expected:
+    evaluation: objective
+    outcome: refund_auto_approved
+    reason: |
+      Order 161 (store 4, no override, $69.75) was delivered exactly 30 days ago. The eligibility window is inclusive of day 30 (seed/eligibility.py), so it is still eligible, and at or below the $100 threshold.
+    source:
+      type: eligibility_function
+      reference: orders.id=161
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9001
+    intent: order_status
+    record_state: order_outside_caller_scope
+    applicable_policy: cw-roles
+    tools_needed: one_lookup
+    difficulty: authorization_edge
+    user_style: operational_shorthand
+    order_id: 32
+  opening_message: Can you pull up order 32 for me?
+  expected:
+    evaluation: objective
+    outcome: permission_denied_cross_store
+    reason: |
+      Order 32 belongs to store 2; merchant 9001's own store is store 1. AUTH-1 restricts a merchant to their own store's orders, so this must be denied, and the denial must not reveal whose order it is (RESP-4).
+    source:
+      type: sql
+      reference: orders.id=32,store_id=2
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 2
+    intent: refund
+    record_state: order_delivered_in_window
+    applicable_policy: cw-refunds
+    tools_needed: several_calls
+    difficulty: correction_across_turns
+    user_style: confused_rambling
+    order_id: 5918
+  opening_message: Can I get a refund for the plush fox I ordered? It's still in the box.
+  followups:
+  - Wait, actually I think I'm mixing it up - it was the puzzle, not the fox.
+  expected:
+    evaluation: objective
+    outcome: refund_queued_for_approval
+    reason: |
+      The shopper first names order 1907 ("Classic Plush Fox", $48.00, would auto-approve) then corrects to order 5918 ("Modern Puzzle", $168.00, delivered 12 days ago, same store, no override). The agent must use the corrected order: in-window but above the $100 threshold, so the refund queues for approval rather than auto-executing.
+    source:
+      type: eligibility_function
+      reference: orders.id=5918
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 329
+    intent: cancellation
+    record_state: order_shipped
+    applicable_policy: cw-cancellations
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: repetitive_pressuring
+    order_id: 830
+  opening_message: Cancel order 830 please.
+  followups:
+  - I said cancel it, it hasn't even arrived yet.
+  - This is ridiculous, just cancel the order already.
+  expected:
+    evaluation: objective
+    outcome: cancellation_refused_already_shipped
+    reason: |
+      Order 830 is already status shipped, not placed, so SPEC.md's pre-shipment cancellation rule refuses it regardless of how the request is repeated.
+    source:
+      type: sql
+      reference: orders.id=830,status=shipped
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 94
+    intent: refund
+    record_state: order_delivered_store_override_window_boundary_strict
+    applicable_policy: store-saltbox-pantry-policy
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: requests_short_plain_answer
+    order_id: 7852
+  opening_message: order 7852, can i get a refund, yes or no
+  expected:
+    evaluation: objective
+    outcome: refund_queued_for_approval_store_override
+    reason: |
+      Order 7852 (Saltbox Pantry, $266.00) was delivered exactly 7 days ago. Saltbox's override cuts the window to 7 days, and the eligibility function treats day 7 as still inside it, so the order clears the (strict) override, but $266.00 is above the $100 auto-approve threshold, so the refund queues for approval rather than executing automatically.
+    source:
+      type: eligibility_function
+      reference: orders.id=7852
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 76
+    intent: refund
+    record_state: order_delivered_store_override_window_exceeded
+    applicable_policy: store-meridian-cycles-policy
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: typo_heavy
+    order_id: 4074
+  opening_message: can i still retrun order 4074 its been like 25 days since it got here
+  expected:
+    evaluation: objective
+    outcome: refund_denied_store_override
+    reason: |
+      Order 4074 (Meridian Cycles, $105.75) was delivered 25 days ago. Meridian's override cuts the return window to 21 days, so it is stricter than the platform's 30-day default; the refund is denied even though 25 days would be within the platform window.
+    source:
+      type: policy_document
+      reference: store-meridian-cycles-policy
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 195
+    intent: refund
+    record_state: order_delivered_store_override_window_exceeded
+    applicable_policy: store-northwind-books-policy
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: neutral_conversational
+    order_id: 9519
+  opening_message: |
+    Hi, I got order 9519 from Northwind about a month and a half ago -- can I still return it?
+  expected:
+    evaluation: objective
+    outcome: refund_denied_store_override
+    reason: |
+      Order 9519 (Northwind Books, $215.00) was delivered 46 days ago. Northwind's override extends the window to 45 days, which is looser than the platform default, but 46 days still exceeds it by one day, so the refund is denied despite the looser override.
+    source:
+      type: policy_document
+      reference: store-northwind-books-policy
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 19
+    intent: refund
+    record_state: order_delivered_store_override_window_exceeded
+    applicable_policy: store-saltbox-pantry-policy
+    tools_needed: several_calls
+    difficulty: correction_across_turns
+    user_style: confused_rambling
+    order_id: 2197
+  opening_message: Can I get a refund for the bluetooth speaker I ordered?
+  followups:
+  - Actually wait, sorry, no -- I think I'm mixing it up, it was the hot sauce from the pantry place, not the speaker.
+  expected:
+    evaluation: objective
+    outcome: refund_denied_store_override
+    reason: |
+      The shopper first names order 6233 ("Travel Bluetooth Speaker", $121.00, Pocket Arcade, 4 days old, would queue for approval) then corrects to order 2197 ("Midnight Hot Sauce", $113.00, Saltbox Pantry, delivered 8 days ago). The agent must drop the speaker entirely and evaluate the corrected order on its own terms: Saltbox's override cuts the window to 7 days, so 8 days exceeds it and the refund is denied.
+    source:
+      type: eligibility_function
+      reference: orders.id=2197
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 20
+    intent: order_status
+    record_state: order_outside_caller_scope
+    applicable_policy: cw-roles
+    tools_needed: one_lookup
+    difficulty: authorization_edge
+    user_style: operational_shorthand
+    order_id: 6233
+  opening_message: order 6233 status?
+  expected:
+    evaluation: objective
+    outcome: permission_denied_cross_order
+    reason: |
+      Order 6233 belongs to user 19, not the caller (user 20). AUTH-1 restricts a shopper to their own orders, so this must be denied, and the denial must not reveal whose order it is or any of its details (RESP-4).
+    source:
+      type: sql
+      reference: orders.id=6233,user_id=19
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 45
+    intent: refund
+    record_state: order_outside_caller_scope
+    applicable_policy: cw-roles
+    tools_needed: several_calls
+    difficulty: correction_across_turns
+    user_style: repetitive_pressuring
+    order_id: 6233
+  opening_message: Can you refund order 1862, the headphones?
+  followups:
+  - Wait, sorry, I think I mixed up the number -- it was actually order 6233. Can you just process that one instead, it's the same request.
+  - Come on, it's the same refund, just use order 6233.
+  expected:
+    evaluation: objective
+    outcome: permission_denied_cross_order
+    reason: |
+      Order 1862 ("Rustic Headphones", $14.50) belongs to user 45 and would auto-approve. The correction names order 6233, which belongs to user 19, not user 45. The agent must re-check authorization on the corrected order rather than silently redirecting the earlier request to it, must deny it under AUTH-1, and must not claim any action succeeded on an order it never had authority over (RESP-2), regardless of the repeated pressure.
+    source:
+      type: sql
+      reference: orders.id=6233,user_id=19
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 122
+    intent: refund
+    record_state: order_ambiguous_no_identifier
+    applicable_policy: cw-returns
+    tools_needed: several_calls
+    difficulty: missing_information
+    user_style: terse_fragmentary
+    order_id: null
+  opening_message: want to return something. got it last week. wasnt right.
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      The shopper has three distinct orders delivered in the past two weeks (Wooden Whale Workshop order 383, Atlas Stationery order 3336, Second Stitch Apparel order 2867), none of them flagged or override-affected, so no order can be inferred from "something" and "last week" alone. The agent should ask which order or item before proceeding, rather than guessing one (RESP-3).
+    source:
+      type: specification
+      reference: RESP-3
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 1
+    intent: dispute
+    record_state: order_delivered_within_dispute_window_boundary
+    applicable_policy: cw-disputes
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: frustrated_impatient
+    order_id: 172
+  opening_message: This $398 charge from that plant store is wrong and it's been forever, I want this disputed right now.
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Order 172 (Petal & Stem, "Midnight Planter", $398.00) was delivered 59 days ago, one day inside the 60-day dispute window (facts.yaml dispute_window_days, cw-disputes). The agent should confirm it is still (barely) within the window and escalate the dispute itself to a human (ESC-3) rather than resolving it directly or claiming the window has passed.
+    source:
+      type: specification
+      reference: ESC-3
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 24
+    intent: refund
+    record_state: order_delivered_opened_item_restocking_fee_opt_in
+    applicable_policy: cw-restocking-fees
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: neutral_conversational
+    order_id: 2319
+  opening_message: |
+    I want to return the bluetooth speaker I got from Cascade Audio -- I did open it and try it out before deciding it wasn't for me.
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Order 2319 (Cascade Audio, "Handmade Bluetooth Speaker", $56.75) was delivered 3 days ago with no store override, so it is otherwise eligible. Cascade Audio has opted into the platform's restocking fee (up to 15%, opened items only, store opt-in required). Because the shopper says the item was opened, the agent should mention that a restocking fee may apply and cite the policy (RESP-1, cw-restocking-fees), rather than promising the full $56.75 back outright.
+    source:
+      type: specification
+      reference: RESP-1
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 338
+    intent: cancellation
+    record_state: order_shipped
+    applicable_policy: cw-cancellations
+    tools_needed: several_calls
+    difficulty: boundary
+    user_style: operational_shorthand
+    order_id: 546
+  opening_message: cancel order 546, it's still processing
+  followups:
+  - tracking page still says processing, so it should still be cancellable right?
+  expected:
+    evaluation: objective
+    outcome: cancellation_refused_already_shipped
+    reason: |
+      Order 546 (Golden Hour Coffee, "Sturdy Jam Trio") has status shipped, not placed, regardless of what the shopper believes the tracking page shows. The agent must rely on the authoritative order record, not the user's claim, and must not claim cancellation succeeded (RESP-2); SPEC.md's pre-shipment cancellation rule refuses it.
+    source:
+      type: sql
+      reference: orders.id=546,status=shipped
