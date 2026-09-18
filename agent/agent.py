@@ -107,7 +107,7 @@ def prompt_version(template: str | None = None) -> str:
 # Models. Three course models; any other value is passed to LiteLLM as-is.
 # ---------------------------------------------------------------------------
 
-DEFAULT_MODEL = "gpt-5.6"
+DEFAULT_MODEL = "gpt-5.5"
 
 # Course model name -> LiteLLM model string (for the non-OpenAI models).
 LITELLM_COURSE_MODELS = {

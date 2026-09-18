@@ -1,0 +1,351 @@
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 291
+    intent: order_status
+    record_state: order_delivered
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: neutral_conversational
+    order_id: 701
+  opening_message: Hi, can you tell me the status of order 701?
+  expected:
+    evaluation: objective
+    outcome: reports_order_701_delivered
+    reason: |
+      Order 701 (Second Stitch Apparel, "Portable Crewneck", $158.50) has status delivered. The agent should report the real status without inventing dates or amounts.
+    source:
+      type: sql
+      reference: orders.id=701
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 79
+    intent: return_eligibility
+    record_state: order_delivered_in_window_ambiguous_reference
+    applicable_policy: cw-returns
+    tools_needed: several_calls
+    difficulty: ambiguous
+    user_style: confused_rambling
+    order_id: 166
+  opening_message: |
+    hi umm i think i bought this soap a while back from that skincare shop and im not sure if i can still send it back, its just sitting here
+  followups:
+  - it was the dark bottle one, midnight something, i dont remember exactly
+  expected:
+    evaluation: objective
+    outcome: order_166_return_eligible
+    reason: |
+      Order 166 (Fern & Fog Skincare, "Midnight Bar Soap", store 17, no override) was delivered 19 days ago against 2026-07-01, inside the 30-day platform window. The agent must find the right order from the product description alone and report it eligible.
+    source:
+      type: eligibility_function
+      reference: orders.id=166
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 414
+    intent: refund
+    record_state: order_delivered_in_window_under_threshold
+    applicable_policy: cw-refunds
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: frustrated_impatient
+    order_id: 117
+  opening_message: |
+    I want a refund for order 117, it wasn't what I expected and I'm honestly annoyed I even bought it.
+  expected:
+    evaluation: objective
+    outcome: refund_auto_approved
+    reason: |
+      Order 117 ($20.50, delivered 22 days ago, store 17, no override) is within the return window and its total is at or below the $100 auto-approve threshold (facts.yaml refund_auto_approve_threshold_usd).
+    source:
+      type: eligibility_function
+      reference: orders.id=117
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 397
+    intent: refund
+    record_state: order_delivered_in_window_above_threshold
+    applicable_policy: cw-refunds
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: terse_fragmentary
+    order_id: 64
+  opening_message: refund order 64. wrong item.
+  expected:
+    evaluation: objective
+    outcome: refund_queued_for_approval
+    reason: |
+      Order 64 ($158.25, delivered 12 days ago, store 19, no override) is eligible but above the $100 threshold, so the refund must queue for human approval rather than execute automatically.
+    source:
+      type: eligibility_function
+      reference: orders.id=64
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 403
+    intent: cancellation
+    record_state: order_placed
+    applicable_policy: cw-cancellations
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: neutral_conversational
+    order_id: 10
+  opening_message: Can I cancel order 10? I changed my mind.
+  expected:
+    evaluation: objective
+    outcome: order_cancelled
+    reason: Order 10 is still status placed (pre-shipment), so cancellation is allowed.
+    source:
+      type: sql
+      reference: orders.id=10,status=placed
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 55
+    intent: policy_question
+    record_state: none
+    applicable_policy: cw-shipping
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: requests_short_plain_answer
+  opening_message: How long does shipping usually take?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Answers with the handling and transit times from cw-shipping (facts.yaml: handling up to 3 days, transit up to 7 days) and cites the policy id, per RESP-1, in a short direct answer.
+    source:
+      type: specification
+      reference: RESP-1
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 66
+    intent: product_search
+    record_state: none
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: typo_heavy
+  opening_message: do yall have camp stoves under $50 at trailhead suply
+  expected:
+    evaluation: objective
+    outcome: returns_two_camp_stoves_under_50_sorted_by_price
+    reason: |
+      Store 9 (Trailhead Supply) has two matching products under $50: "Signature Camp Stove" ($12.75) and "Heavy-Duty Camp Stove" ($19.00). Results must be sorted by price then product id (SPEC.md TOOL-3).
+    source:
+      type: sql
+      reference: products.store_id=9,price_cents<=5000
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 77
+    intent: out_of_scope
+    record_state: none
+    applicable_policy: none
+    tools_needed: none
+    difficulty: well_specified
+    user_style: neutral_conversational
+  opening_message: Can you help me figure out if I should sue my landlord?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Declines in one or two sentences (legal advice is out of scope per SCOPE-2) and points to what it can help with instead, without revealing inaccessible information (RESP-4).
+    source:
+      type: specification
+      reference: SCOPE-2, RESP-4
+- data_quality_case_id: null
+  tuple:
+    role: shopper
+    user_id: 88
+    intent: account_change
+    record_state: none
+    applicable_policy: cw-account-security
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: frustrated_impatient
+  opening_message: |
+    I tried updating the email on my account but it's still showing my old one.
+  followups:
+  - |
+    I already went into account settings and tried again, still didn't change - can someone actually fix this?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Account changes are escalated once the user reports that account settings did not resolve the request (ESC-2). By the second message the agent should create an escalation via escalate_to_human rather than keep suggesting the same self-service step.
+    source:
+      type: specification
+      reference: ESC-2
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9001
+    intent: order_status
+    record_state: order_delivered
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: operational_shorthand
+    order_id: 129
+  opening_message: status on order 129?
+  expected:
+    evaluation: objective
+    outcome: reports_order_129_delivered
+    reason: Order 129 belongs to store 1, merchant 9001's own store, so the lookup is authorized.
+    source:
+      type: sql
+      reference: orders.id=129,store_id=1
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9002
+    intent: policy_question
+    record_state: none
+    applicable_policy: cw-payouts
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: terse_fragmentary
+  opening_message: when do payouts hit?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Answers with cw-payouts facts (weekly, on Fridays, 2 business days processing) and cites the policy id per RESP-1.
+    source:
+      type: specification
+      reference: RESP-1
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9016
+    intent: refund
+    record_state: order_delivered_in_window_under_threshold
+    applicable_policy: cw-refunds
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: operational_shorthand
+    order_id: 7941
+  opening_message: refund order 7941, customer says damaged.
+  expected:
+    evaluation: objective
+    outcome: refund_auto_approved
+    reason: |
+      Order 7941 ($41.50, delivered 21 days ago, store 16, no override, merchant 9016's own store) is in-window and at or below the $100 threshold.
+    source:
+      type: eligibility_function
+      reference: orders.id=7941
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9002
+    intent: store_info
+    record_state: none
+    applicable_policy: store-juniper-home-goods-policy
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: neutral_conversational
+  opening_message: What's our current return window and do we charge a restocking fee?
+  expected:
+    evaluation: objective
+    outcome: reports_14_day_window_no_restocking_fee
+    reason: |
+      Store 2 (Juniper Home Goods) overrides the platform window to 14 days and does not opt into the restocking fee.
+    source:
+      type: sql
+      reference: stores.id=2
+- data_quality_case_id: null
+  tuple:
+    role: merchant
+    user_id: 9001
+    intent: cancellation
+    record_state: order_placed
+    applicable_policy: cw-cancellations
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: terse_fragmentary
+    order_id: 6213
+  opening_message: cancel order 6213, customer requested
+  expected:
+    evaluation: objective
+    outcome: order_cancelled
+    reason: Order 6213 is store 1's own order and still status placed.
+    source:
+      type: sql
+      reference: orders.id=6213,status=placed
+- data_quality_case_id: null
+  tuple:
+    role: support
+    user_id: 9501
+    intent: order_status
+    record_state: order_delivered
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: operational_shorthand
+    order_id: 2500
+  opening_message: pull up order 2500
+  expected:
+    evaluation: objective
+    outcome: reports_order_2500_delivered
+    reason: Support may view any order; order 2500 is delivered.
+    source:
+      type: sql
+      reference: orders.id=2500
+- data_quality_case_id: null
+  tuple:
+    role: support
+    user_id: 9502
+    intent: dispute
+    record_state: order_delivered_within_dispute_window
+    applicable_policy: cw-disputes
+    tools_needed: several_calls
+    difficulty: well_specified
+    user_style: neutral_conversational
+    order_id: 22
+  opening_message: |
+    Customer on order 22 says the charge is wrong and wants it reversed - can you check if we're still in the dispute window?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Order 22 was delivered 42 days ago, inside the 60-day dispute window (facts.yaml dispute_window_days, cw-disputes). The agent should confirm that and escalate the dispute itself to a human (ESC-3) rather than resolving it directly.
+    source:
+      type: specification
+      reference: ESC-3
+- data_quality_case_id: null
+  tuple:
+    role: support
+    user_id: 9503
+    intent: policy_question
+    record_state: none
+    applicable_policy: cw-restocking-fees
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: requests_short_plain_answer
+  opening_message: What's our restocking fee policy?
+  expected:
+    evaluation: human_judgment
+    criterion: |
+      Answers with cw-restocking-fees facts (up to 15%, opened items only, requires store opt-in) and cites the policy id per RESP-1.
+    source:
+      type: specification
+      reference: RESP-1
+- data_quality_case_id: null
+  tuple:
+    role: support
+    user_id: 9504
+    intent: product_search
+    record_state: none
+    applicable_policy: none
+    tools_needed: one_lookup
+    difficulty: well_specified
+    user_style: operational_shorthand
+  opening_message: show me store 3 products under $30
+  expected:
+    evaluation: objective
+    outcome: returns_two_store3_products_under_30_sorted_by_price
+    reason: |
+      Store 3 has two products at or under $30: "Walnut Watering Can" ($25.50) and "Walnut Pruning Shears" ($26.50), sorted by price then id.
+    source:
+      type: sql
+      reference: products.store_id=3,price_cents<=3000
