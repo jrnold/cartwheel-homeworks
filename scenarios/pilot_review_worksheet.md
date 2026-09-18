@@ -177,6 +177,7 @@ scenario_change: null
 ## 3. pilot-0016 — dispute-window check, order 22 — "today" computed wrong
 
 **Langfuse session:** http://localhost:3000/project/cartwheel-dev/sessions/a90275a4c7324acfaef8178593578daf
+**Langfuse trace:** http://localhost:3000/project/cartwheel-dev/traces/898ae0009bb06eedc735078df2b2a6b0
 
 **Why it's in the first 10:** Conflicts with the recorded expected result via what looks like a date-grounding bug: the agent computes "today" as September 16, 2026 instead of the frozen simulation date.
 
@@ -220,15 +221,11 @@ scenario_change: null
 - `facts.yaml`: `dispute_window_days: 60`.
 - `SPEC.md` ESC-3: "Disputes and requests the agent cannot resolve from the help center and the order record."
 
-**Initial coding** *(draft — mine, pending your review of the trace)*
-- `scenario_valid`: **true** — Order 22 (delivered 2026-05-20) is a genuine, undamaged order; the dispute-window math the scenario is built on is correct against `world_asof` (2026-07-01): 42 days elapsed, inside the 60-day window.
-- `confirmed_failure`: **true** (draft) — The agent states "Today: September 16, 2026" and concludes the dispute window ("about 119 days after delivery") has expired, declining to escalate. Against the simulation's real `world_asof` (2026-07-01), delivery was only 42 days prior — well inside the 60-day window — so the expected `escalate_to_human` call never happens. The same wrong-"today" pattern shows up in pilot-0002.
-
 ```yaml
 scenario_id: pilot-0016
 scenario_valid: true
 confirmed_failure: true
-evidence: "Using the wrong current date"
+evidence: "Using the current date instead of world asof"
 scenario_change: null
 ```
 
