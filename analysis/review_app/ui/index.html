@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cartwheel review</title>
+<style>
+:root {
+  --bg: #12141a; --panel: #191c24; --panel2: #1f232d; --line: #2c313d;
+  --ink: #e6e9f0; --dim: #949cb0; --faint: #6b7385;
+  --user: #6ea8fe; --asst: #7ee0b8; --tool: #e0b96e; --err: #ef7a85;
+  --floor: #7ee0b8; --llm: #c08ce0; --fail: #ef7a85; --pass: #6ee7a8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 13px/1.5 system-ui, -apple-system, sans-serif;
+  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+}
+button {
+  font: inherit; color: var(--ink); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 9px;
+  cursor: pointer;
+}
+button:hover { background: #2a2f3b; }
+button.on { background: #35507d; border-color: #4a6ba8; }
+code, .mono { font-family: var(--mono); font-size: 12px; }
+
+/* ---- header ---- */
+header {
+  display: flex; align-items: center; gap: 12px; padding: 7px 12px;
+  background: var(--panel); border-bottom: 1px solid var(--line); flex: 0 0 auto;
+}
+header .id { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+header .grow { flex: 1; }
+.pill {
+  font-size: 11px; padding: 1px 7px; border-radius: 9px;
+  border: 1px solid var(--line); color: var(--dim); white-space: nowrap;
+}
+.pill.role { color: var(--user); border-color: #2c4470; }
+.pill.warn { color: var(--err); border-color: #6b3038; }
+.tabs { display: flex; gap: 4px; }
+
+/* ---- layout ---- */
+main { flex: 1; display: grid; grid-template-columns: 290px 1fr 330px; overflow: hidden; }
+main.wide { grid-template-columns: 1fr; }
+.col { overflow-y: auto; padding: 10px 12px; }
+.col.left { background: var(--panel); border-right: 1px solid var(--line); }
+.col.right { background: var(--panel); border-left: 1px solid var(--line); }
+.view { display: none; }
+.view.active { display: block; }
+
+h4 {
+  margin: 14px 0 6px; font-size: 10px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--faint); font-weight: 600;
+}
+h4:first-child { margin-top: 0; }
+
+/* ---- conversation ---- */
+.turnsep {
+  display: flex; align-items: center; gap: 8px; margin: 16px 0 10px;
+  color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+}
+.turnsep::before, .turnsep::after {
+  content: ""; flex: 1; height: 1px; background: var(--line);
+}
+.ctxbanner {
+  background: #1b2030; border: 1px dashed #36405c; border-radius: 6px;
+  padding: 5px 9px; margin-bottom: 10px; color: var(--dim); font-size: 11px;
+}
+.step {
+  position: relative; margin: 0 0 7px; padding: 7px 10px 7px 12px;
+  background: var(--panel2); border-radius: 6px; border-left: 3px solid var(--line);
+}
+.step.prior { opacity: .55; }
+.step.user { border-left-color: var(--user); }
+.step.assistant { border-left-color: var(--asst); }
+.step.tool_call, .step.tool_result { border-left-color: var(--tool); }
+.step.bad { border-left-color: var(--err); }
+.step .who {
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 3px;
+  display: flex; align-items: center; gap: 7px;
+}
+.step .txt { white-space: pre-wrap; word-break: break-word; }
+.step .txt.mono { font-family: var(--mono); font-size: 11.5px; color: #c6cede; }
+.step .note-btn {
+  position: absolute; right: 5px; top: 5px; opacity: 0;
+  font-size: 11px; padding: 1px 7px;
+}
+.step:hover .note-btn { opacity: 1; }
+.step.hasnote { box-shadow: inset 2px 0 0 #d9a441; }
+
+.summary {
+  font-family: var(--mono); font-size: 11.5px; color: var(--dim);
+  cursor: pointer; display: flex; gap: 7px; align-items: baseline;
+}
+.summary:hover { color: var(--ink); }
+.summary .ok { color: var(--pass); }
+.summary .no { color: var(--err); }
+.full {
+  display: none; margin-top: 6px; padding: 7px; background: #14171f;
+  border-radius: 4px; font-family: var(--mono); font-size: 11px;
+  white-space: pre-wrap; word-break: break-all; max-height: 380px; overflow: auto;
+  color: #b9c2d4;
+}
+.full.open { display: block; }
+
+/* ---- spec panel ---- */
+.req { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
+.req .hd {
+  display: flex; align-items: center; gap: 7px; padding: 5px 8px; cursor: pointer;
+}
+.req .hd:hover { background: var(--panel2); }
+.req .rid { font-family: var(--mono); font-size: 11.5px; font-weight: 600; }
+.req.floor .rid { color: var(--floor); }
+.req.llm .rid { color: var(--llm); }
+.req .why { font-size: 11px; color: var(--dim); line-height: 1.35; }
+.req .bd {
+  display: none; padding: 7px 9px; border-top: 1px solid var(--line);
+  font-size: 11.5px; color: #cdd4e2; white-space: pre-wrap;
+}
+.req .bd.open { display: block; }
+.src {
+  font-size: 9px; letter-spacing: .06em; text-transform: uppercase;
+  padding: 0 4px; border-radius: 3px; border: 1px solid var(--line); color: var(--faint);
+}
+table.matrix { width: 100%; border-collapse: collapse; font-size: 11px; }
+table.matrix td { padding: 2px 4px; border-bottom: 1px solid #242936; }
+table.matrix td:last-child { color: var(--asst); font-family: var(--mono); text-align: right; }
+
+/* ---- facts ---- */
+.fact { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; font-size: 11.5px; }
+.fact .k { color: var(--faint); }
+.fact .v { font-family: var(--mono); text-align: right; word-break: break-all; }
+.fact .v.hot { color: var(--err); }
+
+/* ---- notes ---- */
+.note {
+  background: #221d14; border: 1px solid #4a3a1c; border-left: 3px solid #d9a441;
+  border-radius: 5px; padding: 7px 9px; margin-bottom: 7px; font-size: 12px;
+}
+.note .quoted {
+  font-size: 11px; color: var(--dim); font-style: italic;
+  border-left: 2px solid #d9a441; padding-left: 6px; margin-bottom: 5px;
+}
+.note .meta {
+  font-size: 10px; color: var(--faint); margin-top: 5px;
+  display: flex; justify-content: space-between; gap: 6px;
+}
+.note .meta button { padding: 0 5px; font-size: 10px; }
+.sugg {
+  background: #1e1a26; border: 1px solid #40325c; border-left: 3px solid var(--llm);
+  border-radius: 5px; padding: 7px 9px; margin-bottom: 7px; font-size: 12px;
+}
+.sugg .row { display: flex; gap: 5px; margin-top: 6px; }
+textarea {
+  width: 100%; background: var(--panel2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 5px; padding: 7px;
+  font: inherit; resize: vertical; min-height: 64px;
+}
+.hint { font-size: 11px; color: var(--faint); margin: 5px 0; }
+.empty { color: var(--faint); font-size: 11.5px; font-style: italic; padding: 5px 0; }
+
+/* ---- labels ---- */
+.lbl {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0;
+  border-bottom: 1px solid #232733;
+}
+.lbl .nm { flex: 1; font-family: var(--mono); font-size: 11.5px; }
+.lbl button { padding: 1px 8px; font-size: 11px; }
+.lbl button.pass.on { background: #1d5038; border-color: #2f7a55; }
+.lbl button.fail.on { background: #5c2730; border-color: #8c3b48; }
+
+/* ---- tables ---- */
+table.grid { border-collapse: collapse; width: 100%; font-size: 11.5px; }
+table.grid th, table.grid td {
+  border: 1px solid var(--line); padding: 4px 7px; text-align: left;
+}
+table.grid th { background: var(--panel2); position: sticky; top: 0; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+table.grid td.c { text-align: center; font-family: var(--mono); }
+td.F { color: var(--fail); font-weight: 600; }
+td.P { color: var(--pass); }
+td.none { color: #3d4454; }
+tr.cur td { background: #232a3a; }
+.bar { height: 7px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--asst); }
+.stat { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+.stat .v { font-family: var(--mono); }
+/* ---- rendered markdown ---- */
+.md > *:first-child { margin-top: 0; }
+.md > *:last-child { margin-bottom: 0; }
+.md p { margin: 0 0 7px; }
+.md ul, .md ol { margin: 4px 0 7px; padding-left: 20px; }
+.md li { margin: 1px 0; }
+.md strong { color: #fff; font-weight: 600; }
+.md em { color: #d6dce8; }
+.md code {
+  background: #14171f; border: 1px solid var(--line); border-radius: 3px;
+  padding: 0 4px; font-size: 11.5px; color: #d3b98a;
+}
+.md h3, .md h4, .md h5, .md h6 {
+  margin: 8px 0 4px; font-size: 12.5px; color: #fff;
+  text-transform: none; letter-spacing: 0; font-weight: 600;
+}
+.md a { color: var(--user); }
+.md table { border-collapse: collapse; margin: 5px 0; }
+.md td, .md th { border: 1px solid var(--line); padding: 2px 6px; }
+
+/* ---- selection highlights ---- */
+.hl {
+  background: rgba(217, 164, 65, .26); border-bottom: 1px solid #d9a441;
+  border-radius: 2px; cursor: pointer;
+}
+.hl:hover { background: rgba(217, 164, 65, .42); }
+.hl.sugg { background: rgba(192, 140, 224, .22); border-bottom-color: var(--llm); }
+.hl.pending {
+  background: rgba(110, 168, 254, .34); border-bottom: 1px solid var(--user);
+}
+.annotatable::selection, .annotatable ::selection { background: #3a5b8c; }
+.annotatable { cursor: text; }
+
+#popover {
+  position: absolute; z-index: 60; display: none; width: 330px;
+  background: var(--panel); border: 1px solid #4a5570; border-radius: 7px;
+  padding: 9px; box-shadow: 0 8px 26px rgba(0,0,0,.55);
+}
+#popover .q {
+  font-size: 11px; color: var(--dim); font-style: italic;
+  margin-bottom: 6px; max-height: 52px; overflow: hidden;
+  border-left: 2px solid #d9a441; padding-left: 6px;
+}
+#popover textarea { min-height: 54px; }
+#popover .row { display: flex; gap: 5px; margin-top: 6px; align-items: center; }
+#popover .row .sp { flex: 1; }
+#popover .k { font-size: 10px; color: var(--faint); }
+
+/* ---- taxonomy authoring ---- */
+.mode { border: 1px solid var(--line); border-radius: 7px; margin-bottom: 12px; }
+.mhd {
+  display: flex; align-items: center; gap: 8px; padding: 7px 9px;
+  background: var(--panel2); border-bottom: 1px solid var(--line);
+  border-radius: 7px 7px 0 0;
+}
+.mhd .sp { flex: 1; }
+input.mname {
+  font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--asst);
+  background: transparent; border: 1px solid transparent; border-radius: 4px;
+  padding: 2px 5px; min-width: 240px;
+}
+input.mname:hover { border-color: var(--line); }
+input.mname:focus { background: var(--bg); border-color: #4a6ba8; outline: none; }
+.src.gap { color: var(--err); border-color: #6b3038; }
+.src.ok { color: var(--pass); border-color: #2f7a55; }
+.mbody { padding: 9px 11px; }
+.mbody label {
+  display: block; margin-bottom: 8px;
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint);
+}
+.mbody textarea, .mbody input, .mbody select {
+  display: block; width: 100%; margin-top: 3px;
+  background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 5px; padding: 5px 7px;
+  font: 12.5px/1.45 system-ui, sans-serif; text-transform: none; letter-spacing: 0;
+}
+.mbody textarea { min-height: 42px; resize: vertical; }
+.mbody input { font-family: var(--mono); font-size: 11.5px; }
+.mrow { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 12px; }
+.mbody .note { margin-top: 5px; }
+#ungrouped select, .mbody select { font-size: 11px; }
+#ungrouped .note .meta select {
+  background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 4px; padding: 1px 4px;
+}
+
+/* ---- reference ---- */
+.refbar {
+  position: sticky; top: -10px; z-index: 5; background: var(--panel);
+  padding: 4px 0 8px; display: flex; gap: 10px; align-items: center;
+}
+.refbar input {
+  flex: 1; background: var(--panel2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font: inherit;
+}
+/* minmax(0,1fr) rather than 1fr: a plain 1fr track refuses to shrink below
+   its content's min width, so the wide stores table pushed the second column
+   off screen instead of wrapping inside it. */
+.refcols {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 22px; align-items: start;
+}
+@media (max-width: 1100px) { .refcols { grid-template-columns: minmax(0, 1fr); } }
+.refcols table.grid { table-layout: fixed; }
+.refcols table.grid td { word-break: break-word; }
+.doc { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
+.doc > .hd {
+  display: flex; gap: 8px; align-items: baseline; padding: 6px 9px; cursor: pointer;
+}
+.doc > .hd:hover { background: var(--panel2); }
+.doc .pid { font-family: var(--mono); font-size: 11.5px; color: var(--asst); font-weight: 600; }
+.doc.store .pid { color: var(--tool); }
+.doc .ttl { flex: 1; font-size: 11.5px; color: var(--dim); }
+.doc .bd { display: none; padding: 8px 10px; border-top: 1px solid var(--line); }
+.doc .bd.open { display: block; }
+.doc.hit { border-color: #4a6ba8; }
+.factgrid {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: 1px 12px; font-size: 11.5px;
+}
+.factgrid .k { color: var(--dim); }
+.factgrid .v {
+  font-family: var(--mono); color: var(--asst); text-align: right;
+  word-break: break-all;
+}
+mark { background: #6b5a1c; color: #ffe9a8; border-radius: 2px; padding: 0 1px; }
+.storehd { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.storehd h2 { margin: 0; font-size: 17px; font-weight: 600; }
+td.struck { color: var(--faint); text-decoration: line-through; }
+td.dim { color: var(--dim); }
+.refcols tr[data-store]:hover td, .refcols tr[data-trace]:hover td { background: #232a3a; }
+
+/* ---- shortcut help ---- */
+#help {
+  position: fixed; inset: 0; z-index: 90; display: none;
+  background: rgba(8, 10, 14, .72); align-items: center; justify-content: center;
+}
+#help.open { display: flex; }
+#help .card {
+  background: var(--panel); border: 1px solid #3b4558; border-radius: 10px;
+  padding: 18px 22px; max-width: 620px; width: calc(100% - 40px);
+  max-height: 84vh; overflow-y: auto; box-shadow: 0 18px 50px rgba(0,0,0,.6);
+}
+#help h3 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
+#help .sub { color: var(--faint); font-size: 11.5px; margin-bottom: 14px; }
+#help .grp {
+  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--faint); margin: 13px 0 5px; font-weight: 600;
+}
+#help .row { display: flex; gap: 11px; align-items: baseline; padding: 2.5px 0; }
+#help .row .lbl { flex: 1; font-size: 12.5px; }
+#help .row .tip { color: var(--faint); font-size: 11px; }
+kbd {
+  font-family: var(--mono); font-size: 11px; min-width: 22px; text-align: center;
+  background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px;
+  border-radius: 4px; padding: 1px 6px; display: inline-block; color: var(--ink);
+}
+#help .modes {
+  margin: 5px 0 0 0; font-size: 11px; color: var(--dim);
+  border-left: 2px solid var(--line); padding-left: 8px;
+}
+#help .modes code { color: var(--asst); }
+#helpbtn { padding: 1px 8px; font-size: 12px; }
+
+#toast {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  background: #2b3242; border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
+  font-size: 12px; z-index: 50;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tabs">
+    <button id="tab-review" class="on">Review</button>
+    <button id="tab-tax">Taxonomy</button>
+    <button id="tab-label">Labeling</button>
+    <button id="tab-prog">Progress</button>
+    <button id="tab-ref">Reference</button>
+  </div>
+  <div class="grow"></div>
+  <span id="hdr-meta" class="id"></span>
+  <span id="hdr-pills"></span>
+  <div class="grow"></div>
+  <button id="helpbtn" title="keyboard shortcuts (?)">?</button>
+  <button id="prev">&larr;</button>
+  <span id="pos" class="id">0 / 0</span>
+  <button id="next">&rarr;</button>
+  <select id="filter" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px">
+    <option value="all">all traces</option>
+    <option value="unreviewed">unreviewed</option>
+    <option value="reviewed">reviewed</option>
+    <option value="unlabeled">incomplete labels</option>
+    <option value="shopper">role: shopper</option>
+    <option value="merchant">role: merchant</option>
+    <option value="support">role: support</option>
+    <option value="challenge">group: challenge</option>
+    <option value="coverage">group: coverage</option>
+    <option value="write">wrote something</option>
+    <option value="toolerr">tool error</option>
+    <option value="denied">permission denied</option>
+    <option value="dq">injected data defect</option>
+  </select>
+</header>
+
+<main id="main">
+  <!-- ============ REVIEW ============ -->
+  <div class="col left view active" data-view="review">
+    <h4>Scenario</h4>
+    <div id="scen"></div>
+    <h4>Evidence pointers</h4>
+    <div id="facts"></div>
+    <h4>Specification <span id="specn" class="src"></span></h4>
+    <div class="hint">Green = from tool activity. Purple = model-suggested. Both point you at what to check; neither is a verdict.</div>
+    <div id="spec"></div>
+  </div>
+
+  <div class="col mid view active" data-view="review">
+    <div id="convo"></div>
+  </div>
+
+  <div class="col right view active" data-view="review">
+    <h4>Open code</h4>
+    <div class="hint">Describe the <b>first</b> failure in your own words, then stop. No mode names yet.</div>
+    <textarea id="note-in" placeholder="What went wrong? Cite the evidence…"></textarea>
+    <div style="display:flex;gap:5px;margin:6px 0">
+      <button id="note-save">Save note</button>
+      <button id="note-clean">No failure observed</button>
+    </div>
+    <div id="notes"></div>
+
+    <!-- Hidden until a depth search actually proposes something for this
+         trace. An always-visible "none for this trace" is dead space on a
+         panel the reviewer reads 100+ times. -->
+    <div id="suggs-block" hidden>
+      <h4>AI suggestions</h4>
+      <div class="hint">Proposals from a search, not labels. Accepting one records it as your own open code.</div>
+      <div id="suggs"></div>
+    </div>
+
+    <h4>Labels</h4>
+    <div class="hint">Structured pass. Every trace gets one judgment per final mode.</div>
+    <div id="labels"></div>
+  </div>
+
+  <!-- ============ TAXONOMY ============ -->
+  <div class="col view" data-view="tax" style="grid-column:1/-1">
+    <datalist id="req-ids"></datalist>
+    <div class="refbar">
+      <input id="new-mode-name" placeholder="new mode name, snake_case (e.g. unconfirmed_write)"
+             style="max-width:380px">
+      <button id="new-mode">+ add mode</button>
+      <span id="tax-count" class="hint" style="margin:0"></span>
+    </div>
+    <div class="hint">Each mode needs a binary definition, 3+ positives, 3+ close negatives, a boundary against its nearest neighbour, an evaluator type, and a SPEC requirement or recorded revision. Merge two groups when one product change would correct both; split when they need different ones.</div>
+    <div id="tax"></div>
+    <h4>Open codes not yet grouped</h4>
+    <div id="ungrouped"></div>
+  </div>
+
+  <!-- ============ LABELING ============ -->
+  <div class="col view" data-view="label" style="grid-column:1/-1">
+    <h4>Trace &times; mode judgments</h4>
+    <div class="hint">F = failure present, P = failure absent, blank = no judgment yet. Click a row to open that trace.</div>
+    <div id="lblgrid"></div>
+  </div>
+
+  <!-- ============ PROGRESS ============ -->
+  <div class="col view" data-view="prog" style="grid-column:1/-1">
+    <div id="prog"></div>
+  </div>
+
+  <!-- ============ REFERENCE ============ -->
+  <div class="col view" data-view="ref" style="grid-column:1/-1">
+    <div class="refbar">
+      <input id="ref-q" placeholder="Search requirements, policies, stores, facts…  (/ to focus)">
+      <span id="ref-count" class="hint" style="margin:0"></span>
+    </div>
+    <div id="ref"></div>
+  </div>
+</main>
+
+<div id="help"><div class="card">
+  <h3>Keyboard shortcuts</h3>
+  <div class="sub">Press <kbd>?</kbd> any time. <kbd>esc</kbd> or click outside to close.</div>
+  <div id="help-body"></div>
+</div></div>
+
+<div id="popover">
+  <div class="q" id="pop-quote"></div>
+  <textarea id="pop-note" placeholder="What went wrong here?"></textarea>
+  <div class="row">
+    <span class="k">&#8984;&#9166; save &middot; esc cancel</span>
+    <span class="sp"></span>
+    <button id="pop-cancel">cancel</button>
+    <button id="pop-save">save</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+const S = {
+  pool: [], spec: {}, ann: [], modes: [], suggs: [], labels: {},
+  idx: 0, filter: "all", view: "review", byId: {}, keepScroll: null,
+  ref: null, refQ: "", refOpen: null,
+};
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const clip = (s, n) => (s.length > n ? s.slice(0, n) + "…" : s);
+
+// ---------------------------------------------------------------- markdown
+// The agent writes Markdown (bold order numbers, bulleted order details,
+// numbered candidate lists). Shown raw, the asterisks and dashes compete with
+// the content for attention, which is the opposite of what open coding needs.
+// This is a deliberately small renderer covering what the agent actually
+// emits; everything is escaped first, so trace text can never inject HTML.
+function inline(s) {
+  return s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*\w])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+function md(src) {
+  const lines = esc(String(src ?? "")).replace(/\r/g, "").split("\n");
+  const out = [];
+  let para = [];
+  let list = null; // linked list of open {tag, indent, prev}
+  const flushPara = () => {
+    if (para.length) { out.push(`<p>${inline(para.join(" "))}</p>`); para = []; }
+  };
+  const closeLists = () => {
+    while (list) { out.push(`</${list.tag}>`); list = list.prev; }
+  };
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, "");
+    if (!line.trim()) { flushPara(); closeLists(); continue; }
+
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      flushPara(); closeLists();
+      const lvl = Math.min(6, h[1].length + 2);
+      out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`);
+      continue;
+    }
+
+    const li = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+    if (li) {
+      flushPara();
+      const indent = li[1].length;
+      const tag = /\d/.test(li[2]) ? "ol" : "ul";
+      if (!list) { out.push(`<${tag}>`); list = { tag, indent, prev: null }; }
+      else if (indent > list.indent) { out.push(`<${tag}>`); list = { tag, indent, prev: list }; }
+      else {
+        while (list.prev && indent < list.indent) { out.push(`</${list.tag}>`); list = list.prev; }
+      }
+      out.push(`<li>${inline(li[3])}</li>`);
+      continue;
+    }
+
+    closeLists();
+    para.push(line.trim());
+  }
+  flushPara(); closeLists();
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- highlights
+// Anchoring is by quote text within a block, the same scheme the reference
+// interface uses. Character offsets into the DOM would break the moment the
+// block re-renders; a quote match survives it, and survives Markdown rendering
+// too because the quote is captured from the rendered text the reviewer saw.
+function markQuote(root, quote, cls, id) {
+  if (!quote || !root) return false;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let full = "", node;
+  while ((node = walker.nextNode())) {
+    if (node.parentElement.closest(".hl")) continue; // already marked
+    nodes.push({ node, start: full.length });
+    full += node.nodeValue;
+  }
+  const pos = full.indexOf(quote);
+  if (pos < 0) return false;
+  const end = pos + quote.length;
+  // Walk backwards so wrapping one segment cannot shift the offsets of the
+  // segments still to be wrapped. A quote spanning a <strong> lands in two or
+  // more text nodes, each wrapped separately but visually contiguous.
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const { node: n, start } = nodes[i];
+    const nEnd = start + n.nodeValue.length;
+    if (nEnd <= pos || start >= end) continue;
+    const range = document.createRange();
+    range.setStart(n, Math.max(0, pos - start));
+    range.setEnd(n, Math.min(n.nodeValue.length, end - start));
+    const span = document.createElement("span");
+    span.className = cls;
+    if (id) span.dataset.item = id;
+    try { range.surroundContents(span); } catch (e) { /* crosses a boundary */ }
+  }
+  return true;
+}
+
+function applyHighlights(t) {
+  notesFor(t.trace_id).forEach((a, i) => {
+    if (!a.quote) return;
+    const block = $("#convo").querySelector(`[data-key="${a.anchor}"] .annotatable`);
+    if (block) markQuote(block, a.quote, "hl", "n" + i);
+  });
+  S.suggs.filter((s) => s.trace_id === t.trace_id && s.quote && !s.verdict)
+    .forEach((s, i) => {
+      const block = $("#convo").querySelector(`[data-key="${s.anchor}"] .annotatable`);
+      if (block) markQuote(block, s.quote, "hl sugg", "g" + i);
+    });
+}
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1900);
+}
+
+async function api(path, body) {
+  const opt = body === undefined ? {} : {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+  const r = await fetch(path, opt);
+  if (!r.ok) {
+    let msg = r.statusText;
+    try { msg = (await r.json()).error || msg; } catch (e) { /* keep statusText */ }
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+// ---------------------------------------------------------------- load
+async function load() {
+  const [pool, spec, ann, pat, suggs, labels] = await Promise.all([
+    api("/api/pool"), api("/api/spec"), api("/api/annotations"),
+    api("/api/patterns"), api("/api/suggestions"), api("/api/labels"),
+  ]);
+  S.pool = pool;
+  S.spec = spec;
+  S.ann = ann.annotations || [];
+  S.modes = pat.modes || [];
+  S.suggs = Array.isArray(suggs) ? suggs : [];
+  S.labels = labels || {};
+  S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
+  $("#specn").textContent = "sha " + (spec.digest || "?").slice(0, 8);
+  // Autocomplete for a mode's requirement source, so the id is picked from
+  // SPEC.md rather than typed from memory.
+  $("#req-ids").innerHTML = Object.keys(spec.requirements || {})
+    .sort().map((id) => `<option value="${esc(id)}">`).join("");
+  render();
+}
+
+// ---------------------------------------------------------------- selection
+function visible() {
+  const f = S.filter;
+  return S.pool.filter((t) => {
+    const d = t.derived, sc = t.scenario || {};
+    switch (f) {
+      case "unreviewed": return !notesFor(t.trace_id).length;
+      case "reviewed": return notesFor(t.trace_id).length > 0;
+      case "unlabeled": return S.modes.length > 0 && missingLabels(t.trace_id).length > 0;
+      case "shopper": case "merchant": case "support":
+        return t.langfuse.user_role === f;
+      case "challenge": case "coverage": return sc.scenario_group === f;
+      case "write": return d.write_tools_used.length > 0;
+      case "toolerr": return d.tool_errors.length > 0;
+      case "denied": return d.permission_denied;
+      case "dq": return !!sc.data_quality_case_id;
+      default: return true;
+    }
+  });
+}
+function cur() { const v = visible(); return v[Math.min(S.idx, v.length - 1)]; }
+function notesFor(id) { return S.ann.filter((a) => a.trace_id === id); }
+function missingLabels(id) {
+  return S.modes.filter((m) => !(S.labels[m.name] || {})[id]);
+}
+
+// ---------------------------------------------------------------- render
+function render() {
+  document.querySelectorAll(".view").forEach((el) => {
+    el.classList.toggle("active", el.dataset.view === S.view);
+  });
+  $("#main").classList.toggle("wide", S.view !== "review");
+  ["review", "tax", "label", "prog", "ref"].forEach((v) =>
+    $("#tab-" + v).classList.toggle("on", S.view === v));
+
+  if (S.view === "review") renderReview();
+  else if (S.view === "tax") renderTax();
+  else if (S.view === "label") renderGrid();
+  else if (S.view === "ref") renderRef();
+  else renderProg();
+}
+
+function renderReview() {
+  const v = visible(), t = cur();
+  $("#pos").textContent = v.length ? `${S.idx + 1} / ${v.length}` : "0 / 0";
+  if (!t) {
+    $("#convo").innerHTML = '<div class="empty">No traces match this filter.</div>';
+    ["#scen", "#facts", "#spec", "#notes", "#suggs", "#labels"].forEach(
+      (s) => ($(s).innerHTML = ""));
+    $("#hdr-meta").textContent = ""; $("#hdr-pills").innerHTML = "";
+    return;
+  }
+  renderHeader(t); renderScenario(t); renderFacts(t);
+  renderSpec(t); renderConvo(t); renderNotes(t); renderSuggs(t); renderLabels(t);
+}
+
+function renderHeader(t) {
+  const lf = t.langfuse, s = t.session;
+  $("#hdr-meta").textContent =
+    `${lf.scenario_id} · ${t.trace_id.slice(0, 10)} · turn ${s.turn_index + 1}/${s.turn_count}`;
+  const p = [`<span class="pill role">${esc(lf.user_role)} #${esc(lf.user_id)}</span>`];
+  const g = (t.scenario || {}).scenario_group;
+  if (g) p.push(`<span class="pill">${esc(g)}</span>`);
+  if ((t.scenario || {}).data_quality_case_id)
+    p.push(`<span class="pill warn">data defect</span>`);
+  if (t.derived.permission_denied) p.push(`<span class="pill warn">denied</span>`);
+  if (notesFor(t.trace_id).length) p.push(`<span class="pill">coded</span>`);
+  $("#hdr-pills").innerHTML = p.join(" ");
+}
+
+function renderScenario(t) {
+  const sc = t.scenario;
+  if (!sc) { $("#scen").innerHTML = '<div class="empty">no scenario join</div>'; return; }
+  let h = `<div class="fact"><span class="k">group</span><span class="v">${esc(sc.scenario_group)}</span></div>`;
+  if (sc.data_quality_case_id)
+    h += `<div class="fact"><span class="k">defect</span><span class="v hot">${esc(sc.data_quality_case_id)}</span></div>`;
+  const ev = (sc.expected || {}).evaluation;
+  if (ev) h += `<div class="fact"><span class="k">evaluation</span><span class="v">${esc(ev)}</span></div>`;
+  if (sc.followups && sc.followups.length)
+    h += `<div class="fact"><span class="k">followups</span><span class="v">${sc.followups.length}</span></div>`;
+  const exp = sc.expected || {};
+  const detail = exp.objective || exp.human_judgment || exp.criteria || exp.notes;
+  if (detail)
+    h += `<h4>Expected</h4><div style="font-size:11.5px;color:#cdd4e2;white-space:pre-wrap">${
+      esc(typeof detail === "string" ? detail : JSON.stringify(detail, null, 1))}</div>`;
+  $("#scen").innerHTML = h;
+}
+
+function renderFacts(t) {
+  const d = t.derived, lf = t.langfuse, rows = [];
+  const add = (k, v, hot) =>
+    rows.push(`<div class="fact"><span class="k">${esc(k)}</span><span class="v${hot ? " hot" : ""}">${esc(v)}</span></div>`);
+  add("tools", d.tools_used.join(", ") || "none");
+  if (d.write_tools_used.length) add("wrote", d.write_tools_used.join(", "), true);
+  if (d.refund) add("refund",
+    `$${d.refund.amount_usd} ${d.refund.status}`, d.refund.over_threshold);
+  if (d.cancel_status) add("cancel", d.cancel_status);
+  if (d.escalation_ticket) add("ticket", d.escalation_ticket);
+  d.tool_errors.forEach((e) => add(`${e.tool} err`, e.error, true));
+  if (d.policy_ids_retrieved.length) {
+    // Clickable: the commonest next question after "which policy did it use?"
+    // is "what does that policy actually say?".
+    const links = d.policy_ids_retrieved.map((p) =>
+      `<a href="#" data-policy="${esc(p)}" style="color:var(--tool)">${esc(p)}</a>`).join(", ");
+    rows.push(`<div class="fact"><span class="k">policy retrieved</span><span class="v">${links}</span></div>`);
+    add("policy cited", d.policy_ids_cited.join(", ") || "none",
+      d.policy_ids_cited.length < d.policy_ids_retrieved.length);
+  }
+  add("turns", (lf.features || {}).turn_count ?? "?");
+  add("model", (lf.models || [])[0] || "?");
+  add("prompt", lf.prompt_version || "?");
+  $("#facts").innerHTML = rows.join("");
+  $("#facts").querySelectorAll("[data-policy]").forEach((a) => {
+    a.onclick = (e) => { e.preventDefault(); openDoc(a.dataset.policy); };
+  });
+}
+
+function renderSpec(t) {
+  const all = [...(t.spec.floor || []), ...(t.spec.suggested || [])];
+  if (!all.length) { $("#spec").innerHTML = '<div class="empty">nothing attached</div>'; return; }
+  $("#spec").innerHTML = all.map((r, i) => {
+    const def = (S.spec.requirements || {})[r.id] || {};
+    const isFloor = r.source === "tool_activity";
+    let body = esc(def.text || "");
+    if (def.contract) {
+      body += `\n\nOn success: ${esc(def.contract.on_success || "")}` +
+              `\nOn failure: ${esc(def.contract.on_failure || "")}`;
+    }
+    let matrix = "";
+    if (r.access_rows && r.access_rows.length) {
+      matrix = `<table class="matrix">${r.access_rows.map((row) =>
+        `<tr><td>${esc(row.capability)}</td><td>${esc(row.permission)}</td></tr>`).join("")}</table>`;
+    }
+    return `<div class="req ${isFloor ? "floor" : "llm"}">
+      <div class="hd" data-req="${i}">
+        <span class="rid">${esc(r.id)}</span>
+        <span class="src">${isFloor ? "tool" : "ai"}</span>
+      </div>
+      <div style="padding:0 8px 6px"><div class="why">${esc(r.why)}</div>${matrix}</div>
+      <div class="bd" id="bd-${i}">${body}</div>
+    </div>`;
+  }).join("");
+  $("#spec").querySelectorAll(".hd").forEach((hd) => {
+    hd.onclick = () => $("#bd-" + hd.dataset.req).classList.toggle("open");
+  });
+}
+
+function stepHTML(st, key, prior) {
+  const role = st.role;
+  const cls = ["step", role, prior ? "prior" : ""].join(" ");
+  const noteBtn = prior ? "" :
+    `<button class="note-btn" data-anchor="${key}">note</button>`;
+  if (role === "user" || role === "assistant") {
+    // The user's own message is plain text; the agent's reply is Markdown.
+    const body = role === "assistant"
+      ? `<div class="txt md annotatable">${md(st.text)}</div>`
+      : `<div class="txt annotatable">${esc(st.text)}</div>`;
+    return `<div class="${cls}" data-key="${key}">
+      <div class="who">${role}</div>${body}${noteBtn}</div>`;
+  }
+  if (role === "tool_call") {
+    return `<div class="${cls}" data-key="${key}">
+      <div class="who">call</div>
+      <div class="txt mono annotatable">${esc(st.name)}(${esc(JSON.stringify(st.arguments || {}))})</div>
+      ${noteBtn}</div>`;
+  }
+  // tool_result: collapse the JSON to a verdict line, expand on click.
+  const c = st.content || {};
+  const ok = c.ok !== false;
+  let gist = "";
+  if (!ok) gist = `<span class="no">${esc(c.error || "error")}</span> ${esc(c.reason || "")}`;
+  else if (Array.isArray(c.orders)) gist = `${c.count ?? c.orders.length} orders`;
+  else if (Array.isArray(c.products)) gist = `${c.count ?? c.products.length} products`;
+  else if (Array.isArray(c.results)) gist = `${c.results.length} results`;
+  else if (c.status) gist = esc(c.status);
+  else if (c.policy_id) gist = esc(c.policy_id);
+  else if (c.ticket_id) gist = `ticket ${esc(c.ticket_id)}`;
+  else if (c.order) gist = `order ${esc(c.order.order_id)} ${esc(c.order.status)}`;
+  const bad = !ok ? " bad" : "";
+  return `<div class="${cls}${bad}" data-key="${key}">
+    <div class="who">result</div>
+    <div class="summary" data-full="full-${key}">
+      <span class="${ok ? "ok" : "no"}">${ok ? "ok" : "fail"}</span>
+      <span>${esc(st.name)}</span><span>${gist}</span><span style="color:#5a6273">&#9662;</span>
+    </div>
+    <div class="full annotatable" id="full-${key}">${esc(JSON.stringify(c, null, 2))}</div>
+    ${noteBtn}</div>`;
+}
+
+function renderConvo(t) {
+  let h = "";
+  const prior = (t.session.prior_trace_ids || []).map((id) => S.byId[id]).filter(Boolean);
+  if (prior.length) {
+    h += `<div class="ctxbanner">Earlier turns of session <code>${
+      esc(t.session.session_id.slice(0, 12))}</code> — read-only context. Label the current turn below.</div>`;
+    prior.forEach((p, pi) => {
+      h += `<div class="turnsep">turn ${pi + 1}</div>`;
+      (p.steps || []).forEach((st, si) => (h += stepHTML(st, `p${pi}-${si}`, true)));
+    });
+    h += `<div class="turnsep">turn ${prior.length + 1} &mdash; under review</div>`;
+  }
+  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false)));
+  $("#convo").innerHTML = h;
+
+  $("#convo").querySelectorAll(".summary").forEach((el) => {
+    el.onclick = () => document.getElementById(el.dataset.full).classList.toggle("open");
+  });
+  $("#convo").querySelectorAll(".note-btn").forEach((b) => {
+    b.onclick = () => {
+      $("#note-in").dataset.anchor = b.dataset.anchor;
+      $("#note-in").focus();
+      toast("note anchored to step " + b.dataset.anchor);
+    };
+  });
+  // Mark steps that already carry a note.
+  notesFor(t.trace_id).forEach((a) => {
+    if (!a.anchor) return;
+    const el = $("#convo").querySelector(`[data-key="${a.anchor}"]`);
+    if (el) el.classList.add("hasnote");
+  });
+  applyHighlights(t);
+  $("#convo").querySelectorAll(".hl").forEach((el) => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      const card = $("#notes").querySelector(`[data-note="${el.dataset.item}"]`);
+      if (card) {
+        card.scrollIntoView({ block: "center", behavior: "smooth" });
+        card.style.outline = "1px solid #d9a441";
+        setTimeout(() => (card.style.outline = ""), 1200);
+      }
+    };
+  });
+  // Annotating should not throw the reviewer back to the top of a long trace.
+  if (S.keepScroll != null) { $("#convo").scrollTop = S.keepScroll; S.keepScroll = null; }
+  else $("#convo").scrollTop = 0;
+}
+
+function renderNotes(t) {
+  const list = notesFor(t.trace_id);
+  $("#notes").innerHTML = list.length ? list.map((a, i) => `
+    <div class="note" data-note="n${i}">
+      ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 150))}&rdquo;</div>` : ""}
+      <div>${esc(a.note)}</div>
+      <div class="meta">
+        <span>${a.anchor ? "@" + esc(a.anchor) + " · " : ""}${esc((a.ts || "").slice(0, 16))}</span>
+        <button data-del="${i}">delete</button>
+      </div>
+    </div>`).join("") : '<div class="empty">not yet coded</div>';
+  $("#notes").querySelectorAll("[data-del]").forEach((b) => {
+    b.onclick = async () => {
+      const target = list[+b.dataset.del];
+      S.ann = S.ann.filter((a) => a !== target);
+      await saveAnn(); render();
+    };
+  });
+}
+
+async function saveAnn() {
+  await api("/api/annotations", { annotations: S.ann });
+}
+
+// Stable identifier per open code. A mode records the annotations it was
+// built from, and that link is what keeps the path from observation to
+// category inspectable; an array index would shift on the first deletion.
+function newId() {
+  return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// Older records (and anything hand-edited in) may predate ids. Fall back to a
+// deterministic key so grouping still works rather than silently dropping them.
+function annId(a) {
+  return a.id || `${a.trace_id}@${a.ts}`;
+}
+
+async function addNote(text, anchor, quote) {
+  const t = cur(); if (!t) return;
+  S.ann.push({
+    id: newId(),
+    trace_id: t.trace_id,
+    session_id: t.session.session_id,
+    scenario_id: t.langfuse.scenario_id,
+    note: text,
+    anchor: anchor || null,
+    // The exact words the note is about. Stored verbatim so the evidence
+    // behind an open code stays inspectable, which is what lets a mode later
+    // cite the annotation it came from.
+    quote: quote || null,
+    ts: new Date().toISOString(),
+    source: "human",
+  });
+  await saveAnn();
+  $("#note-in").value = ""; delete $("#note-in").dataset.anchor;
+  render(); toast("note saved");
+}
+
+// ---------------------------------------------------------------- select-to-annotate
+let pending = null; // {anchor, quote}
+
+function closePopover(rerender) {
+  pending = null;
+  $("#popover").style.display = "none";
+  $("#pop-note").value = "";
+  if (rerender) { S.keepScroll = $("#convo").scrollTop; render(); }
+}
+
+$("#convo").addEventListener("mouseup", () => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const quote = sel.toString().trim();
+  if (!quote) return;
+  const node = sel.anchorNode;
+  const block = node && (node.nodeType === 1 ? node : node.parentElement)
+    ?.closest(".annotatable");
+  if (!block) return;
+  const step = block.closest("[data-key]");
+  if (!step || step.classList.contains("prior")) return; // context is read-only
+
+  pending = { anchor: step.dataset.key, quote };
+
+  // Mark the selection before the popover steals focus: clicking into the
+  // textarea collapses the native selection, and without a standing highlight
+  // the reviewer loses sight of what the note is about.
+  $("#convo").querySelectorAll(".hl.pending").forEach((el) => el.replaceWith(
+    ...el.childNodes));
+  markQuote(block, quote, "hl pending");
+  sel.removeAllRanges();
+
+  const mark = $("#convo").querySelector(".hl.pending");
+  const rect = (mark || block).getBoundingClientRect();
+  const pop = $("#popover");
+  pop.style.display = "block";
+  const top = Math.min(rect.bottom + 6, window.innerHeight - pop.offsetHeight - 10);
+  pop.style.left = Math.min(rect.left, window.innerWidth - 345) + "px";
+  pop.style.top = (window.scrollY + top) + "px";
+  $("#pop-quote").textContent = quote.length > 220 ? quote.slice(0, 220) + "…" : quote;
+  $("#pop-note").focus();
+});
+
+$("#pop-save").onclick = async () => {
+  const note = $("#pop-note").value.trim();
+  if (!note || !pending) { closePopover(true); return; }
+  const { anchor, quote } = pending;
+  S.keepScroll = $("#convo").scrollTop;
+  closePopover(false);
+  await addNote(note, anchor, quote);
+};
+$("#pop-cancel").onclick = () => closePopover(true);
+$("#pop-note").addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { e.stopPropagation(); closePopover(true); }
+  else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault(); e.stopPropagation(); $("#pop-save").click();
+  }
+});
+document.addEventListener("mousedown", (e) => {
+  if ($("#popover").style.display === "block" && !$("#popover").contains(e.target)) {
+    closePopover(true);
+  }
+});
+
+function renderSuggs(t) {
+  const mine = S.suggs.filter((s) => s.trace_id === t.trace_id);
+  // The whole block, heading included, stays out of the way until there is
+  // something to decide. It returns on its own once Part D's search runs.
+  $("#suggs-block").hidden = mine.length === 0;
+  if (!mine.length) { $("#suggs").innerHTML = ""; return; }
+  $("#suggs").innerHTML = mine.length ? mine.map((s, i) => {
+    if (s.verdict) {
+      return `<div class="sugg"><div>${esc(s.text)}</div>
+        <div class="meta" style="font-size:10px;color:var(--faint);margin-top:5px">
+        ${esc(s.verdict)}${s.reason ? " — " + esc(s.reason) : ""}</div></div>`;
+    }
+    return `<div class="sugg">
+      <div>${esc(s.text)}</div>
+      <div style="font-size:10px;color:var(--faint);margin-top:4px">${esc(s.origin || "ai")}</div>
+      <div class="row">
+        <button data-acc="${i}">accept as open code</button>
+        <button data-rej="${i}">reject</button>
+      </div></div>`;
+  }).join("") : '<div class="empty">none for this trace</div>';
+
+  $("#suggs").querySelectorAll("[data-acc]").forEach((b) => {
+    b.onclick = async () => {
+      const s = mine[+b.dataset.acc];
+      s.verdict = "accepted"; s.decided_at = new Date().toISOString();
+      await api("/api/suggestions", S.suggs);
+      // Carry the quote across: accepting should strengthen the evidence, not
+      // drop it. Without this the purple suggestion highlight vanishes the
+      // moment it becomes an annotation, because there is no quote to re-match.
+      await addNote(s.text, s.anchor, s.quote);
+      toast("accepted — recorded as your open code");
+    };
+  });
+  $("#suggs").querySelectorAll("[data-rej]").forEach((b) => {
+    b.onclick = async () => {
+      const s = mine[+b.dataset.rej];
+      const why = prompt("Why is this not an instance? (the boundary that excludes it)");
+      if (why === null) return;
+      s.verdict = "rejected"; s.reason = why; s.decided_at = new Date().toISOString();
+      await api("/api/suggestions", S.suggs);
+      render(); toast("rejected — reason saved");
+    };
+  });
+}
+
+function renderLabels(t) {
+  if (!S.modes.length) {
+    $("#labels").innerHTML = '<div class="empty">no modes yet — define them in Taxonomy</div>';
+    return;
+  }
+  $("#labels").innerHTML = S.modes.map((m) => {
+    const rec = (S.labels[m.name] || {})[t.trace_id];
+    const v = rec ? rec.label : null;
+    return `<div class="lbl">
+      <span class="nm" title="${esc(m.definition || "")}">${esc(m.name)}</span>
+      <button class="pass ${v === 0 ? "on" : ""}" data-m="${esc(m.name)}" data-v="0">P</button>
+      <button class="fail ${v === 1 ? "on" : ""}" data-m="${esc(m.name)}" data-v="1">F</button>
+    </div>`;
+  }).join("");
+  $("#labels").querySelectorAll("button[data-m]").forEach((b) => {
+    b.onclick = () => setLabel(b.dataset.m, +b.dataset.v);
+  });
+}
+
+async function setLabel(mode, label) {
+  const t = cur(); if (!t) return;
+  try {
+    const r = await api("/api/labels", { trace_id: t.trace_id, mode, label });
+    S.labels[mode] = S.labels[mode] || {};
+    S.labels[mode][t.trace_id] = { trace_id: t.trace_id, label, label_id: r.label_id };
+    render();
+    toast(r.langfuse_error ? "saved locally; Langfuse failed: " + r.langfuse_error
+      : (r.langfuse ? "saved + scored in Langfuse" : "saved locally"));
+  } catch (e) { toast("save failed: " + e.message); }
+}
+
+// ---------------------------------------------------------------- taxonomy
+async function saveModes() {
+  await api("/api/patterns", { modes: S.modes });
+}
+
+function idList(s) {
+  return String(s || "").split(/[\s,]+/).filter(Boolean);
+}
+
+function renderTax() {
+  // Which open codes already belong to a mode. Used for real now: the
+  // "not yet grouped" list is the reviewer's remaining work queue, so
+  // including already-grouped codes would make it never empty.
+  const grouped = new Set();
+  S.modes.forEach((m) => (m.annotations || []).forEach((id) => grouped.add(id)));
+  const byId = {};
+  S.ann.forEach((a) => { byId[annId(a)] = a; });
+
+  $("#tax").innerHTML = S.modes.length ? S.modes.map((m, i) => {
+    const live = S.labels[m.name] || {};
+    const f = Object.values(live).filter((r) => r.label === 1).length;
+    const p = Object.values(live).filter((r) => r.label === 0).length;
+    const gaps = [];
+    if (!m.definition) gaps.push("definition");
+    if ((m.positives || []).length < 3) gaps.push("3 positives");
+    if ((m.close_negatives || []).length < 3) gaps.push("3 close negatives");
+    if (!m.boundary) gaps.push("boundary");
+    if (!m.evaluator) gaps.push("evaluator type");
+    if (!m.requirement) gaps.push("SPEC requirement");
+
+    const mine = (m.annotations || []).map((id) => byId[id]).filter(Boolean);
+    return `<div class="mode">
+      <div class="mhd">
+        <input class="mname" data-m="${i}" data-f="name" value="${esc(m.name)}">
+        <span class="src">${f} fail / ${p} pass</span>
+        ${gaps.length
+          ? `<span class="src gap">missing: ${esc(gaps.join(", "))}</span>`
+          : `<span class="src ok">complete</span>`}
+        <span class="sp"></span>
+        <button data-del-mode="${i}">delete</button>
+      </div>
+      <div class="mbody">
+        <label>Binary definition
+          <textarea data-m="${i}" data-f="definition"
+            placeholder="Another reviewer must be able to apply this to a trace and get the same answer.">${esc(m.definition || "")}</textarea></label>
+        <label>Boundary against the nearest neighbouring mode
+          <textarea data-m="${i}" data-f="boundary"
+            placeholder="What looks like this mode but is not it, and why.">${esc(m.boundary || "")}</textarea></label>
+        <div class="mrow">
+          <label>Likely evaluator
+            <select data-m="${i}" data-f="evaluator">
+              <option value=""${!m.evaluator ? " selected" : ""}>—</option>
+              <option value="code check"${m.evaluator === "code check" ? " selected" : ""}>code check</option>
+              <option value="LLM judge"${m.evaluator === "LLM judge" ? " selected" : ""}>LLM judge</option>
+            </select></label>
+          <label>Requirement source
+            <input data-m="${i}" data-f="requirement" list="req-ids"
+              placeholder="RESP-2, or a recorded SPEC revision"
+              value="${esc(m.requirement || "")}"></label>
+        </div>
+        <div class="mrow">
+          <label>Confirmed positive traces
+            <input data-m="${i}" data-f="positives" placeholder="trace ids, space separated"
+              value="${esc((m.positives || []).join(" "))}"></label>
+          <label>Close negative traces
+            <input data-m="${i}" data-f="close_negatives" placeholder="trace ids, space separated"
+              value="${esc((m.close_negatives || []).join(" "))}"></label>
+        </div>
+        <div class="grp">From ${mine.length} open code${mine.length === 1 ? "" : "s"}</div>
+        ${mine.length ? mine.map((a) => `
+          <div class="note">
+            ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 110))}&rdquo;</div>` : ""}
+            <div>${esc(a.note)}</div>
+            <div class="meta">
+              <span>${esc(a.scenario_id || "")} &middot; ${esc((a.trace_id || "").slice(0, 10))}</span>
+              <button data-unlink="${i}" data-aid="${esc(annId(a))}">unlink</button>
+            </div>
+          </div>`).join("")
+        : '<div class="empty">none yet — assign from the list below</div>'}
+      </div>
+    </div>`;
+  }).join("") : '<div class="empty">No modes yet. Open coding comes first, then group the codes below.</div>';
+
+  // Only codes that describe a failure and are not already grouped.
+  const un = S.ann.filter((a) =>
+    a.note && !/^no failure observed/i.test(a.note) && !grouped.has(annId(a)));
+  const opts = S.modes.map((m, i) =>
+    `<option value="${i}">${esc(m.name)}</option>`).join("");
+  $("#ungrouped").innerHTML = un.length ? un.map((a) => `
+    <div class="note">
+      ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 130))}&rdquo;</div>` : ""}
+      <div>${esc(a.note)}</div>
+      <div class="meta">
+        <span>${esc(a.scenario_id || "")} &middot; ${esc((a.trace_id || "").slice(0, 10))}</span>
+        ${S.modes.length
+          ? `<select data-assign="${esc(annId(a))}">
+               <option value="">assign to…</option>${opts}</select>`
+          : '<span class="tip">create a mode to group this</span>'}
+      </div>
+    </div>`).join("")
+    : `<div class="empty">${
+        S.ann.length ? "every open code is grouped" : "no open codes yet"}</div>`;
+
+  $("#tax-count").textContent =
+    `${S.modes.length} modes · ${un.length} codes ungrouped · ${grouped.size} grouped`;
+
+  // -- wiring ---------------------------------------------------------
+  $("#tax").querySelectorAll("[data-f]").forEach((el) => {
+    el.onchange = async () => {
+      const m = S.modes[+el.dataset.m];
+      const f = el.dataset.f;
+      if (f === "positives" || f === "close_negatives") m[f] = idList(el.value);
+      else if (f === "name") {
+        const old = m.name, next = el.value.trim();
+        if (!next) { el.value = old; return; }
+        if (old !== next && S.labels[old]) {
+          if (!confirm(
+            `Labels are already saved under "${old}".\n\n` +
+            `Renaming leaves labels/${old}.jsonl behind and starts a new file ` +
+            `for "${next}". Rename anyway?`)) { el.value = old; return; }
+        }
+        m.name = next;
+      } else m[f] = el.value;
+      await saveModes(); render();
+    };
+  });
+  $("#tax").querySelectorAll("[data-del-mode]").forEach((b) => {
+    b.onclick = async () => {
+      const m = S.modes[+b.dataset.delMode];
+      if (!confirm(`Delete mode "${m.name}"?\n\nAny labels already saved under ` +
+        `it stay in labels/${m.name}.jsonl.`)) return;
+      S.modes.splice(+b.dataset.delMode, 1);
+      await saveModes(); render();
+    };
+  });
+  $("#tax").querySelectorAll("[data-unlink]").forEach((b) => {
+    b.onclick = async () => {
+      const m = S.modes[+b.dataset.unlink];
+      m.annotations = (m.annotations || []).filter((id) => id !== b.dataset.aid);
+      await saveModes(); render();
+    };
+  });
+  $("#ungrouped").querySelectorAll("[data-assign]").forEach((sel) => {
+    sel.onchange = async () => {
+      if (sel.value === "") return;
+      const m = S.modes[+sel.value];
+      m.annotations = [...(m.annotations || []), sel.dataset.assign];
+      await saveModes(); render();
+      toast(`grouped under ${m.name}`);
+    };
+  });
+}
+
+// Inline rather than prompt(): a modal blocks the page, and naming a mode is
+// something you do while reading the codes it came from.
+async function newMode() {
+  const input = $("#new-mode-name");
+  const clean = input.value.trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  if (!clean) { input.focus(); return; }
+  if (S.modes.some((m) => m.name === clean)) { toast("that mode already exists"); return; }
+  S.modes.push({
+    name: clean, definition: "", boundary: "", evaluator: "", requirement: "",
+    annotations: [], positives: [], close_negatives: [],
+    created: new Date().toISOString(),
+  });
+  input.value = "";
+  await saveModes(); render();
+  toast(`added ${clean}`);
+}
+
+// ---------------------------------------------------------------- grid
+function renderGrid() {
+  if (!S.modes.length) {
+    $("#lblgrid").innerHTML = '<div class="empty">Define modes first.</div>'; return;
+  }
+  const v = visible();
+  const head = `<tr><th>scenario</th><th>role</th>${
+    S.modes.map((m) => `<th>${esc(m.name)}</th>`).join("")}<th>notes</th></tr>`;
+  const rows = v.map((t, i) => {
+    const cells = S.modes.map((m) => {
+      const rec = (S.labels[m.name] || {})[t.trace_id];
+      if (!rec) return `<td class="c none">·</td>`;
+      return rec.label === 1 ? `<td class="c F">F</td>` : `<td class="c P">P</td>`;
+    }).join("");
+    return `<tr data-i="${i}" class="${t === cur() ? "cur" : ""}">
+      <td class="mono">${esc(t.langfuse.scenario_id)}</td>
+      <td>${esc(t.langfuse.user_role)}</td>${cells}
+      <td class="c">${notesFor(t.trace_id).length || ""}</td></tr>`;
+  }).join("");
+  $("#lblgrid").innerHTML = `<table class="grid">${head}${rows}</table>`;
+  $("#lblgrid").querySelectorAll("tr[data-i]").forEach((tr) => {
+    tr.onclick = () => { S.idx = +tr.dataset.i; S.view = "review"; render(); };
+  });
+}
+
+// ---------------------------------------------------------------- progress
+function renderProg() {
+  const total = S.pool.length;
+  const coded = new Set(S.ann.map((a) => a.trace_id)).size;
+  const pct = total ? Math.round((coded / total) * 100) : 0;
+  let h = `<h4>Open coding</h4>
+    <div class="stat"><span>traces reviewed</span><span class="v">${coded} / ${total}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>`;
+
+  h += `<h4>Structured labeling</h4>`;
+  if (!S.modes.length) h += '<div class="empty">no modes yet</div>';
+  else {
+    h += `<table class="grid"><tr><th>mode</th><th>fail</th><th>pass</th><th>judged</th><th>sample fraction</th></tr>`;
+    S.modes.forEach((m) => {
+      const live = Object.values(S.labels[m.name] || {});
+      const f = live.filter((r) => r.label === 1).length;
+      const p = live.filter((r) => r.label === 0).length;
+      const frac = live.length ? ((f / live.length) * 100).toFixed(1) + "%" : "—";
+      h += `<tr><td class="mono">${esc(m.name)}</td><td class="c F">${f}</td>
+        <td class="c P">${p}</td><td class="c">${live.length} / ${total}</td>
+        <td class="c">${frac}</td></tr>`;
+    });
+    h += `</table><div class="hint">Sample fractions, not prevalence estimates — the review set was deliberately stratified.</div>`;
+    const short = S.modes.filter((m) => {
+      const live = Object.values(S.labels[m.name] || {});
+      return live.filter((r) => r.label === 1).length < 30 ||
+             live.filter((r) => r.label === 0).length < 30;
+    });
+    if (short.length) {
+      h += `<div class="hint" style="color:var(--err)">Below the HW5 minimum of 30 pass + 30 fail: ${
+        esc(short.map((m) => m.name).join(", "))}</div>`;
+    }
+  }
+
+  h += `<h4>Suggestions</h4>`;
+  const acc = S.suggs.filter((s) => s.verdict === "accepted").length;
+  const rej = S.suggs.filter((s) => s.verdict === "rejected").length;
+  const pend = S.suggs.filter((s) => !s.verdict).length;
+  h += `<div class="stat"><span>accepted</span><span class="v">${acc}</span></div>
+        <div class="stat"><span>rejected</span><span class="v">${rej}</span></div>
+        <div class="stat"><span>pending</span><span class="v">${pend}</span></div>`;
+  if (!rej) h += `<div class="hint" style="color:var(--err)">The saved state must contain at least one rejected suggestion.</div>`;
+
+  h += `<h4>Pool composition</h4>`;
+  const by = (fn) => {
+    const c = {};
+    S.pool.forEach((t) => { const k = fn(t) ?? "—"; c[k] = (c[k] || 0) + 1; });
+    return c;
+  };
+  const roles = by((t) => t.langfuse.user_role);
+  const groups = by((t) => (t.scenario || {}).scenario_group);
+  h += `<table class="grid"><tr><th>dimension</th><th>values</th></tr>
+    <tr><td>role</td><td class="mono">${esc(JSON.stringify(roles))}</td></tr>
+    <tr><td>group</td><td class="mono">${esc(JSON.stringify(groups))}</td></tr>
+    <tr><td>sessions</td><td class="mono">${new Set(S.pool.map((t) => t.session.session_id)).size}</td></tr>
+    </table>`;
+  $("#prog").innerHTML = h;
+}
+
+// ---------------------------------------------------------------- reference
+// Every source of truth in one searchable place. Checking a reply against the
+// document it cites is the commonest thing a reviewer does, and leaving the
+// interface to do it is the friction this replaces.
+function hl(text, q) {
+  const e = esc(text);
+  if (!q) return e;
+  return e.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"),
+    "<mark>$1</mark>");
+}
+
+// One store, with its settings placed beside the platform defaults they
+// replace. Reviewing a return-window claim means knowing both numbers and
+// which one governs; the effective value alone hides that comparison.
+function renderStore(slug) {
+  const R = S.ref;
+  const s = R.stores.find((x) => x.slug === slug);
+  if (!s) { S.refStore = null; renderRef(); return; }
+  const doc = s.policy_id && R.policies.find((p) => p.policy_id === s.policy_id);
+
+  // Which reviewed traces touched this store. Scanning the pool beats a join
+  // on the server: the reviewer wants the traces where a claim about THIS
+  // store could have been made, and that is a text question, not a schema one.
+  const needle = `"store_id": ${s.store_id}`;
+  const touching = S.pool.filter((t) => {
+    const blob = JSON.stringify(t.steps);
+    return blob.includes(needle) || blob.includes(s.name);
+  });
+
+  let h = `<div class="storehd">
+    <button id="ref-back">&larr; all stores</button>
+    <h2>${esc(s.name)}</h2>
+    <span class="pill">#${s.store_id}</span>
+    <span class="pill">${esc(s.slug)}</span>
+    <span class="pill">${esc(s.category || "")}</span>
+    ${s.customized ? '<span class="pill warn">customized</span>'
+                   : '<span class="pill">platform defaults</span>'}
+  </div>
+  <div class="hint">${s.counts.orders ?? 0} orders &middot; ${
+    s.counts.products ?? 0} products &middot; ${touching.length} reviewed traces mention this store</div>`;
+
+  h += `<div class="refcols"><div>`;
+
+  h += `<h4>Policy settings vs. platform default</h4>
+    <table class="grid">
+      <colgroup><col style="width:24%"><col style="width:36%"><col style="width:40%"></colgroup>
+      <tr><th>setting</th><th>platform default</th><th>this store</th></tr>`;
+  h += s.overrides.map((o) => `<tr>
+      <td>${esc(o.field)}</td>
+      <td class="${o.differs ? "struck" : ""}">${esc(o.platform)}</td>
+      <td class="${o.differs ? "F" : "dim"}">${esc(o.store)}${
+        o.note ? `<div class="hint" style="margin:2px 0 0">${esc(o.note)}</div>` : ""}</td>
+    </tr>`).join("") + `</table>`;
+  h += `<div class="hint">Constants: ${
+    s.overrides.flatMap((o) => o.facts).map((f) => `<code>${esc(f)}</code>`).join(", ")
+  }. A store override takes precedence over the platform default.</div>`;
+
+  h += `<h4>Governing platform policy</h4>`;
+  h += R.override_governance.map((pid) => {
+    const p = R.policies.find((x) => x.policy_id === pid);
+    return p ? `<div class="doc">
+      <div class="hd" data-doc="${esc(pid)}">
+        <span class="pid">${esc(pid)}</span><span class="ttl">${esc(p.title)}</span>
+      </div>
+      <div class="bd" id="doc-${esc(pid)}"><div class="md">${md(p.body)}</div></div>
+    </div>` : "";
+  }).join("");
+
+  h += `</div><div>`;
+
+  h += `<h4>This store's policy document</h4>`;
+  if (doc) {
+    h += `<div class="doc store"><div class="hd" data-doc="${esc(doc.policy_id)}">
+        <span class="pid">${esc(doc.policy_id)}</span>
+        <span class="ttl">${esc(doc.title)}</span></div>
+      <div class="bd open" id="doc-${esc(doc.policy_id)}">
+        <div class="md">${md(doc.body)}</div>
+        <div class="hint" style="margin-top:6px">${esc(doc.path)}</div>
+      </div></div>`;
+  } else if (s.customized) {
+    h += `<div class="note" style="border-left-color:var(--err)">
+      This store departs from the platform default but has no policy document.
+      <code>facts.yaml</code> sets
+      <code>store_overrides.must_be_visible_in_store_policy_doc: true</code>,
+      so this is a gap in the corpus rather than an agent failure &mdash; an
+      agent cannot cite a document that does not exist.</div>`;
+  } else {
+    h += `<div class="empty">No store-specific document. Platform policy applies unchanged.</div>`;
+  }
+
+  h += `<h4>Reviewed traces mentioning this store</h4>`;
+  h += touching.length ? `<table class="grid">
+      <tr><th>scenario</th><th>role</th><th>tools</th></tr>` +
+    touching.slice(0, 40).map((t) => `<tr data-trace="${esc(t.trace_id)}" style="cursor:pointer">
+        <td class="mono">${esc(t.langfuse.scenario_id)}</td>
+        <td>${esc(t.langfuse.user_role)}</td>
+        <td style="font-size:10.5px">${esc((t.derived.tools_used || []).join(", "))}</td>
+      </tr>`).join("") + `</table>${
+      touching.length > 40 ? `<div class="hint">showing 40 of ${touching.length}</div>` : ""}`
+    : '<div class="empty">none in the review pool</div>';
+
+  h += `</div></div>`;
+  $("#ref").innerHTML = h;
+  $("#ref-count").textContent = `${s.name} · store #${s.store_id}`;
+
+  $("#ref-back").onclick = () => { S.refStore = null; renderRef(); };
+  $("#ref").querySelectorAll("[data-doc]").forEach((hd) => {
+    hd.onclick = () => document.getElementById("doc-" + hd.dataset.doc)
+      ?.classList.toggle("open");
+  });
+  $("#ref").querySelectorAll("[data-trace]").forEach((tr) => {
+    tr.onclick = () => {
+      const i = visible().findIndex((t) => t.trace_id === tr.dataset.trace);
+      if (i < 0) { toast("that trace is hidden by the current filter"); return; }
+      S.idx = i; S.view = "review"; render();
+    };
+  });
+}
+
+function renderRef() {
+  const R = S.ref;
+  if (!R) { $("#ref").innerHTML = '<div class="empty">loading…</div>'; return; }
+  if (S.refStore) { renderStore(S.refStore); return; }
+  const q = (S.refQ || "").trim();
+  const ql = q.toLowerCase();
+  const match = (...parts) => !ql || parts.join(" ").toLowerCase().includes(ql);
+
+  const reqs = R.spec.requirements.filter((r) => match(r.id, r.text));
+  const pol = R.policies.filter((p) => match(p.policy_id, p.title, p.body));
+  const stores = R.stores.filter((s) =>
+    match(s.name, s.slug, s.category, s.policy_id || "", String(s.return_window_days)));
+  const facts = Object.entries(R.facts).filter(([k, v]) =>
+    match(k, JSON.stringify(v)));
+
+  $("#ref-count").textContent = q
+    ? `${reqs.length} requirements · ${pol.length} policies · ${stores.length} stores · ${facts.length} facts`
+    : `${R.spec.requirements.length} requirements · ${R.policies.length} policies · ${R.stores.length} stores`;
+
+  const docHTML = (id, title, scope, body, extra) => `
+    <div class="doc ${scope}" ${S.refOpen === id ? 'data-open="1"' : ""}>
+      <div class="hd" data-doc="${esc(id)}">
+        <span class="pid">${hl(id, q)}</span>
+        <span class="ttl">${hl(title, q)}</span>
+        <span class="src">${scope}</span>
+      </div>
+      <div class="bd ${S.refOpen === id ? "open" : ""}" id="doc-${esc(id)}">
+        ${extra || ""}<div class="md">${md(body)}</div>
+      </div>
+    </div>`;
+
+  let left = `<h4>Specification &mdash; ${esc(R.spec.digest)}</h4>`;
+  left += reqs.length ? reqs.map((r) => {
+    let extra = "";
+    if (r.contract && r.contract.on_success) {
+      extra = `<div style="font-size:11.5px;margin-bottom:6px">
+        <b>On success.</b> ${hl(r.contract.on_success, q)}<br>
+        <b>On failure.</b> ${hl(r.contract.on_failure || "", q)}</div>`;
+    }
+    if (r.id === "AUTH-1") {
+      extra += `<table class="matrix" style="margin-bottom:6px">` +
+        R.spec.access_matrix.map((row) => `<tr>${
+          Object.values(row).map((c, i) =>
+            `<td${i ? "" : ' style="color:var(--dim)"'}>${hl(c, q)}</td>`).join("")
+        }</tr>`).join("") + `</table>`;
+    }
+    return docHTML(r.id, r.section, "platform", r.text, extra);
+  }).join("") : '<div class="empty">no match</div>';
+
+  left += `<h4>Platform facts</h4><div class="factgrid">` +
+    (facts.length ? facts.map(([k, v]) =>
+      `<span class="k">${hl(k, q)}</span><span class="v">${
+        hl(typeof v === "object" ? JSON.stringify(v) : String(v), q)}</span>`).join("")
+      : '<span class="empty">no match</span>') + `</div>`;
+
+  let right = `<h4>Help-center policies</h4>`;
+  const plat = pol.filter((p) => p.scope === "platform");
+  const st = pol.filter((p) => p.scope === "store");
+  right += plat.length ? plat.map((p) =>
+    docHTML(p.policy_id, p.title, "platform", p.body,
+      p.audience && p.audience !== "all"
+        ? `<div class="hint">audience: ${esc(p.audience)}</div>` : "")
+  ).join("") : '<div class="empty">no match</div>';
+
+  const odd = R.stores.filter((s) => s.undocumented_override);
+  right += `<h4>Stores &amp; overrides</h4>
+    <div class="hint">A store override takes precedence over the platform default, and must be visible in the store's own policy doc.${
+      odd.length ? ` <b style="color:var(--err)">${odd.length} undocumented.</b>`
+                 : " All overrides are documented."}</div>
+    <table class="grid">
+      <colgroup><col style="width:8%"><col><col style="width:20%"><col style="width:18%"></colgroup>
+      <tr><th>#</th><th>store</th><th>window</th><th>restock</th></tr>`;
+  right += stores.map((s) => {
+    // The doc id is always store-<slug>-policy, so showing the whole thing in
+    // a narrow column wastes the width. The store name already identifies it.
+    const doc = s.policy_id
+      ? `<a href="#" data-goto="${esc(s.policy_id)}" title="${esc(s.policy_id)}" style="color:var(--tool)">&#9656; policy</a>`
+      : (s.undocumented_override
+          ? '<span style="color:var(--err)" title="override with no policy doc">undocumented</span>'
+          : "");
+    return `<tr data-store="${esc(s.slug)}" style="cursor:pointer" title="open store page">
+      <td class="c">${s.store_id}</td>
+      <td>${hl(s.name, q)} ${doc}</td>
+      <td class="c${s.overrides_platform_window ? " F" : ""}">${s.return_window_days}d${
+        s.overrides_platform_window ? " *" : ""}</td>
+      <td class="c">${s.restocking_fee_opt_in ? "yes" : "—"}</td>
+    </tr>`;
+  }).join("") + `</table>`;
+
+  right += `<h4>Store policies</h4>`;
+  right += st.length ? st.map((p) =>
+    docHTML(p.policy_id, p.title, "store", p.body)).join("")
+    : '<div class="empty">no match</div>';
+
+  $("#ref").innerHTML = `<div class="refcols"><div>${left}</div><div>${right}</div></div>`;
+
+  $("#ref").querySelectorAll("[data-doc]").forEach((hd) => {
+    hd.onclick = () => {
+      const bd = document.getElementById("doc-" + hd.dataset.doc);
+      if (bd) bd.classList.toggle("open");
+    };
+  });
+  $("#ref").querySelectorAll("[data-goto]").forEach((a) => {
+    a.onclick = (e) => { e.preventDefault(); openDoc(a.dataset.goto); };
+  });
+  $("#ref").querySelectorAll("[data-store]").forEach((tr) => {
+    tr.onclick = (e) => {
+      if (e.target.closest("[data-goto]")) return; // the policy link wins
+      S.refStore = tr.dataset.store; renderRef();
+    };
+  });
+  if (S.refOpen) {
+    const el = document.getElementById("doc-" + S.refOpen);
+    if (el) { el.classList.add("open"); el.scrollIntoView({ block: "center" }); }
+    S.refOpen = null;
+  }
+}
+
+// Jump straight to a document — used by the policy ids in the evidence panel,
+// so a cited policy is one click from the trace that cited it.
+function openDoc(id) {
+  S.view = "ref"; S.refOpen = id;
+  if (!S.ref) { loadRef().then(render); return; }
+  render();
+}
+
+async function loadRef() {
+  if (!S.ref) S.ref = await api("/api/reference");
+  return S.ref;
+}
+
+// ---------------------------------------------------------------- events
+$("#prev").onclick = () => { if (S.idx > 0) { S.idx--; render(); } };
+$("#next").onclick = () => { if (S.idx < visible().length - 1) { S.idx++; render(); } };
+$("#filter").onchange = (e) => { S.filter = e.target.value; S.idx = 0; render(); };
+$("#tab-review").onclick = () => { S.view = "review"; render(); };
+$("#tab-tax").onclick = () => { S.view = "tax"; render(); };
+$("#tab-label").onclick = () => { S.view = "label"; render(); };
+$("#tab-prog").onclick = () => { S.view = "prog"; render(); };
+$("#new-mode").onclick = () => newMode();
+$("#new-mode-name").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); newMode(); }
+});
+$("#tab-ref").onclick = async () => {
+  S.view = "ref"; render();           // paint the shell immediately
+  await loadRef(); render();          // then fill it once the corpus lands
+};
+$("#ref-q").oninput = (e) => { S.refQ = e.target.value; renderRef(); };
+
+$("#note-save").onclick = () => {
+  const v = $("#note-in").value.trim();
+  if (v) addNote(v, $("#note-in").dataset.anchor);
+};
+$("#note-clean").onclick = () => addNote("no failure observed", null);
+
+// ---------------------------------------------------------------- shortcuts
+// One table drives both the bindings and the help overlay, so the two cannot
+// drift. (The reference interface documents annotation fields `start`/`end`
+// that its own code never writes — the same drift, one layer down.)
+//
+// Entries with `run` are dispatched on keydown. Entries without it are keys
+// handled closer to their widget (the popover's own listener, the textarea's
+// save) and appear in the help for completeness.
+const SHORTCUTS = [
+  { group: "Move", key: "j", label: "next trace", run: () => $("#next").click() },
+  { group: "Move", key: "k", label: "previous trace", run: () => $("#prev").click() },
+  { group: "Move", key: "/", label: "jump to Reference, focus search",
+    run: () => { $("#tab-ref").click(); setTimeout(() => $("#ref-q").focus(), 60); } },
+  { group: "Move", key: "r", label: "back to Review",
+    run: () => { S.view = "review"; render(); } },
+
+  { group: "Open coding", key: "n", label: "focus the open-code box",
+    run: () => $("#note-in").focus() },
+  { group: "Open coding", key: "x", label: "record “no failure observed”",
+    run: () => $("#note-clean").click() },
+  { group: "Open coding", key: "drag", label: "select text in the conversation",
+    note: "opens a note anchored to that exact span" },
+  { group: "Open coding", key: "⌘ ↩", label: "save the note you are typing" },
+  { group: "Open coding", key: "esc", label: "cancel the selection popover" },
+
+  { group: "Labeling", key: "1…9", label: "mark mode N as Fail", modes: true },
+  { group: "Labeling", key: "⇧1…9", label: "mark mode N as Pass" },
+
+  { group: "Help", key: "?", label: "show or hide this list", run: () => toggleHelp() },
+];
+
+const BY_KEY = {};
+SHORTCUTS.forEach((s) => { if (s.run) BY_KEY[s.key] = s; });
+
+function toggleHelp(force) {
+  const el = $("#help");
+  const open = force === undefined ? !el.classList.contains("open") : force;
+  el.classList.toggle("open", open);
+  if (open) renderHelp();
+}
+
+function renderHelp() {
+  const groups = [];
+  SHORTCUTS.forEach((s) => {
+    let g = groups.find((x) => x.name === s.group);
+    if (!g) groups.push((g = { name: s.group, rows: [] }));
+    g.rows.push(s);
+  });
+  $("#help-body").innerHTML = groups.map((g) => `
+    <div class="grp">${esc(g.name)}</div>
+    ${g.rows.map((s) => `
+      <div class="row">
+        <kbd>${esc(s.key)}</kbd>
+        <span class="lbl">${esc(s.label)}</span>
+        ${s.note ? `<span class="tip">${esc(s.note)}</span>` : ""}
+      </div>
+      ${s.modes ? modeLegend() : ""}
+    `).join("")}`).join("");
+}
+
+// The digit bindings are positional, so N means whatever sits Nth in the
+// taxonomy today. Spelling out the current mapping keeps a reordered
+// patterns.json from silently repointing the keys under the reviewer.
+function modeLegend() {
+  if (!S.modes.length) {
+    return `<div class="modes">No modes defined yet &mdash; these keys do nothing until the taxonomy has entries.</div>`;
+  }
+  return `<div class="modes">${S.modes.slice(0, 9).map((m, i) =>
+    `<kbd>${i + 1}</kbd> <code>${esc(m.name)}</code>`).join(" &nbsp; ")}</div>`;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && $("#help").classList.contains("open")) {
+    toggleHelp(false); return;
+  }
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+  if (typing) {
+    // Cmd/Ctrl+Enter saves without leaving the textarea.
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault(); $("#note-save").click();
+    }
+    return;
+  }
+  // A modifier means the key belongs to the browser, not to us.
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+  const hit = BY_KEY[e.key];
+  if (hit) { e.preventDefault(); hit.run(); return; }
+
+  // e.code, not e.key: with Shift held, e.key for the "1" key is "!" on a US
+  // layout, so a range test on e.key never matches and the Pass binding is
+  // dead. The physical key code is stable under Shift and across layouts.
+  const digit = /^Digit([1-9])$/.exec(e.code);
+  if (digit) {
+    const m = S.modes[+digit[1] - 1];
+    if (m) { e.preventDefault(); setLabel(m.name, e.shiftKey ? 0 : 1); }
+    else toast("no mode in slot " + digit[1]);
+  }
+});
+
+$("#helpbtn").onclick = () => toggleHelp();
+$("#help").onclick = (e) => { if (e.target.id === "help") toggleHelp(false); };
+
+load().catch((e) => {
+  document.body.innerHTML =
+    `<div style="padding:30px;font-family:var(--mono)">Failed to load: ${esc(e.message)}
+     <br><br>Build the pool first:<br><code>uv run python -m analysis.review_app.traces</code></div>`;
+});
+</script>
+</body>
+</html>

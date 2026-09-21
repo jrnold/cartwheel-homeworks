@@ -23,3 +23,8 @@ scenarios/demo_pilot_gt.json
 
 # Session progress notes (kept out of submissions per hw1-tutorial.md)
 homework/module-1/hw*-notes.md
+
+# HW4 spec-relevance cache: one file per trace, rebuilt on demand and fully
+# baked into analysis/state/review_pool.json. Committing 267 small files would
+# add noise to every future diff without adding anything reproducible.
+analysis/state/spec_relevance/
