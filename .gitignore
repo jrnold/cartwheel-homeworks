@@ -28,3 +28,7 @@ homework/module-1/hw*-notes.md
 # baked into analysis/state/review_pool.json. Committing 267 small files would
 # add noise to every future diff without adding anything reproducible.
 analysis/state/spec_relevance/
+
+# HW4 trace clustering: per-trace summary/embedding cache and the latest run.
+# Rebuilt on demand; the summaries and embeddings are derived, not student work.
+analysis/state/trace_clusters/
