@@ -13,6 +13,7 @@ import pytest
 
 from analysis.helpers import _state
 from analysis.trace_clusters import cluster as clustering
+from analysis.trace_clusters import describe as describing
 from analysis.trace_clusters.embed import TfidfEmbedder
 from analysis.trace_map import build
 
@@ -55,11 +56,24 @@ def _pool(n_each: int = 8) -> list[dict[str, Any]]:
 
 @pytest.fixture(autouse=True)
 def _state_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Temp state root holding a small pool, so nothing touches committed files."""
+    """Temp state root holding a small pool, so nothing touches committed files.
+
+    Also makes any call to the real Ollama chat endpoint fail at once, so a
+    test that forgets to stub the cluster describer errors instead of hanging.
+    """
     monkeypatch.setenv("CARTWHEEL_ANALYSIS_STATE", str(tmp_path))
+
+    def no_ollama(model: str, system: str, user: str) -> str:
+        raise AssertionError("a test reached the real Ollama describer")
+
+    monkeypatch.setattr(describing, "ollama_complete", no_ollama)
     _state.write_json(tmp_path / "review_pool.json", _pool())
     return tmp_path
 
+
+# Kept before the autouse fixture swaps it out, for the one test that drives
+# the real client against a fake HTTP response.
+REAL_OLLAMA = describing.ollama_complete
 
 # PCA layout keeps these tests free of numba; the UMAP path has its own tests.
 OFFLINE = dataclasses.replace(build.PARAMS, projection="pca", n_components=5, min_cluster_size=3)
@@ -78,13 +92,13 @@ def test_build_defaults_are_hdbscan_on_pca_and_a_umap_layout() -> None:
 
 def test_cached_mode_never_calls_a_model() -> None:
     # Nothing is cached in the temp state dir, so every trace must fall back.
-    data = build.build(TfidfEmbedder(), summaries="cached", params=OFFLINE)
+    data = build.build(TfidfEmbedder(), summaries="cached", params=OFFLINE, describe_model=None)
     assert data["backends"]["summary_fallbacks"] == data["n_traces"] == 16
     assert {t["summary_source"] for t in data["traces"].values()} == {"heuristic-fallback"}
 
 
 def test_rendered_page_carries_the_map_and_no_grading_fields() -> None:
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE)
+    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE, describe_model=None)
     html = build.render(data)
 
     assert "must not reach the page" not in html
@@ -176,3 +190,93 @@ def test_hidden_empty_state_does_not_cover_the_map() -> None:
     # The overlay sets display:flex, which beats the [hidden] attribute unless
     # restated; without this rule no click or hover reaches the canvas.
     assert ".empty[hidden] { display: none; }" in build.TEMPLATE.read_text()
+
+
+# ---------------------------------------------------------------------------
+# cluster summaries
+# ---------------------------------------------------------------------------
+
+
+def _describer(calls: list[str], reply: str | None = None) -> Any:
+    def complete(model: str, system: str, user: str) -> str:
+        calls.append(user)
+        return reply or json.dumps({
+            "name": "Refund requests queued for approval",
+            "summary": "Shoppers asked for refunds; get_order and issue_refund ran.",
+            "variation": "Order numbers differ.",
+        })
+    return complete
+
+
+def test_build_writes_a_summary_and_profile_per_cluster() -> None:
+    calls: list[str] = []
+    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+                       describe_model="stub", describe_complete=_describer(calls))
+    summaries = data["cluster_summaries"]
+    assert set(summaries) == {str(c["cluster"]) for c in data["clusters"]}
+    assert len(calls) == len(data["clusters"])
+    refund = next(
+        summaries[str(c["cluster"])] for c in data["clusters"] if "refund-0" in c["members"]
+    )
+    assert refund["name"] == "Refund requests queued for approval"
+    assert refund["source"] == "model:stub"
+    prof = refund["profile"]
+    tools = {t["value"]: t["count"] for t in prof["tools"]}
+    assert tools["issue_refund"] == prof["size"]
+    assert prof["roles"] == [{"value": "shopper", "count": prof["size"], "share": 1.0}]
+    # The prompt carries counts and summaries, never grading fields.
+    assert "must not reach the page" not in "".join(calls)
+    assert "queued_for_approval" in "".join(calls)
+
+
+def test_cluster_summaries_are_cached_between_builds() -> None:
+    first: list[str] = []
+    build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+                describe_model="stub", describe_complete=_describer(first))
+    again: list[str] = []
+    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+                       describe_model="stub", describe_complete=_describer(again))
+    assert first and not again
+    assert {v["source"] for v in data["cluster_summaries"].values()} == {"model:stub"}
+
+
+def test_unusable_cluster_summary_falls_back_to_the_keyword_label() -> None:
+    calls: list[str] = []
+    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+                       describe_model="stub", describe_complete=_describer(calls, reply="not json"))
+    assert len(calls) == 2 * len(data["clusters"])  # one retry each
+    for c in data["clusters"]:
+        entry = data["cluster_summaries"][str(c["cluster"])]
+        assert entry["source"] == "heuristic-fallback"
+        assert entry["name"] == c["label"]
+
+
+def test_describe_off_keeps_profiles_without_a_model() -> None:
+    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE, describe_model=None)
+    entries = data["cluster_summaries"].values()
+    assert entries and all(e["source"] == "heuristic" and e["profile"]["size"] for e in entries)
+    assert data["backends"]["cluster_summaries"] == "none"
+
+
+def test_member_lines_are_clipped_to_fit_the_context() -> None:
+    long = describing.TraceSummary(title="t", user_goal="g" * 2000, outcome="o")
+    line = describing._member_text(long)
+    assert len(line) == describing.MAX_MEMBER_CHARS
+    assert line.endswith("…")
+
+
+def test_empty_ollama_reply_raises_so_the_describer_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    # An overflowed Ollama context answers "" rather than an error status.
+    import io
+
+    sent: list[dict[str, Any]] = []
+
+    def fake_urlopen(request: Any, timeout: float) -> Any:
+        sent.append(json.loads(request.data))
+        return io.BytesIO(json.dumps({"message": {"content": ""}}).encode())
+
+    monkeypatch.setattr(describing.urllib.request, "urlopen", fake_urlopen)
+    with pytest.raises(ValueError, match="num_ctx"):
+        REAL_OLLAMA("gemma4:latest", "system", "user")
+    assert sent[0]["options"]["num_ctx"] == describing.NUM_CTX
+    assert sent[0]["format"] == "json"

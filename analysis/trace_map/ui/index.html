@@ -75,6 +75,7 @@ h4:first-child { margin-top: 0; }
 .cl .sw.ring { background: transparent; border: 1.5px solid var(--point); }
 .cl .num { font-family: var(--mono); color: var(--dim); font-size: 12px; }
 .cl .lab { font-size: 12px; overflow-wrap: anywhere; }
+.cl .lab .sum { display: block; color: var(--dim); margin-top: 2px; }
 .cl .n { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
 .members { margin: 2px 0 8px 46px; }
 .members a {
@@ -113,6 +114,22 @@ canvas.drag { cursor: grabbing; }
 /* display:flex above would otherwise beat [hidden] and leave an invisible
    layer over the canvas that swallows every click and hover. */
 .empty[hidden] { display: none; }
+
+/* ---- cluster pane ---- */
+.pills .pill.link { cursor: pointer; color: var(--ink); }
+.pills .pill.link:hover { border-color: var(--dim); }
+.bars { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px; gap: 3px 8px; align-items: center; margin: 2px 0 8px; }
+.bars .k { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+.bars .track { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.bars .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--point); }
+.bars .v { font-size: 11px; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+.memberlist a {
+  display: block; color: var(--ink); text-decoration: none; font-size: 12px;
+  padding: 3px 5px; border-radius: 4px;
+}
+.memberlist a:hover { background: var(--panel2); }
+.memberlist a .rep { color: var(--tool); font-size: 10px; margin-right: 5px; }
+.memberlist a .g { display: block; color: var(--dim); font-size: 11px; }
 
 /* ---- detail ---- */
 .title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
@@ -163,7 +180,7 @@ ul.tight li { margin: 1px 0; }
 </header>
 <main>
   <section class="col left">
-    <h4>Clusters <span class="faint" style="text-transform:none;letter-spacing:0">· click to color, up to 3</span></h4>
+    <h4>Clusters <span class="faint" style="text-transform:none;letter-spacing:0">· click to select, up to 3 colored</span></h4>
     <div id="clusters"></div>
   </section>
 
@@ -181,7 +198,10 @@ ul.tight li { margin: 1px 0; }
 
   <section class="col right" id="detail">
     <p class="muted">Click a point to read the trace. Nearby points had similar
-      summaries; a cluster number sits just above each cluster.</p>
+      summaries.</p>
+    <p class="muted">Click a cluster's number on the map, or its row on the left, to
+      read what the cluster shares. Shift-click a point to select its cluster.
+      Up to three clusters are colored at once.</p>
     <p class="faint small">Drag to pan, scroll to zoom. <kbd>/</kbd> searches,
       <kbd>Esc</kbd> clears.</p>
   </section>
@@ -202,6 +222,9 @@ const state = {
   highlight: [],        // cluster ids, in the order picked; index = color slot
   open: null,           // cluster id expanded in the list
   selected: null,       // trace id
+  pane: "intro",        // what the right pane shows: intro | trace | cluster
+  paneCluster: null,    // cluster id shown when pane === "cluster"
+  badges: [],           // badge hit boxes from the last draw: {c, x, y, w, h}
   hover: null,
   query: "",
   view: { k: 1, tx: 0, ty: 0 },
@@ -215,10 +238,14 @@ function esc(s) {
 // ---------------------------------------------------------------- url state
 
 function readHash() {
-  return new URLSearchParams(location.hash.slice(1)).get("trace");
+  const p = new URLSearchParams(location.hash.slice(1));
+  return { trace: p.get("trace"), cluster: p.get("cluster") };
 }
 function writeHash() {
-  history.replaceState(null, "", state.selected ? "#trace=" + encodeURIComponent(state.selected) : "#");
+  let h = "#";
+  if (state.pane === "cluster") h = "#cluster=" + state.paneCluster;
+  else if (state.pane === "trace" && state.selected) h = "#trace=" + encodeURIComponent(state.selected);
+  history.replaceState(null, "", h);
 }
 
 // ---------------------------------------------------------------- loading
@@ -242,27 +269,35 @@ function load(run) {
     };
   });
   state.byId = new Map(state.points.map((p) => [p.id, p]));
-  const want = readHash();
-  state.selected = want && state.byId.has(want) ? want : null;
-  state.open = state.selected ? state.byId.get(state.selected).cluster : null;
   showEmpty(state.points.length ? "" : "This build has no traces.");
   renderMeta();
   fitView();
-  renderClusters();
-  renderDetail();
-  draw();
+  const want = readHash();
+  const wantCluster = want.cluster === null ? NaN : Number(want.cluster);
+  if (state.clusterById.has(wantCluster) || (wantCluster === -1 && run.unclustered.length)) {
+    selectCluster(wantCluster);
+  } else if (want.trace && state.byId.has(want.trace)) {
+    select(want.trace);
+  } else {
+    renderClusters();
+    draw();
+  }
 }
 
 function renderMeta() {
   const b = state.run.backends || {};
-  const live = (s) => /live/.test(s || "");
-  const pill = (text, isLive) => `<span class="pill${isLive ? " live" : ""}" title="${esc(text)}">${esc(text)}</span>`;
+  // "ollama:qwen3-embedding:0.6b (local model)" -> "qwen3-embedding:0.6b"; the
+  // full text stays in the title.
+  const short = (v) => String(v || "").replace(/ \(.*\)$/, "").replace(/^(llm|ollama|litellm):/, "");
+  const pill = (text, full, isLive) =>
+    `<span class="pill${isLive ? " live" : ""}" title="${esc(full || text)}">${esc(text)}</span>`;
   $("runmeta").innerHTML = [
-    pill(`${state.run.n_traces} traces · source ${state.run.source}`),
-    pill(`summaries: ${b.summarizer}`, live(b.summarizer)),
-    pill(`embedder: ${b.embedder}`, live(b.embedder)),
-    pill(`clusters: HDBSCAN on ${b.reducer}`),
-    pill(`layout: ${b.projection || b.reducer}`),
+    pill(`${state.run.n_traces} traces`, `${state.run.n_traces} traces from the ${state.run.source}`),
+    pill(`summaries: ${short(b.summarizer)}`, `trace summaries: ${b.summarizer}`, /live/.test(b.summarizer || "")),
+    b.cluster_summaries ? pill(`cluster summaries: ${short(b.cluster_summaries)}`, b.cluster_summaries) : "",
+    pill(`embeddings: ${short(b.embedder)}`, b.embedder),
+    pill(`HDBSCAN on ${b.reducer}`, `clusters: HDBSCAN on a ${b.reducer} reduction`),
+    pill(`${b.projection || b.reducer} layout`, "2-D layout"),
   ].join("");
 }
 
@@ -295,9 +330,13 @@ function renderClusters() {
       ? `<span class="sw ring"></span>`
       : `<span class="sw" style="${color ? `background:${color}` : ""}"></span>`;
     const hits = q ? c.members.filter((m) => state.byId.get(m)?.hay.includes(q)).length : null;
-    let html = `<div class="cl${state.open === c.cluster ? " on" : ""}" data-c="${c.cluster}">
+    const d = describedOf(c.cluster);
+    const name = c.cluster === -1 ? "Unclustered" : (d?.name || c.label);
+    const sum = c.cluster === -1 ? "No group explains these." : "";
+    let html = `<div class="cl${state.open === c.cluster ? " on" : ""}" data-c="${c.cluster}"
+      title="${esc(c.label)}">
       ${sw}<span class="num">${c.cluster === -1 ? "–" : "#" + c.cluster}</span>
-      <span class="lab">${esc(c.label)}</span>
+      <span class="lab">${esc(name)}${sum ? `<span class="sum">${esc(sum)}</span>` : ""}</span>
       <span class="n">${hits !== null ? `${hits}/` : ""}${c.size}</span></div>`;
     if (state.open === c.cluster) {
       const reps = new Set(c.representatives);
@@ -317,13 +356,35 @@ $("clusters").addEventListener("click", (e) => {
   const link = e.target.closest("a[data-t]");
   if (link) { e.preventDefault(); select(link.dataset.t); return; }
   const row = e.target.closest(".cl");
-  if (!row) return;
-  const c = Number(row.dataset.c);
-  if (c !== -1) toggleHighlight(c);
-  state.open = state.open === c && !state.highlight.includes(c) ? null : c;
-  renderClusters();
-  draw();
+  if (row) selectCluster(Number(row.dataset.c), { toggle: true });
 });
+
+function describedOf(cluster) {
+  return (state.run.cluster_summaries || {})[String(cluster)] || null;
+}
+
+// Select a cluster from the list, a map badge, a shift-click or a pill: color
+// it, expand it in the list, and show it in the right pane. With toggle, a
+// second select of the cluster already on show clears it again.
+function selectCluster(c, { toggle = false } = {}) {
+  const showing = state.pane === "cluster" && state.paneCluster === c;
+  if (toggle && showing) {
+    const i = state.highlight.indexOf(c);
+    if (i >= 0) state.highlight.splice(i, 1);
+    state.open = null;
+    state.pane = state.selected ? "trace" : "intro";
+  } else {
+    if (c !== -1 && !state.highlight.includes(c)) toggleHighlight(c);
+    state.open = c;
+    state.pane = "cluster";
+    state.paneCluster = c;
+  }
+  renderClusters();
+  renderDetail();
+  draw();
+  writeHash();
+  document.querySelector(".cl.on")?.scrollIntoView({ block: "nearest" });
+}
 
 // ---------------------------------------------------------------- map
 
@@ -387,6 +448,7 @@ function draw() {
   ctx.globalAlpha = 1;
 
   if ($("numbers").checked) drawNumbers(focus);
+  else state.badges = [];
 
   for (const [id, r, w] of [[state.hover, 7, 1.5], [state.selected, 8, 2.5]]) {
     const p = id && state.byId.get(id);
@@ -399,6 +461,7 @@ function draw() {
 }
 
 function drawNumbers(focus) {
+  state.badges = [];
   ctx.font = "600 11px system-ui, -apple-system, sans-serif";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (const c of state.run.clusters) {
@@ -411,6 +474,7 @@ function drawNumbers(focus) {
     const y = Math.min(...screen.map(([, py]) => py)) - 15;
     const text = "#" + c.cluster;
     const w = ctx.measureText(text).width + 8;
+    state.badges.push({ c: c.cluster, x: x - w / 2, y: y - 8, w, h: 16 });
     ctx.globalAlpha = focus && !state.highlight.includes(c.cluster) ? 0.35 : 0.95;
     ctx.fillStyle = "#0d0f14"; ctx.strokeStyle = css("--line"); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(x - w / 2, y - 8, w, 16, 4); ctx.fill(); ctx.stroke();
@@ -429,6 +493,15 @@ function renderLegend() {
     items.push(`<span>“${esc(state.query)}”: ${n} match${n === 1 ? "" : "es"}</span>`);
   }
   $("legend").innerHTML = items.join("");
+}
+
+function badgeAt(mx, my) {
+  // Last drawn is on top, so search from the end. Pad the box for easier hits.
+  for (let i = state.badges.length - 1; i >= 0; i--) {
+    const b = state.badges[i];
+    if (mx >= b.x - 3 && mx <= b.x + b.w + 3 && my >= b.y - 3 && my <= b.y + b.h + 3) return b.c;
+  }
+  return null;
 }
 
 function nearest(mx, my) {
@@ -453,9 +526,14 @@ canvas.addEventListener("pointermove", (e) => {
     if (Math.abs(dx) + Math.abs(dy) > 3) { drag.moved = true; canvas.classList.add("drag"); }
     if (drag.moved) { state.view.tx = drag.tx + dx; state.view.ty = drag.ty + dy; hideTip(); draw(); return; }
   }
-  const p = nearest(e.clientX - r.left, e.clientY - r.top);
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const badge = badgeAt(mx, my);
+  const p = badge === null ? nearest(mx, my) : null;
+  canvas.style.cursor = badge !== null || p ? "pointer" : "";
   if ((p && p.id) !== state.hover) { state.hover = p && p.id; draw(); }
-  if (p) showTip(p, e.clientX - r.left, e.clientY - r.top); else hideTip();
+  if (badge !== null) showClusterTip(badge, mx, my);
+  else if (p) showTip(p, mx, my);
+  else hideTip();
 });
 canvas.addEventListener("pointerup", (e) => {
   canvas.classList.remove("drag");
@@ -463,8 +541,13 @@ canvas.addEventListener("pointerup", (e) => {
   drag = null;
   if (moved) return;
   const r = canvas.getBoundingClientRect();
-  const p = nearest(e.clientX - r.left, e.clientY - r.top);
-  if (p) select(p.id);
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const badge = badgeAt(mx, my);
+  if (badge !== null) { selectCluster(badge, { toggle: true }); return; }
+  const p = nearest(mx, my);
+  if (!p) return;
+  if (e.shiftKey) selectCluster(p.cluster, { toggle: true });
+  else select(p.id);
 });
 canvas.addEventListener("pointerleave", () => { if (!drag) { state.hover = null; hideTip(); draw(); } });
 canvas.addEventListener("wheel", (e) => {
@@ -492,12 +575,26 @@ function showTip(p, x, y) {
   tip.style.left = Math.min(x + 14, wrap.width - tw - 6) + "px";
   tip.style.top = (y + 14 + th > wrap.height ? y - th - 10 : y + 14) + "px";
 }
+function showClusterTip(c, x, y) {
+  const cl = state.clusterById.get(c);
+  const d = describedOf(c);
+  const tip = $("tip");
+  tip.innerHTML = `<div class="t">#${c} · ${esc(d?.name || cl?.label || "")}</div>
+    <div class="muted">${cl?.size ?? 0} traces · click to select</div>
+    ${d?.summary ? `<div>${esc(d.summary)}</div>` : ""}`;
+  tip.style.display = "block";
+  const wrap = $("mapwrap").getBoundingClientRect();
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  tip.style.left = Math.min(x + 14, wrap.width - tw - 6) + "px";
+  tip.style.top = (y + 14 + th > wrap.height ? y - th - 10 : y + 14) + "px";
+}
 function hideTip() { $("tip").style.display = "none"; }
 
 // ---------------------------------------------------------------- detail
 
 function select(id) {
   state.selected = id;
+  state.pane = "trace";
   const p = state.byId.get(id);
   if (p) state.open = p.cluster;
   renderClusters();
@@ -528,16 +625,72 @@ function stepHTML(s, prior) {
   return `<div class="${cls}"><div class="who">${esc(s.role)}</div><pre>${esc(JSON.stringify(s, null, 1))}</pre></div>`;
 }
 
+function barsHTML(items, size, color) {
+  if (!items?.length) return `<p class="faint small">none</p>`;
+  return `<div class="bars">` + items.map((i) => `
+    <span class="k">${esc(i.value)}</span>
+    <span class="track"><span class="fill" style="width:${(100 * i.count / size).toFixed(1)}%;${color ? `background:${color}` : ""}"></span></span>
+    <span class="v">${i.count}/${size}</span>`).join("") + `</div>`;
+}
+
+function renderClusterPane(el) {
+  const c = state.paneCluster;
+  const cl = c === -1
+    ? { cluster: -1, label: "", size: state.run.unclustered.length, representatives: [], members: state.run.unclustered }
+    : state.clusterById.get(c);
+  if (!cl) { el.innerHTML = INTRO; return; }
+  const d = describedOf(c);
+  const prof = d?.profile;
+  const color = slotOf(c);
+  const name = c === -1 ? "Unclustered traces" : (d?.name || cl.label);
+  const pills = [
+    c === -1 ? "" : `<span class="pill">cluster #${c}</span>`,
+    `<span class="pill">${cl.size} traces</span>`,
+    prof?.multi_turn ? `<span class="pill">${prof.multi_turn} in multi-turn sessions</span>` : "",
+    d?.source ? `<span class="pill" title="who wrote the summary">${esc(d.source)}</span>` : "",
+  ].join("");
+  let html = `<div class="title">${esc(name)}</div><div class="pills">${pills}</div>`;
+  if (c === -1) {
+    html += `<p class="muted">HDBSCAN left these out of every cluster. No group explains them,
+      so each is worth a look on its own.</p>`;
+  } else {
+    if (d?.summary) html += `<p class="kv">${esc(d.summary)}</p>`;
+    if (d?.variation) html += `<p class="kv muted">${esc(d.variation)}</p>`;
+    if (prof) {
+      html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· traces using each</span></h4>`;
+      html += barsHTML(prof.tools, prof.size, color);
+      if (prof.no_tools) html += `<p class="faint small">${prof.no_tools} of ${prof.size} ran no tools.</p>`;
+      html += `<h4>Notable results</h4>` + barsHTML(prof.results, prof.size, color);
+      html += `<h4>User roles</h4>` + barsHTML(prof.roles, prof.size, color);
+    }
+    html += `<h4>Keyword label</h4><p class="faint small">${esc(cl.label)}</p>`;
+  }
+  const reps = new Set(cl.representatives);
+  const order = [...cl.representatives, ...cl.members.filter((m) => !reps.has(m))];
+  html += `<h4>Traces${reps.size ? ` <span class="faint" style="text-transform:none;letter-spacing:0">· nearest the centre first</span>` : ""}</h4>`;
+  html += `<div class="memberlist">` + order.map((m) => {
+    const p = state.byId.get(m);
+    if (!p) return "";
+    return `<a href="#" data-t="${esc(m)}">${reps.has(m) ? `<span class="rep">REP</span>` : ""}${esc(p.summary.title || m)}
+      ${p.summary.user_goal ? `<span class="g">${esc(p.summary.user_goal)}</span>` : ""}</a>`;
+  }).join("") + `</div>`;
+  html += `<div class="note">Cluster summaries describe what the traces share. They do not say
+    which ones failed. Read the conversations before naming a failure.</div>`;
+  el.innerHTML = html;
+  el.scrollTop = 0;
+}
+
 function renderDetail() {
   const el = $("detail");
-  const p = state.selected && state.byId.get(state.selected);
-  if (!p) return;
+  if (state.pane === "cluster") { renderClusterPane(el); return; }
+  const p = state.pane === "trace" && state.selected && state.byId.get(state.selected);
+  if (!p) { el.innerHTML = INTRO; return; }
   const s = p.summary;
   const rec = state.pool[p.id];
   const sess = rec?.session || {};
   const cl = p.cluster === -1 ? "unclustered" : `cluster #${p.cluster}`;
   const pills = [
-    `<span class="pill">${esc(cl)}</span>`,
+    `<span class="pill link" data-c="${p.cluster}" title="Show this cluster">${esc(cl)} ›</span>`,
     `<span class="pill${/llm/.test(p.source) ? " live" : ""}">summary: ${esc(p.source)}</span>`,
     rec?.user_role ? `<span class="pill">${esc(rec.user_role)}</span>` : "",
     sess.turn_count > 1 ? `<span class="pill">turn ${sess.turn_index + 1} of ${sess.turn_count}</span>` : "",
@@ -577,6 +730,13 @@ function renderDetail() {
 
 
 
+const INTRO = $("detail").innerHTML;
+$("detail").addEventListener("click", (e) => {
+  const link = e.target.closest("a[data-t]");
+  if (link) { e.preventDefault(); select(link.dataset.t); return; }
+  const pill = e.target.closest(".pill.link[data-c]");
+  if (pill) selectCluster(Number(pill.dataset.c));
+});
 $("search").addEventListener("input", (e) => {
   state.query = e.target.value.trim().toLowerCase();
   renderClusters(); draw();
@@ -586,7 +746,9 @@ $("reset").addEventListener("click", () => { fitView(); draw(); });
 $("clear").addEventListener("click", clearAll);
 function clearAll() {
   state.highlight = []; state.query = ""; $("search").value = "";
-  renderClusters(); draw();
+  if (state.pane === "cluster") state.pane = state.selected ? "trace" : "intro";
+  state.open = null;
+  renderClusters(); renderDetail(); draw(); writeHash();
 }
 document.addEventListener("keydown", (e) => {
   const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName);

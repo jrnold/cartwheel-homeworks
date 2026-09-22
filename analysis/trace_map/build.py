@@ -17,17 +17,21 @@ import argparse
 import dataclasses
 import json
 import webbrowser
+from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
 from analysis.helpers import _state
 from analysis.review_app.traces import read_pool
+from analysis.trace_clusters import describe as describing
 from analysis.trace_clusters import run as pipeline
 from analysis.trace_clusters import sources
 from analysis.trace_clusters.embed import DEFAULT_OLLAMA_MODEL, Embedder, OllamaEmbedder
 from analysis.trace_clusters.run import CACHE_DIR
 from observability.instrument import load_env
+
+Complete = Callable[[str, str, str], str]
 
 TEMPLATE = Path(__file__).resolve().parent / "ui" / "index.html"
 DATA_SLOT = "/*MAP_DATA*/null"
@@ -49,6 +53,10 @@ SUMMARY_MODES = ("cached", "llm", "heuristic")
 
 def _cached_only(model: str, system: str, user: str) -> str:
     raise ValueError("no cached model summary, and the build does not call a model")
+
+
+def _no_description(model: str, system: str, user: str) -> str:
+    raise ValueError("written cluster summaries are turned off")
 
 
 def pool_view(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -75,8 +83,14 @@ def build(
     *,
     summaries: str = "cached",
     params: pipeline.Params = PARAMS,
+    describe_model: str | None = describing.DEFAULT_MODEL,
+    describe_complete: Complete | None = None,
 ) -> dict[str, Any]:
-    """Run the pipeline over the pool and return the page's data."""
+    """Run the pipeline over the pool and return the page's data.
+
+    ``describe_model`` names the local Ollama model that writes each cluster's
+    summary; None skips the written summaries and keeps the counted profiles.
+    """
     if summaries not in SUMMARY_MODES:
         raise ValueError(f"summaries must be one of {', '.join(SUMMARY_MODES)}")
     pool = read_pool()
@@ -95,7 +109,24 @@ def build(
         source="pool",
         complete=_cached_only if summaries == "cached" else None,
     )
-    result["pool"] = pool_view(pool)
+    view = pool_view(pool)
+    if describe_model is None:
+        described = describing.describe(
+            result["clusters"], result["traces"], view,
+            complete=_no_description, model="none",
+        )
+        for entry in described.values():
+            entry["source"] = "heuristic"
+    else:
+        described = describing.describe(
+            result["clusters"], result["traces"], view,
+            model=describe_model, complete=describe_complete, log=pipeline._log,
+        )
+    result["cluster_summaries"] = {str(k): v for k, v in described.items()}
+    result["backends"]["cluster_summaries"] = (
+        f"ollama:{describe_model} (local model)" if describe_model else "none"
+    )
+    result["pool"] = view
     return result
 
 
@@ -167,6 +198,11 @@ def main() -> None:
         "llm: summarize uncached traces with a live model; heuristic: offline only",
     )
     parser.add_argument("--embed-model", default=DEFAULT_OLLAMA_MODEL)
+    parser.add_argument(
+        "--describe-model",
+        default=describing.DEFAULT_MODEL,
+        help="local Ollama model that writes each cluster's summary; 'none' to skip",
+    )
     parser.add_argument("--out", type=Path, default=None, help="default: analysis/state/trace_clusters/map.html")
     parser.add_argument("--open", action="store_true", help="open the page when done")
     parser.add_argument(
@@ -184,7 +220,11 @@ def main() -> None:
             parser.error(f"no build at {path}; run without --no-build first")
     else:
         load_env()  # OLLAMA_HOST, and the model key for --summaries llm
-        data = build(OllamaEmbedder(args.embed_model), summaries=args.summaries)
+        data = build(
+            OllamaEmbedder(args.embed_model),
+            summaries=args.summaries,
+            describe_model=None if args.describe_model == "none" else args.describe_model,
+        )
         path = write(render(data), args.out)
         fallbacks = data["backends"]["summary_fallbacks"]
         print(
