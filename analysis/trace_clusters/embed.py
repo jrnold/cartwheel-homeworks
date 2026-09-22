@@ -130,3 +130,17 @@ class OllamaEmbedder:
         for start in range(0, len(texts), BATCH):
             rows.extend(self._post(texts[start : start + BATCH]))
         return np.asarray(rows, dtype=float)
+
+
+EMBEDDERS = ("tfidf", "ollama", "openai")
+
+
+def build(kind: str, model: str | None = None) -> Embedder:
+    """The embedder a CLI flag or app request names, with its default model."""
+    if kind == "ollama":
+        return OllamaEmbedder(model or DEFAULT_OLLAMA_MODEL)
+    if kind == "openai":
+        return LiteLLMEmbedder(model or DEFAULT_MODEL)
+    if kind == "tfidf":
+        return TfidfEmbedder()
+    raise ValueError(f"unknown embedder: {kind!r}")
