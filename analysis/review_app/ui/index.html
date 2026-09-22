@@ -39,6 +39,11 @@ header .grow { flex: 1; }
 }
 .pill.role { color: var(--user); border-color: #2c4470; }
 .pill.warn { color: var(--err); border-color: #6b3038; }
+/* Sample provenance. A trace either came from a manifest batch or it did not,
+   and the reviewer has to be able to tell at a glance: only the first kind
+   counts toward the 100, and the second kind is what a depth search returns. */
+.pill.batch { color: var(--asst); border-color: #2c5a48; }
+.pill.off { color: var(--tool); border-color: #6b5730; }
 .tabs { display: flex; gap: 4px; }
 
 /* ---- layout ---- */
@@ -380,10 +385,16 @@ kbd {
   <span id="pos" class="id">0 / 0</span>
   <button id="next">&rarr;</button>
   <select id="filter" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px">
-    <option value="all">all traces</option>
+    <!-- Sample scope, filled from the manifest by fillScopeFilter(). Batches 4
+         and 5 are drawn only after the taxonomy exists, so the batch options
+         cannot be written here; they have to appear as soon as a batch does. -->
+    <optgroup id="filter-scope" label="scope"></optgroup>
+    <optgroup label="review state">
     <option value="unreviewed">unreviewed</option>
     <option value="reviewed">reviewed</option>
     <option value="unlabeled">incomplete labels</option>
+    </optgroup>
+    <optgroup label="trace properties">
     <option value="shopper">role: shopper</option>
     <option value="merchant">role: merchant</option>
     <option value="support">role: support</option>
@@ -393,6 +404,7 @@ kbd {
     <option value="toolerr">tool error</option>
     <option value="denied">permission denied</option>
     <option value="dq">injected data defect</option>
+    </optgroup>
   </select>
 </header>
 
@@ -497,8 +509,15 @@ kbd {
 
 const S = {
   pool: [], spec: {}, ann: [], modes: [], suggs: [], labels: {},
-  idx: 0, filter: "all", view: "review", byId: {}, keepScroll: null,
+  idx: 0, filter: "sample", view: "review", byId: {}, keepScroll: null,
   ref: null, refQ: "", refOpen: null,
+  // The sampling design from analysis/state/sample_manifest.json, and the
+  // trace_id -> batch name map derived from it. The map is single valued
+  // because sample_batches.py asserts no trace is drawn into two batches.
+  // Default filter is "sample": the pool holds 267 traces, the review set is
+  // the manifest's batches, and opening on the pool invites reviewing traces
+  // that count toward nothing.
+  manifest: { batches: [] }, batchOf: {},
 };
 
 const $ = (s) => document.querySelector(s);
@@ -637,9 +656,10 @@ async function api(path, body) {
 
 // ---------------------------------------------------------------- load
 async function load() {
-  const [pool, spec, ann, pat, suggs, labels] = await Promise.all([
+  const [pool, spec, ann, pat, suggs, labels, manifest] = await Promise.all([
     api("/api/pool"), api("/api/spec"), api("/api/annotations"),
     api("/api/patterns"), api("/api/suggestions"), api("/api/labels"),
+    api("/api/manifest"),
   ]);
   S.pool = pool;
   S.spec = spec;
@@ -647,6 +667,12 @@ async function load() {
   S.modes = pat.modes || [];
   S.suggs = Array.isArray(suggs) ? suggs : [];
   S.labels = labels || {};
+  S.manifest = manifest && Array.isArray(manifest.batches) ? manifest : { batches: [] };
+  S.batchOf = {};
+  S.manifest.batches.forEach((b) => {
+    (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] = b.name; });
+  });
+  fillScopeFilter();
   S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
   $("#specn").textContent = "sha " + (spec.digest || "?").slice(0, 8);
   // Autocomplete for a mode's requirement source, so the id is picked from
@@ -657,8 +683,38 @@ async function load() {
 }
 
 // ---------------------------------------------------------------- selection
+function inSample(t) { return !!S.batchOf[t.trace_id]; }
+function sampleSize() { return S.pool.filter(inSample).length; }
+
+// Builds the scope group of the filter from the manifest on every load, so a
+// batch drawn later shows up without editing this file.
+function fillScopeFilter() {
+  const n = sampleSize();
+  const opts = [`<option value="sample">in sample (${n})</option>`];
+  S.manifest.batches.forEach((b) => {
+    opts.push(`<option value="batch:${esc(b.name)}">&nbsp;&nbsp;${
+      esc(b.name)} (${(b.picks || []).length})</option>`);
+  });
+  opts.push(`<option value="offsample">off-manifest (${S.pool.length - n})</option>`);
+  opts.push(`<option value="all">all traces (${S.pool.length})</option>`);
+  $("#filter-scope").innerHTML = opts.join("");
+  // With no manifest, "in sample" would select nothing, which reads as a
+  // broken app rather than an undrawn sample.
+  if (!n && S.filter === "sample") S.filter = "all";
+  $("#filter").value = S.filter;
+}
+
 function visible() {
   const f = S.filter;
+  // Scope is answered before the property filters. "Is this trace part of the
+  // review set" is a different question from "what happened in it", and only
+  // the first one decides whether reading it counts toward the 100.
+  if (f === "sample") return S.pool.filter(inSample);
+  if (f === "offsample") return S.pool.filter((t) => !inSample(t));
+  if (f.startsWith("batch:")) {
+    const name = f.slice(6);
+    return S.pool.filter((t) => S.batchOf[t.trace_id] === name);
+  }
   return S.pool.filter((t) => {
     const d = t.derived, sc = t.scenario || {};
     switch (f) {
@@ -717,6 +773,13 @@ function renderHeader(t) {
   $("#hdr-meta").textContent =
     `${lf.scenario_id} · ${t.trace_id.slice(0, 10)} · turn ${s.turn_index + 1}/${s.turn_count}`;
   const p = [`<span class="pill role">${esc(lf.user_role)} #${esc(lf.user_id)}</span>`];
+  // Sample provenance first, because it changes what reading this trace means:
+  // an off-manifest trace is one the escape hatch reached, and its open code is
+  // depth-search material rather than part of the drawn sample.
+  const batch = S.batchOf[t.trace_id];
+  p.push(batch
+    ? `<span class="pill batch" title="drawn into this manifest batch">${esc(batch)}</span>`
+    : `<span class="pill off" title="not in sample_manifest.json; does not count toward the 100">off-manifest</span>`);
   const g = (t.scenario || {}).scenario_group;
   if (g) p.push(`<span class="pill">${esc(g)}</span>`);
   if ((t.scenario || {}).data_quality_case_id)
@@ -938,6 +1001,12 @@ async function addNote(text, anchor, quote) {
     session_id: t.session.session_id,
     scenario_id: t.langfuse.scenario_id,
     note: text,
+    // TODO(jeff): record where this trace came from, so batch 4 can be
+    // reconstructed from the depth-search reading later. The batch name is
+    // S.batchOf[t.trace_id], undefined when the escape hatch reached the
+    // trace; S.filter is the scope that was active when it was opened.
+    // Without this, an open code written during a depth search is
+    // indistinguishable from one written during sampled review.
     anchor: anchor || null,
     // The exact words the note is about. Stored verbatim so the evidence
     // behind an open code stays inspectable, which is what lets a mode later
@@ -1289,12 +1358,37 @@ function renderGrid() {
 
 // ---------------------------------------------------------------- progress
 function renderProg() {
-  const total = S.pool.length;
-  const coded = new Set(S.ann.map((a) => a.trace_id)).size;
+  // The denominator is the drawn sample, not the pool. Counting against 267
+  // would describe work nobody asked for, and it would contradict the
+  // sample-fraction warning further down: the review set is stratified on
+  // purpose, so the pool is not the thing being worked through.
+  const total = sampleSize();
+  const codedIds = new Set(S.ann.map((a) => a.trace_id));
+  const coded = S.pool.filter((t) => inSample(t) && codedIds.has(t.trace_id)).length;
+  const offCoded = S.pool.filter((t) => !inSample(t) && codedIds.has(t.trace_id)).length;
   const pct = total ? Math.round((coded / total) * 100) : 0;
   let h = `<h4>Open coding</h4>
-    <div class="stat"><span>traces reviewed</span><span class="v">${coded} / ${total}</span></div>
-    <div class="bar"><i style="width:${pct}%"></i></div>`;
+    <div class="stat"><span>sample reviewed</span><span class="v">${coded} / ${total}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="stat"><span>off-manifest coded</span><span class="v">${offCoded}</span></div>
+    <div class="stat"><span>pool</span><span class="v">${S.pool.length}</span></div>`;
+
+  h += `<h4>Batches</h4>`;
+  if (!S.manifest.batches.length) h += '<div class="empty">no manifest batches</div>';
+  else {
+    h += `<table class="grid"><tr><th>batch</th><th>reviewed</th><th>size</th></tr>`;
+    S.manifest.batches.forEach((b) => {
+      const ids = (b.picks || []).map((p) => p.trace_id);
+      const done = ids.filter((id) => codedIds.has(id)).length;
+      h += `<tr><td class="mono">${esc(b.name)}</td><td class="c">${done}</td>
+        <td class="c">${ids.length}</td></tr>`;
+    });
+    h += `</table>`;
+    if (total < 100) {
+      h += `<div class="hint">${100 - total} more traces to draw before the review
+        set reaches the required 100.</div>`;
+    }
+  }
 
   h += `<h4>Structured labeling</h4>`;
   if (!S.modes.length) h += '<div class="empty">no modes yet</div>';
