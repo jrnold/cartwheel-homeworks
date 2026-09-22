@@ -5,7 +5,11 @@ suits a review sample: an outlier is a trace no group explains, so it is worth a
 human's time in its own right. Density clustering degrades in hundreds of
 dimensions, so vectors are reduced first. PCA is the default because it ships
 with scikit-learn and is deterministic. UMAP usually separates clusters better
-but pulls in numba, so it is opt-in (``uv run --with umap-learn``).
+but pulls in numba, so it is opt-in (``uv run --extra trace-map``).
+
+The 2-D projection for plotting is separate from the clustering reduction:
+``projection`` picks it, and defaults to the reducer. The trace map clusters on
+PCA and lays out with UMAP, which keeps neighbors together on screen.
 """
 
 from __future__ import annotations
@@ -43,7 +47,7 @@ def _reduce(x: np.ndarray, reducer: str, n_components: int, seed: int) -> np.nda
         except ImportError as exc:
             raise RuntimeError(
                 "umap-learn is not installed. Run with "
-                "`uv run --with umap-learn python -m analysis.trace_clusters "
+                "`uv run --extra trace-map python -m analysis.trace_clusters "
                 "--reducer umap`, or use --reducer pca."
             ) from exc
         return umap.UMAP(
@@ -56,7 +60,9 @@ def _reduce(x: np.ndarray, reducer: str, n_components: int, seed: int) -> np.nda
     raise ValueError(f"unknown reducer: {reducer!r}")
 
 
-def _project_2d(x: np.ndarray, reducer: str, seed: int) -> np.ndarray:
+def _project_2d(x: np.ndarray, reducer: str, seed: int, *, strict: bool = False) -> np.ndarray:
+    """2-D layout. UMAP when asked; PCA otherwise, or when UMAP is missing and
+    ``strict`` is off (a caller that asked for UMAP by name sets it)."""
     if x.shape[1] < 2 or x.shape[0] < 3:
         return np.zeros((x.shape[0], 2))
     if reducer == "umap":
@@ -70,8 +76,11 @@ def _project_2d(x: np.ndarray, reducer: str, seed: int) -> np.ndarray:
                 metric="cosine",
                 random_state=seed,
             ).fit_transform(x)
-        except ImportError:
-            pass
+        except ImportError as exc:
+            if strict:
+                raise RuntimeError(
+                    "umap-learn is not installed. Run with `uv run --extra trace-map`."
+                ) from exc
     from sklearn.decomposition import PCA
 
     return PCA(n_components=2, random_state=seed).fit_transform(x)
@@ -85,6 +94,7 @@ def cluster(
     min_cluster_size: int = 5,
     min_samples: int | None = None,
     seed: int = 0,
+    projection: str | None = None,
 ) -> ClusterResult:
     """Cluster ``vectors`` (one row per trace).
 
@@ -115,7 +125,8 @@ def cluster(
         members = labels == label
         centroid = reduced[members].mean(axis=0)
         distance[members] = np.linalg.norm(reduced[members] - centroid, axis=1)
-    return ClusterResult(labels, _project_2d(x, reducer, seed), distance, reducer)
+    layout = _project_2d(x, projection or reducer, seed, strict=projection == "umap")
+    return ClusterResult(labels, layout, distance, reducer)
 
 
 def representatives(result: ClusterResult, per_cluster: int = 3) -> dict[int, list[int]]:

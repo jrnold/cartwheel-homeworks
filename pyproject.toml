@@ -32,6 +32,10 @@ dev = [
 optimization = [
     "gepa>=0.1.4,<0.2",
 ]
+# The trace map lays traces out with UMAP. Opt-in because it pulls in numba.
+trace-map = [
+    "umap-learn>=0.5",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -64,7 +68,7 @@ include = ["optimize/gepa_adapter.py"]
 [tool.ty.overrides.rules]
 unresolved-import = "ignore"
 
-# umap-learn is opt-in (`uv run --with umap-learn`) because it pulls in numba.
+# umap-learn is opt-in (the `trace-map` extra) because it pulls in numba.
 # Without it, --reducer umap raises a message that says how to install it.
 [[tool.ty.overrides]]
 include = ["analysis/trace_clusters/cluster.py"]

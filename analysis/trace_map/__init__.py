@@ -1,19 +1,23 @@
-"""A browser map of the Cartwheel traces, placed by their embedded summaries.
+"""A static browser map of the Cartwheel traces, placed by their embedded summaries.
 
-Each point is one trace from the review pool, positioned by the 2-D projection
-that ``analysis.trace_clusters`` computes from the embedded summary. Nearby
-points behaved alike. Click one to read its summary and the full conversation,
-including earlier turns of the same session.
+``build`` runs the clustering pipeline once with fixed choices and writes one
+self-contained HTML file. The page needs no server and never recomputes
+anything:
 
-The app can also embed the pool itself: pick an embedder (TF-IDF offline,
-Ollama local, OpenAI hosted) and it runs the clustering pipeline in the
-background and saves the result as a new run beside the command line's
-``latest.json``, which it never overwrites.
+* summaries: the cached model summaries (no model call; a trace without one
+  falls back to the heuristic summary, and the page says so)
+* embeddings: Qwen3-Embedding-0.6B served by a local Ollama daemon
+* clusters: HDBSCAN on a 15-component PCA reduction of the embeddings
+* layout: UMAP to two dimensions, so neighbors on screen are neighbors in
+  embedding space
+
+Each point is one review-pool trace. Click one to read its summary and the full
+conversation, including earlier turns of the same session.
 
 Like the clusters it draws, the map is a sampling aid. It shows which traces
 resemble each other, not which ones failed.
 
-Run it::
+Build and open it::
 
-    uv run python -m analysis.trace_map            # http://127.0.0.1:8766/
+    uv run --extra trace-map python -m analysis.trace_map --open
 """

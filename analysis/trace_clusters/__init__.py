@@ -40,5 +40,5 @@ Run it::
     uv run python -m analysis.trace_clusters                       # offline
     uv run python -m analysis.trace_clusters --embedder ollama     # local Qwen3-Embedding-0.6B
     uv run python -m analysis.trace_clusters --summarizer llm --embedder openai
-    uv run --with umap-learn python -m analysis.trace_clusters --reducer umap
+    uv run --extra trace-map python -m analysis.trace_clusters --reducer umap
 """
