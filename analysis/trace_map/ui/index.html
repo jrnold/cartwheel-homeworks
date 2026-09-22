@@ -77,14 +77,6 @@ h4:first-child { margin-top: 0; }
 .cl .lab { font-size: 12px; overflow-wrap: anywhere; }
 .cl .lab .sum { display: block; color: var(--dim); margin-top: 2px; }
 .cl .n { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
-.members { margin: 2px 0 8px 46px; }
-.members a {
-  display: block; color: var(--ink); text-decoration: none; font-size: 12px;
-  padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.members a:hover { background: var(--panel2); }
-.members a.sel { background: #2a3550; }
-.members a .rep { color: var(--tool); font-size: 10px; margin-right: 4px; }
 
 /* ---- map ---- */
 .mapwrap { position: relative; min-width: 0; min-height: 0; }
@@ -360,28 +352,15 @@ function renderClusters() {
     const d = describedOf(c.cluster);
     const name = c.cluster === -1 ? "Unclustered" : (d?.title || c.label);
     const sum = c.cluster === -1 ? "No group explains these." : "";
-    let html = `<div class="cl${state.open === c.cluster ? " on" : ""}" data-c="${c.cluster}"
+    return `<div class="cl${state.open === c.cluster ? " on" : ""}" data-c="${c.cluster}"
       title="${esc(c.label)}">
       ${sw}<span class="num">${c.cluster === -1 ? "–" : "#" + c.cluster}</span>
       <span class="lab">${esc(name)}${sum ? `<span class="sum">${esc(sum)}</span>` : ""}</span>
       <span class="n">${hits !== null ? `${hits}/` : ""}${c.size}</span></div>`;
-    if (state.open === c.cluster) {
-      const reps = new Set(c.representatives);
-      const order = [...c.representatives, ...c.members.filter((m) => !reps.has(m))];
-      html += `<div class="members">` + order.map((m) => {
-        const p = state.byId.get(m);
-        if (!p || (q && !p.hay.includes(q))) return "";
-        return `<a href="#" data-t="${esc(m)}" class="${m === state.selected ? "sel" : ""}"
-          title="${esc(p.summary.title)}">${reps.has(m) ? `<span class="rep">REP</span>` : ""}${esc(p.summary.title || m)}</a>`;
-      }).join("") + `</div>`;
-    }
-    return html;
   }).join("");
 }
 
 $("clusters").addEventListener("click", (e) => {
-  const link = e.target.closest("a[data-t]");
-  if (link) { e.preventDefault(); select(link.dataset.t); return; }
   const row = e.target.closest(".cl");
   if (row) selectCluster(Number(row.dataset.c), { toggle: true });
 });
@@ -739,7 +718,7 @@ function select(id) {
   renderDetail();
   draw();
   writeHash();
-  document.querySelector(".members a.sel")?.scrollIntoView({ block: "nearest" });
+  document.querySelector(".cl.on")?.scrollIntoView({ block: "nearest" });
 }
 
 function stepHTML(s, prior) {
