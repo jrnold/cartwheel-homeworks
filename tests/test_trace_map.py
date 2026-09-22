@@ -354,8 +354,29 @@ def test_reference_formatting() -> None:
     assert store["id"] == "store:juniper"
     assert "14-day return window (store override)" in store["text"]
     assert "store-juniper" in store["text"]
-    spec = references.spec([{"id": "TOOL-3", "section": "4. Tools",
-                             "text": "**TOOL-3.** Refunds **must** queue.", "tool": "issue_refund",
-                             "contract": {"success": "queued"}}])[0]
-    assert spec["name"] == "TOOL-3 (4. Tools)"
-    assert spec["text"] == "Refunds must queue. success: queued"
+    spec = references.spec([{"id": "RESP-1", "section": "5. Responses",
+                             "text": "**RESP-1.** Cite the **policy** id."}])[0]
+    assert spec["name"] == "RESP-1 (5. Responses)"
+    assert spec["text"] == "Cite the policy id."
+
+
+def test_tool_requirements_fold_into_their_tool_not_the_spec() -> None:
+    from types import SimpleNamespace
+
+    from analysis.trace_map import references
+
+    reqs = [
+        {"id": "TOOL-7", "section": "4. Tools", "tool": "issue_refund",
+         "text": "**TOOL-7.** Refunds over the limit **must** queue.",
+         "contract": {"on_success": "status queued_for_approval", "on_failure": "error not_eligible"}},
+        {"id": "AUTH-1", "section": "3. Auth", "text": "**AUTH-1.** Check the role."},
+    ]
+    tool = SimpleNamespace(name="issue_refund", description="Issue a refund.",
+                           params_json_schema={"properties": {"order_id": {"type": "integer"}}})
+    [item] = references.tools([tool], reqs)
+    assert item["id"] == "tool:issue_refund"
+    assert item["name"] == "issue_refund (TOOL-7)"
+    assert "TOOL-7: Refunds over the limit must queue." in item["text"]
+    assert "On success: status queued_for_approval" in item["text"]
+    assert "On failure: error not_eligible" in item["embed_text"]
+    assert [s["id"] for s in references.spec(reqs)] == ["spec:AUTH-1"]
