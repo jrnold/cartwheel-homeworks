@@ -17,6 +17,7 @@ import argparse
 import dataclasses
 import json
 import webbrowser
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,7 @@ from observability.instrument import load_env
 
 TEMPLATE = Path(__file__).resolve().parent / "ui" / "index.html"
 DATA_SLOT = "/*MAP_DATA*/null"
+DEFAULT_PORT = 8766
 
 # The settings of the Ollama run the clusters were reviewed on: 15 components
 # and min_samples=2 left 47 of 267 traces unclustered.
@@ -117,6 +119,39 @@ def write(html: str, out: Path | None = None) -> Path:
     return path
 
 
+def serve(path: Path, *, host: str = "127.0.0.1", port: int = DEFAULT_PORT, open_browser: bool = False) -> None:
+    """Serve ``path`` at ``/`` until interrupted.
+
+    Some Chrome setups refuse pages opened from ``file://``. This serves the one
+    built file over localhost and nothing else from the state directory.
+    """
+    body = path.read_bytes()
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, format: str, *args: Any) -> None:
+            return
+
+        def do_GET(self) -> None:
+            if self.path.split("?", 1)[0] not in ("/", "/index.html", "/map.html"):
+                self.send_error(404)
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer((host, port), Handler)
+    url = f"http://{host}:{port}/"
+    print(f"trace map on {url}  (ctrl-c to stop)")
+    if open_browser:
+        webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nstopped")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -134,17 +169,31 @@ def main() -> None:
     parser.add_argument("--embed-model", default=DEFAULT_OLLAMA_MODEL)
     parser.add_argument("--out", type=Path, default=None, help="default: analysis/state/trace_clusters/map.html")
     parser.add_argument("--open", action="store_true", help="open the page when done")
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="serve the page on http://127.0.0.1 instead of opening a file:// URL",
+    )
+    parser.add_argument("--no-build", action="store_true", help="with --serve: reuse the last build")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     args = parser.parse_args()
 
-    load_env()  # OLLAMA_HOST, and the model key for --summaries llm
-    data = build(OllamaEmbedder(args.embed_model), summaries=args.summaries)
-    path = write(render(data), args.out)
-    fallbacks = data["backends"]["summary_fallbacks"]
-    print(
-        f"{data['n_traces']} traces, {len(data['clusters'])} clusters, "
-        f"{len(data['unclustered'])} unclustered"
-        + (f", {fallbacks} heuristic summaries (no cached model summary)" if fallbacks else "")
-    )
-    print(f"wrote {path}")
-    if args.open:
+    path = args.out or _state.state_path(CACHE_DIR, "map.html")
+    if args.no_build:
+        if not path.is_file():
+            parser.error(f"no build at {path}; run without --no-build first")
+    else:
+        load_env()  # OLLAMA_HOST, and the model key for --summaries llm
+        data = build(OllamaEmbedder(args.embed_model), summaries=args.summaries)
+        path = write(render(data), args.out)
+        fallbacks = data["backends"]["summary_fallbacks"]
+        print(
+            f"{data['n_traces']} traces, {len(data['clusters'])} clusters, "
+            f"{len(data['unclustered'])} unclustered"
+            + (f", {fallbacks} heuristic summaries (no cached model summary)" if fallbacks else "")
+        )
+        print(f"wrote {path}")
+    if args.serve:
+        serve(path, port=args.port, open_browser=args.open)
+    elif args.open:
         webbrowser.open(path.resolve().as_uri())

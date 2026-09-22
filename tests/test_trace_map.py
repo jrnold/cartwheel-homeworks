@@ -138,3 +138,35 @@ def test_umap_projection_leaves_the_clustering_reducer_alone() -> None:
     assert with_umap.coords.shape == (30, 2)
     np.testing.assert_array_equal(with_umap.labels, with_pca.labels)
     assert not np.allclose(with_umap.coords, with_pca.coords)
+
+
+def test_serve_sends_only_the_built_page(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+
+    page = build.write("<html>map</html>")
+    (tmp_path / "secret.json").write_text("{}")
+    ready = threading.Event()
+    servers: list[ThreadingHTTPServer] = []
+
+    class Capture(ThreadingHTTPServer):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__(*args, **kwargs)
+            servers.append(self)
+            ready.set()
+
+    monkeypatch.setattr(build, "ThreadingHTTPServer", Capture)
+    thread = threading.Thread(target=build.serve, args=(page,), kwargs={"port": 0}, daemon=True)
+    thread.start()
+    assert ready.wait(5)
+    try:
+        base = f"http://127.0.0.1:{servers[0].server_address[1]}"
+        with urllib.request.urlopen(base + "/", timeout=5) as res:
+            assert res.read() == b"<html>map</html>"
+        with pytest.raises(urllib.error.HTTPError) as err:
+            urllib.request.urlopen(base + "/secret.json", timeout=5)
+        assert err.value.code == 404
+    finally:
+        servers[0].shutdown()

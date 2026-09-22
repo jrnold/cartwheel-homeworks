@@ -19,5 +19,8 @@ resemble each other, not which ones failed.
 
 Build and open it::
 
-    uv run --extra trace-map python -m analysis.trace_map --open
+    uv run --extra trace-map python -m analysis.trace_map --serve --open
+
+``--serve`` serves the page on http://127.0.0.1:8766/, for browsers that block
+``file://`` pages. Add ``--no-build`` to serve the last build without Ollama.
 """
