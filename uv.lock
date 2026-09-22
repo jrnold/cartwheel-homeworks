@@ -251,6 +251,7 @@ dependencies = [
     { name = "raindrop-openai-agents" },
     { name = "rank-bm25" },
     { name = "rapidfuzz" },
+    { name = "scikit-learn" },
     { name = "uvicorn" },
 ]
 
@@ -281,6 +282,7 @@ requires-dist = [
     { name = "raindrop-openai-agents", specifier = ">=0.0.11" },
     { name = "rank-bm25", specifier = ">=0.2.2" },
     { name = "rapidfuzz", specifier = ">=3.14.5" },
+    { name = "scikit-learn", specifier = ">=1.3" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]
 provides-extras = ["optimization"]
