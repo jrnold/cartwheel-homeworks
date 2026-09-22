@@ -170,3 +170,9 @@ def test_serve_sends_only_the_built_page(tmp_path: Path, monkeypatch: pytest.Mon
         assert err.value.code == 404
     finally:
         servers[0].shutdown()
+
+
+def test_hidden_empty_state_does_not_cover_the_map() -> None:
+    # The overlay sets display:flex, which beats the [hidden] attribute unless
+    # restated; without this rule no click or hover reaches the canvas.
+    assert ".empty[hidden] { display: none; }" in build.TEMPLATE.read_text()

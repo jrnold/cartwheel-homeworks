@@ -110,6 +110,9 @@ canvas.drag { cursor: grabbing; }
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: var(--dim); text-align: center; padding: 30px;
 }
+/* display:flex above would otherwise beat [hidden] and leave an invisible
+   layer over the canvas that swallows every click and hover. */
+.empty[hidden] { display: none; }
 
 /* ---- detail ---- */
 .title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
