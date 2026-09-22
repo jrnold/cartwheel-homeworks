@@ -126,6 +126,19 @@ canvas.drag { cursor: grabbing; }
 .bars .track { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
 .bars .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--point); }
 .bars .v { font-size: 11px; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+/* Cluster share as a bar, all-trace share as a tick on the same track. */
+.cmp { display: grid; grid-template-columns: minmax(0, 1fr) 110px 36px 36px; gap: 3px 8px; align-items: center; margin: 2px 0 8px; }
+.cmp .hd { font-size: 10px; color: var(--faint); text-align: right; }
+.cmp .k { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+.cmp .k.zero { color: var(--faint); }
+.cmp .track { position: relative; height: 10px; background: var(--panel2); border-radius: 4px; }
+.cmp .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--point); }
+.cmp .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+.cmp .v { font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+.cmp .v.all { color: var(--dim); }
+.cmpkey { display: flex; gap: 12px; font-size: 11px; color: var(--dim); margin: 0 0 4px; }
+.cmpkey i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: var(--point); vertical-align: 0; margin-right: 4px; }
+.cmpkey b { display: inline-block; width: 2px; height: 12px; background: var(--ink); vertical-align: -2px; margin-right: 5px; }
 .memberlist a {
   display: block; color: var(--ink); text-decoration: none; font-size: 12px;
   padding: 3px 5px; border-radius: 4px;
@@ -742,6 +755,49 @@ function stepHTML(s, prior) {
   return `<div class="${cls}"><div class="who">${esc(s.role)}</div><pre>${esc(JSON.stringify(s, null, 1))}</pre></div>`;
 }
 
+// Share of traces using each tool, or from each role, among ``ids``.
+function toolCounts(ids) {
+  const out = new Map();
+  for (const id of ids) {
+    const p = state.byId.get(id);
+    for (const name of new Set((p?.summary.tool_activity || []).map((t) => t.name))) {
+      out.set(name, (out.get(name) || 0) + 1);
+    }
+  }
+  return out;
+}
+function roleCounts(ids) {
+  const out = new Map();
+  for (const id of ids) {
+    const role = state.pool[id]?.user_role || "unknown";
+    out.set(role, (out.get(role) || 0) + 1);
+  }
+  return out;
+}
+const pct = (x) => `${Math.round(100 * x)}%`;
+
+// Every value seen anywhere, so a tool this cluster never ran still shows its
+// all-trace tick. Ordered by the cluster's share, then the population's.
+function compareHTML(mine, n, all, total, color) {
+  const rows = [...all.keys()].map((k) => ({ k, a: (mine.get(k) || 0) / n, b: all.get(k) / total, c: mine.get(k) || 0 }))
+    .sort((x, y) => y.a - x.a || y.b - x.b);
+  const fill = color ? `background:${color}` : "";
+  return `<div class="cmp"><span></span><span></span><span class="hd">here</span><span class="hd">all</span>` +
+    rows.map((r) => {
+      const lift = r.b ? (r.a / r.b).toFixed(1) + "×" : "–";
+      const title = `${r.c} of ${n} traces here (${pct(r.a)}) vs ${all.get(r.k)} of ${total} overall (${pct(r.b)}); ${lift}`;
+      return `<span class="k${r.c ? "" : " zero"}" title="${esc(title)}">${esc(r.k)}</span>
+        <span class="track" title="${esc(title)}"><span class="fill" style="width:${(100 * r.a).toFixed(1)}%;${fill}"></span>
+          <span class="tick" style="left:${(100 * r.b).toFixed(1)}%"></span></span>
+        <span class="v">${pct(r.a)}</span><span class="v all">${pct(r.b)}</span>`;
+    }).join("") + `</div>`;
+}
+
+function cmpKey(color, total) {
+  return `<div class="cmpkey"><span><i style="${color ? `background:${color}` : ""}"></i>this cluster</span>
+    <span><b></b>all ${total} traces</span></div>`;
+}
+
 function barsHTML(items, size, color) {
   if (!items?.length) return `<p class="faint small">none</p>`;
   return `<div class="bars">` + items.map((i) => `
@@ -773,11 +829,19 @@ function renderClusterPane(el) {
   } else {
     if (d?.summary) html += `<p class="kv">${esc(d.summary)}</p>`;
     if (prof) {
-      html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· traces using each</span></h4>`;
-      html += barsHTML(prof.tools, prof.size, color);
-      if (prof.no_tools) html += `<p class="faint small">${prof.no_tools} of ${prof.size} ran no tools.</p>`;
+      const allIds = state.points.map((p) => p.id);
+      const total = allIds.length;
+      const noTools = (ids) => ids.filter((id) => !(state.byId.get(id)?.summary.tool_activity || []).length).length;
+      html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· share of traces using each</span></h4>`;
+      html += cmpKey(color, total);
+      html += compareHTML(toolCounts(cl.members), cl.size, toolCounts(allIds), total, color);
+      const none = noTools(cl.members), noneAll = noTools(allIds);
+      if (none || noneAll) {
+        html += `<p class="faint small">${none} of ${cl.size} (${pct(none / cl.size)}) ran no tools, vs ${pct(noneAll / total)} of all traces.</p>`;
+      }
+      html += `<h4>User roles <span class="faint" style="text-transform:none;letter-spacing:0">· share of traces</span></h4>`;
+      html += compareHTML(roleCounts(cl.members), cl.size, roleCounts(allIds), total, color);
       html += `<h4>Notable results</h4>` + barsHTML(prof.results, prof.size, color);
-      html += `<h4>User roles</h4>` + barsHTML(prof.roles, prof.size, color);
     }
     html += `<h4>Keyword label</h4><p class="faint small">${esc(cl.label)}</p>`;
   }
