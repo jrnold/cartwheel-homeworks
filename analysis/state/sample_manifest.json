@@ -1,0 +1,385 @@
+{
+  "schema": 1,
+  "batches": [
+    {
+      "name": "1-uniform",
+      "method": "selection.select(strategy='random')",
+      "seed": 7,
+      "selected_at": "2026-09-21T23:58:35+00:00",
+      "size": 15,
+      "picks": [
+        {
+          "trace_id": "0e53f4e5f417745ca668783d28012cf5",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "876c4690ccb5aa2f4b90d313199dd49f",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "35c34d8dea9a4a017c617aff61960e43",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "758c8401e08f60d1f8adf876012d8c1d",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "8e4bc12111577d5815840d8dada9b3d2",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "e066a9364114921000898200b8dc5ec1",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "f40c900a0ac8c09689d0209842b5bc81",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "245cc11299a87b99036f3758fcc180c0",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "cad98979f6350b29971be7daaa1ecb86",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "random pick"
+        },
+        {
+          "trace_id": "1175a6bc10bc41884e9b8672afc394ce",
+          "reason": "random pick"
+        }
+      ],
+      "queue_items": {
+        "0e53f4e5f417745ca668783d28012cf5": "cmuc1a5u400a9o207cq7ojqe2",
+        "876c4690ccb5aa2f4b90d313199dd49f": "cmuc1a5ur00aco2070jmpxrkw",
+        "35c34d8dea9a4a017c617aff61960e43": "cmuc1a5v300afo207bqqvvxds",
+        "b5557297f306cb7d0d9ca08ea3f70968": "cmuc1a5vh00aio207kxnz2iz2",
+        "758c8401e08f60d1f8adf876012d8c1d": "cmuc1a5w000alo2071n9si7qu",
+        "c2e7306d7ee7a6226e5e68e62034d142": "cmuc1a5wb00aoo207kx9muh2k",
+        "8e4bc12111577d5815840d8dada9b3d2": "cmuc1a5wp00aro207vroadkfa",
+        "177c18604b61a4612411654ddeac3b4c": "cmuc1a5x600auo207oatzt9mn",
+        "e066a9364114921000898200b8dc5ec1": "cmuc1a5xh00axo207337egozv",
+        "930b7ca02fc11c5b6ab3edf62506df99": "cmuc1a5xy00b0o207iv9t9kc7",
+        "f40c900a0ac8c09689d0209842b5bc81": "cmuc1a5yb00b3o207ibzqsl7h",
+        "245cc11299a87b99036f3758fcc180c0": "cmuc1a5yj00b6o207d24ayg8r",
+        "cad98979f6350b29971be7daaa1ecb86": "cmuc1a5z300b9o207xaie6m2k",
+        "0474e2952bad8c976f4dcfb09e89a246": "cmuc1a5zb00bco207hjmwuiv2",
+        "1175a6bc10bc41884e9b8672afc394ce": "cmuc1a5zh00bfo2077d35e5aa"
+      }
+    },
+    {
+      "name": "2-cluster-representatives",
+      "method": "selection.select(strategy='diversity'), random picks discarded",
+      "seed": 7,
+      "selected_at": "2026-09-21T23:58:35+00:00",
+      "size": 15,
+      "picks": [
+        {
+          "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+          "reason": "cluster 0 representative"
+        },
+        {
+          "trace_id": "89e772f1691fd10058d8037932827c09",
+          "reason": "cluster 1 representative"
+        },
+        {
+          "trace_id": "7bd92288418d057a63a4b443ef990d73",
+          "reason": "cluster 2 representative"
+        },
+        {
+          "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
+          "reason": "cluster 3 representative"
+        },
+        {
+          "trace_id": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "reason": "cluster 4 representative"
+        },
+        {
+          "trace_id": "5bfea3b5e153eb64a918ecb439664fad",
+          "reason": "cluster 5 representative"
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "cluster 6 representative"
+        },
+        {
+          "trace_id": "50c6af2af338cce790c8a3ab170c12af",
+          "reason": "cluster 0 representative"
+        },
+        {
+          "trace_id": "45797b1b3b137ba01160978a2ac5ef36",
+          "reason": "cluster 1 representative"
+        },
+        {
+          "trace_id": "681a31760df2c03f6343385eef5eb811",
+          "reason": "cluster 2 representative"
+        },
+        {
+          "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
+          "reason": "cluster 3 representative"
+        },
+        {
+          "trace_id": "7fa16aaa72905ab408453e193a08bd77",
+          "reason": "cluster 4 representative"
+        },
+        {
+          "trace_id": "8bad20df566b934bcadf23237120e105",
+          "reason": "cluster 5 representative"
+        },
+        {
+          "trace_id": "7f2e8bcfe642dc217416ab7888a89862",
+          "reason": "cluster 6 representative"
+        },
+        {
+          "trace_id": "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+          "reason": "cluster 0 representative"
+        }
+      ],
+      "requested": 23,
+      "queue_items": {
+        "078ec0db0b6138fe4260984d5b748c29": "cmuc1a60300bio207dt3m3hk7",
+        "89e772f1691fd10058d8037932827c09": "cmuc1a60e00blo207ktl5n7ve",
+        "7bd92288418d057a63a4b443ef990d73": "cmuc1a60n00boo207wg47a4i5",
+        "708d317f5baa2c3bd2fff32264ba61c2": "cmuc1a60z00bro207015y1ofr",
+        "cb3c7eaf2548dcf19ddc14b014be1af4": "cmuc1a61i00buo207kcle8xtt",
+        "5bfea3b5e153eb64a918ecb439664fad": "cmuc1a62300bxo207yxynnmpp",
+        "44b9269f1ceecfd337c0c8115fd993ce": "cmuc1a62t00c0o207ej4vmuge",
+        "50c6af2af338cce790c8a3ab170c12af": "cmuc1a63300c3o207gil0h792",
+        "45797b1b3b137ba01160978a2ac5ef36": "cmuc1a63c00c6o207ttxftzpj",
+        "681a31760df2c03f6343385eef5eb811": "cmuc1a63v00c9o2079ki82649",
+        "fe99e8f6b9c7444acd73f7c1e2caf33d": "cmuc1a64e00cco207xtp9owhj",
+        "7fa16aaa72905ab408453e193a08bd77": "cmuc1a64y00cfo207umd4hysv",
+        "8bad20df566b934bcadf23237120e105": "cmuc1a65u00cio207aigas9tx",
+        "7f2e8bcfe642dc217416ab7888a89862": "cmuc1a66400clo207fil8ym35",
+        "a02dbc9b2f42256ce21f5dc6cf9eeda6": "cmuc1a66a00coo207l4p992xt"
+      }
+    },
+    {
+      "name": "3-role-stratified",
+      "method": "selection.select(strategy='random') within each role",
+      "seed": 7,
+      "selected_at": "2026-09-21T23:58:35+00:00",
+      "size": 30,
+      "picks": [
+        {
+          "trace_id": "52a8ddadb00d7534845032d171b9def3",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "c171c0f8dfc7af332c45cd05c00cfa3a",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "90ee4bdce4d445ef5922159a08e18727",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "f88fb1e2a67ae4c5fa6ddb221022dbb9",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "ac8039c944bc9f63cf5e5a3ce68046a2",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "d03bebeb79fc2361f2953e3aba3125d5",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "58220a254399d6a85a80e6220c8120ce",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "0f64589f8eca70319090cee8533993b1",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "uniform within role=shopper",
+          "role": "shopper"
+        },
+        {
+          "trace_id": "0317bb73293411dc01b9577dc52735bd",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "cbb6f00b4bf14e98707ffe2d2c05be97",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "c5ef84688112f529ee66848bf1eb8c1e",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "a6ce261410286909b1142f26b3bc756d",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "49f0c62fea141ab73236d4446b4eb653",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "862155f7ce1aa8180c1657cffbe47fdd",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "4cb3ddec0a7cc88b80411b358450fa0d",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "78df20c9470a905803a9eec50f36ca1e",
+          "reason": "uniform within role=merchant",
+          "role": "merchant"
+        },
+        {
+          "trace_id": "f6b7d73b685fdb17594dae4099e99384",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "6a2c28665db0a00070e6636e90e7e8d3",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "03dd12bd077faf452765bf600c812a60",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "f4ac51fb8edfc271066172e7eac7f000",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "91f77f79b3df3de2d6f0d85419b23209",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "8a7b68cb205b6758ac565ef18073ca72",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "5b5697fdf6138fca250c4029a53a5efe",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "2efce56687fc498edeaa8f2257d6e219",
+          "reason": "uniform within role=support",
+          "role": "support"
+        },
+        {
+          "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
+          "reason": "uniform within role=support",
+          "role": "support"
+        }
+      ],
+      "dimension": "scenario.role",
+      "per_stratum": 10,
+      "strata": [
+        "shopper",
+        "merchant",
+        "support"
+      ],
+      "chosen_before_outcomes": true,
+      "queue_items": {
+        "52a8ddadb00d7534845032d171b9def3": "cmuc1a66k00cro207ypw7m49f",
+        "ccee21cec42b438ab24ef010efd6761e": "cmuc1a66q00cuo207x36lr1zs",
+        "c171c0f8dfc7af332c45cd05c00cfa3a": "cmuc1a66x00cxo207ragve6ll",
+        "90ee4bdce4d445ef5922159a08e18727": "cmuc1a67l00d0o207su83md0w",
+        "f88fb1e2a67ae4c5fa6ddb221022dbb9": "cmuc1a67w00d3o207exxo5zdp",
+        "ac8039c944bc9f63cf5e5a3ce68046a2": "cmuc1a68400d6o2074siidzzk",
+        "d03bebeb79fc2361f2953e3aba3125d5": "cmuc1a68b00d9o2072gmsfdsq",
+        "58220a254399d6a85a80e6220c8120ce": "cmuc1a68g00dco2079rj6jmgh",
+        "0f64589f8eca70319090cee8533993b1": "cmuc1a68v00dfo207u5m5e351",
+        "7534da6cb5ae2b0839353587a83f0481": "cmuc1a69700dio207n7oabh3l",
+        "0317bb73293411dc01b9577dc52735bd": "cmuc1a69e00dlo207c5f9420g",
+        "cbb6f00b4bf14e98707ffe2d2c05be97": "cmuc1a6a900doo207bc5okyvp",
+        "2a3e6ee171639e742efc6c82ae090267": "cmuc1a6ah00dro207r8csmd95",
+        "c5ef84688112f529ee66848bf1eb8c1e": "cmuc1a6an00duo207555uk2h9",
+        "a6ce261410286909b1142f26b3bc756d": "cmuc1a6as00dxo207f4q5uutq",
+        "49f0c62fea141ab73236d4446b4eb653": "cmuc1a6az00e0o20706ox0knp",
+        "862155f7ce1aa8180c1657cffbe47fdd": "cmuc1a6b400e3o207brx0ydxm",
+        "4cb3ddec0a7cc88b80411b358450fa0d": "cmuc1a6bn00e6o20758pjvt2a",
+        "da8dd524da19547d722cb66a9252affb": "cmuc1a6bu00e9o2070zp9327u",
+        "78df20c9470a905803a9eec50f36ca1e": "cmuc1a6c200eco20782w42h8h",
+        "f6b7d73b685fdb17594dae4099e99384": "cmuc1a6c800efo207gqgz9wnd",
+        "6a2c28665db0a00070e6636e90e7e8d3": "cmuc1a6cd00eio207g9sf74yi",
+        "03dd12bd077faf452765bf600c812a60": "cmuc1a6ch00elo207zfyrpwpt",
+        "f4ac51fb8edfc271066172e7eac7f000": "cmuc1a6cz00eoo207xohbmzip",
+        "91f77f79b3df3de2d6f0d85419b23209": "cmuc1a6dh00ero207mhx1rehp",
+        "8a7b68cb205b6758ac565ef18073ca72": "cmuc1a6e000euo207nak8f1n2",
+        "5b5697fdf6138fca250c4029a53a5efe": "cmuc1a6eg00exo2074u84xsdl",
+        "3a399b6c6f1ad7a4bb9fec0b5a18608c": "cmuc1a6fb00f0o207vn6ebluu",
+        "2efce56687fc498edeaa8f2257d6e219": "cmuc1a6g300f3o207qjf8mdf9",
+        "6d77abadb76231334e3bc85612b3b8ff": "cmuc1a6gv00f6o207xkui93xb"
+      }
+    }
+  ],
+  "pool": "review_pool.json",
+  "pool_size": 267,
+  "queue": {
+    "name": "hw4-review-sample",
+    "queue_id": "cmuc1a5st00a6o2075xudrmce",
+    "enqueued_at": "2026-09-22T02:07:25+00:00",
+    "note": "flat queue; batch provenance is in this manifest, not in Langfuse"
+  }
+}
