@@ -130,7 +130,7 @@ canvas.drag { cursor: grabbing; }
 .cmp { display: grid; grid-template-columns: minmax(0, 1fr) 110px 36px 36px; gap: 3px 8px; align-items: center; margin: 2px 0 8px; }
 .cmp .hd { font-size: 10px; color: var(--faint); text-align: right; }
 .cmp .k { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
-.cmp .k.zero { color: var(--faint); }
+.cmp .k .dir { display: inline-block; width: 12px; color: var(--dim); font-family: system-ui, sans-serif; }
 .cmp .track { position: relative; height: 10px; background: var(--panel2); border-radius: 4px; }
 .cmp .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--point); }
 .cmp .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
@@ -776,17 +776,33 @@ function roleCounts(ids) {
 }
 const pct = (x) => `${Math.round(100 * x)}%`;
 
+// How much a yes/no feature tells you about membership: the KL divergence
+// between its rate in the cluster (p) and across all traces (q), in bits. High
+// for a tool nearly every member ran but few traces overall do, and equally for
+// one most traces run but this cluster never does. Unlike the ratio p/q it
+// stays bounded for rare features.
+function informative(p, q) {
+  const term = (a, b) => (a > 0 ? a * Math.log2(a / b) : 0);
+  if (q <= 0 || q >= 1) return 0;
+  return term(p, q) + term(1 - p, 1 - q);
+}
+
 // Every value seen anywhere, so a tool this cluster never ran still shows its
-// all-trace tick. Ordered by the cluster's share, then the population's.
+// all-trace tick. Most informative for the cluster first.
 function compareHTML(mine, n, all, total, color) {
-  const rows = [...all.keys()].map((k) => ({ k, a: (mine.get(k) || 0) / n, b: all.get(k) / total, c: mine.get(k) || 0 }))
-    .sort((x, y) => y.a - x.a || y.b - x.b);
+  const rows = [...all.keys()].map((k) => {
+    const a = (mine.get(k) || 0) / n, b = all.get(k) / total;
+    return { k, a, b, c: mine.get(k) || 0, info: informative(a, b) };
+  }).sort((x, y) => y.info - x.info || y.a - x.a);
   const fill = color ? `background:${color}` : "";
   return `<div class="cmp"><span></span><span></span><span class="hd">here</span><span class="hd">all</span>` +
     rows.map((r) => {
       const lift = r.b ? (r.a / r.b).toFixed(1) + "×" : "–";
-      const title = `${r.c} of ${n} traces here (${pct(r.a)}) vs ${all.get(r.k)} of ${total} overall (${pct(r.b)}); ${lift}`;
-      return `<span class="k${r.c ? "" : " zero"}" title="${esc(title)}">${esc(r.k)}</span>
+      const title = `${r.c} of ${n} traces here (${pct(r.a)}) vs ${all.get(r.k)} of ${total} overall (${pct(r.b)}); ${lift}; ${r.info.toFixed(2)} bits`;
+      // Direction beside the name, so an informative absence reads as one.
+      const dir = r.info < 0.005 ? "" : r.a > r.b ? "↑" : "↓";
+      const said = dir === "↑" ? "more than overall" : dir === "↓" ? "less than overall" : "about as often as overall";
+      return `<span class="k" title="${esc(title)}"><span class="dir" aria-label="${said}">${dir}</span>${esc(r.k)}</span>
         <span class="track" title="${esc(title)}"><span class="fill" style="width:${(100 * r.a).toFixed(1)}%;${fill}"></span>
           <span class="tick" style="left:${(100 * r.b).toFixed(1)}%"></span></span>
         <span class="v">${pct(r.a)}</span><span class="v all">${pct(r.b)}</span>`;
@@ -795,7 +811,7 @@ function compareHTML(mine, n, all, total, color) {
 
 function cmpKey(color, total) {
   return `<div class="cmpkey"><span><i style="${color ? `background:${color}` : ""}"></i>this cluster</span>
-    <span><b></b>all ${total} traces</span></div>`;
+    <span><b></b>all ${total} traces</span><span>↑ ↓ more or less than overall</span></div>`;
 }
 
 function barsHTML(items, size, color) {
@@ -832,14 +848,14 @@ function renderClusterPane(el) {
       const allIds = state.points.map((p) => p.id);
       const total = allIds.length;
       const noTools = (ids) => ids.filter((id) => !(state.byId.get(id)?.summary.tool_activity || []).length).length;
-      html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· share of traces using each</span></h4>`;
+      html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· most distinctive first</span></h4>`;
       html += cmpKey(color, total);
       html += compareHTML(toolCounts(cl.members), cl.size, toolCounts(allIds), total, color);
       const none = noTools(cl.members), noneAll = noTools(allIds);
       if (none || noneAll) {
         html += `<p class="faint small">${none} of ${cl.size} (${pct(none / cl.size)}) ran no tools, vs ${pct(noneAll / total)} of all traces.</p>`;
       }
-      html += `<h4>User roles <span class="faint" style="text-transform:none;letter-spacing:0">· share of traces</span></h4>`;
+      html += `<h4>User roles <span class="faint" style="text-transform:none;letter-spacing:0">· most distinctive first</span></h4>`;
       html += compareHTML(roleCounts(cl.members), cl.size, roleCounts(allIds), total, color);
       html += `<h4>Notable results</h4>` + barsHTML(prof.results, prof.size, color);
     }
