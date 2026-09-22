@@ -115,6 +115,17 @@ canvas.drag { cursor: grabbing; }
    layer over the canvas that swallows every click and hover. */
 .empty[hidden] { display: none; }
 
+/* ---- reference items ---- */
+.maptools .kinds { display: flex; gap: 8px; margin-left: 6px; padding-left: 8px; border-left: 1px solid var(--line); }
+.maptools .kinds label { display: inline-flex; align-items: center; gap: 4px; }
+.shape { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; }
+.reftext { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; color: var(--ink);
+  background: var(--panel2); border-radius: 6px; padding: 8px 10px; max-height: 320px; overflow-y: auto; }
+.reflist a { display: grid; grid-template-columns: 28px 1fr auto; gap: 6px; align-items: baseline;
+  color: var(--ink); text-decoration: none; font-size: 12px; padding: 3px 5px; border-radius: 4px; }
+.reflist a:hover { background: var(--panel2); }
+.reflist .score { color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+
 /* ---- cluster pane ---- */
 .pills .pill.link { cursor: pointer; color: var(--ink); }
 .pills .pill.link:hover { border-color: var(--dim); }
@@ -190,6 +201,7 @@ ul.tight li { margin: 1px 0; }
       <button id="reset" title="Reset zoom (0)">Reset view</button>
       <button id="clear" title="Clear highlights (Esc)">Clear</button>
       <label class="small muted"><input type="checkbox" id="numbers" checked> numbers</label>
+      <span class="kinds small muted" id="kinds"></span>
     </div>
     <div class="legend" id="legend"></div>
     <div id="tip"></div>
@@ -202,6 +214,8 @@ ul.tight li { margin: 1px 0; }
     <p class="muted">Click a cluster's number on the map, or its row on the left, to
       read what the cluster shares. Shift-click a point to select its cluster.
       Up to three clusters are colored at once.</p>
+    <p class="muted">Hollow shapes are policies, stores, tools and spec items, embedded
+      the same way but not clustered. Click one to see the traces nearest to it.</p>
     <p class="faint small">Drag to pan, scroll to zoom. <kbd>/</kbd> searches,
       <kbd>Esc</kbd> clears.</p>
   </section>
@@ -222,9 +236,14 @@ const state = {
   highlight: [],        // cluster ids, in the order picked; index = color slot
   open: null,           // cluster id expanded in the list
   selected: null,       // trace id
-  pane: "intro",        // what the right pane shows: intro | trace | cluster
+  pane: "intro",        // what the right pane shows: intro | trace | cluster | ref
   paneCluster: null,    // cluster id shown when pane === "cluster"
   badges: [],           // badge hit boxes from the last draw: {c, x, y, w, h}
+  refs: [],             // reference items: {id, kind, name, text, x, y, nearest, hay}
+  refById: new Map(),
+  refKinds: new Set(["policy", "store", "tool", "spec"]),  // kinds drawn
+  selectedRef: null,    // reference id shown when pane === "ref"
+  hoverRef: null,
   hover: null,
   query: "",
   view: { k: 1, tx: 0, ty: 0 },
@@ -239,11 +258,12 @@ function esc(s) {
 
 function readHash() {
   const p = new URLSearchParams(location.hash.slice(1));
-  return { trace: p.get("trace"), cluster: p.get("cluster") };
+  return { trace: p.get("trace"), cluster: p.get("cluster"), ref: p.get("ref") };
 }
 function writeHash() {
   let h = "#";
   if (state.pane === "cluster") h = "#cluster=" + state.paneCluster;
+  else if (state.pane === "ref" && state.selectedRef) h = "#ref=" + encodeURIComponent(state.selectedRef);
   else if (state.pane === "trace" && state.selected) h = "#trace=" + encodeURIComponent(state.selected);
   history.replaceState(null, "", h);
 }
@@ -269,12 +289,19 @@ function load(run) {
     };
   });
   state.byId = new Map(state.points.map((p) => [p.id, p]));
+  state.refs = (run.references || []).map((r) => ({
+    ...r, hay: `${r.id} ${r.name} ${r.text}`.toLowerCase(),
+  }));
+  state.refById = new Map(state.refs.map((r) => [r.id, r]));
+  renderKinds();
   showEmpty(state.points.length ? "" : "This build has no traces.");
   renderMeta();
   fitView();
   const want = readHash();
   const wantCluster = want.cluster === null ? NaN : Number(want.cluster);
-  if (state.clusterById.has(wantCluster) || (wantCluster === -1 && run.unclustered.length)) {
+  if (want.ref && state.refById.has(want.ref)) {
+    selectRef(want.ref);
+  } else if (state.clusterById.has(wantCluster) || (wantCluster === -1 && run.unclustered.length)) {
     selectCluster(wantCluster);
   } else if (want.trace && state.byId.has(want.trace)) {
     select(want.trace);
@@ -331,7 +358,7 @@ function renderClusters() {
       : `<span class="sw" style="${color ? `background:${color}` : ""}"></span>`;
     const hits = q ? c.members.filter((m) => state.byId.get(m)?.hay.includes(q)).length : null;
     const d = describedOf(c.cluster);
-    const name = c.cluster === -1 ? "Unclustered" : (d?.name || c.label);
+    const name = c.cluster === -1 ? "Unclustered" : (d?.title || c.label);
     const sum = c.cluster === -1 ? "No group explains these." : "";
     let html = `<div class="cl${state.open === c.cluster ? " on" : ""}" data-c="${c.cluster}"
       title="${esc(c.label)}">
@@ -403,7 +430,8 @@ function resize() {
 }
 function computeBase() {
   if (!state.points.length) return;
-  const xs = state.points.map((p) => p.x), ys = state.points.map((p) => p.y);
+  const all = [...state.points, ...state.refs];
+  const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const pad = 40;
   const sx = Math.min((W - 2 * pad) / (x1 - x0 || 1), (H - 2 * pad) / (y1 - y0 || 1));
@@ -446,6 +474,7 @@ function draw() {
     }
   });
   ctx.globalAlpha = 1;
+  drawRefs(focus);
 
   if ($("numbers").checked) drawNumbers(focus);
   else state.badges = [];
@@ -457,8 +486,65 @@ function draw() {
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.lineWidth = w; ctx.strokeStyle = ink; ctx.stroke();
   }
+  for (const [id, w] of [[state.hoverRef, 1.5], [state.selectedRef, 2.5]]) {
+    const r = id && state.refById.get(id);
+    if (!r || !state.refKinds.has(r.kind)) continue;
+    const [x, y] = toScreen(r);
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.lineWidth = w; ctx.strokeStyle = ink; ctx.stroke();
+  }
   renderLegend();
 }
+
+// One hollow shape per kind, so kind never rests on color: policies are
+// squares, stores diamonds, tools triangles, spec items crosses.
+function shapePath(kind, x, y, r) {
+  ctx.beginPath();
+  if (kind === "policy") ctx.rect(x - r, y - r, 2 * r, 2 * r);
+  else if (kind === "store") { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.3, y); ctx.lineTo(x, y + r * 1.3); ctx.lineTo(x - r * 1.3, y); ctx.closePath(); }
+  else if (kind === "tool") { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.2, y + r); ctx.lineTo(x - r * 1.2, y + r); ctx.closePath(); }
+  else { ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); }
+}
+
+function refMatches(r) { return !state.query || r.hay.includes(state.query); }
+
+function drawRefs(focus) {
+  const ink = css("--ink"), surface = css("--panel");
+  for (const r of state.refs) {
+    if (!state.refKinds.has(r.kind)) continue;
+    const [x, y] = toScreen(r);
+    if (x < -10 || y < -10 || x > W + 10 || y > H + 10) continue;
+    ctx.globalAlpha = (state.query && !refMatches(r)) || (focus && !state.query) ? 0.35 : 0.95;
+    shapePath(r.kind, x, y, 4.5);
+    ctx.fillStyle = surface; if (r.kind !== "spec") ctx.fill();
+    ctx.lineWidth = r.kind === "spec" ? 2 : 1.5; ctx.strokeStyle = ink; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+const KIND_LABEL = { policy: "policies", store: "stores", tool: "tools", spec: "spec items" };
+function shapeSVG(kind) {
+  const d = {
+    policy: '<rect x="1.5" y="1.5" width="7" height="7"/>',
+    store: '<path d="M5 0.5 L9.5 5 L5 9.5 L0.5 5 Z"/>',
+    tool: '<path d="M5 0.8 L9.3 8.7 L0.7 8.7 Z"/>',
+    spec: '<path d="M1 5 H9 M5 1 V9" stroke-width="1.8"/>',
+  }[kind];
+  return `<svg class="shape" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.3">${d}</svg>`;
+}
+function renderKinds() {
+  const counts = {};
+  for (const r of state.refs) counts[r.kind] = (counts[r.kind] || 0) + 1;
+  $("kinds").innerHTML = Object.keys(KIND_LABEL).filter((k) => counts[k]).map((k) =>
+    `<label title="Show ${KIND_LABEL[k]} (embedded, not clustered)"><input type="checkbox" data-k="${k}"
+      ${state.refKinds.has(k) ? "checked" : ""}>${shapeSVG(k)} ${KIND_LABEL[k]}</label>`).join("");
+}
+$("kinds").addEventListener("change", (e) => {
+  const k = e.target.dataset.k;
+  if (!k) return;
+  if (e.target.checked) state.refKinds.add(k); else state.refKinds.delete(k);
+  draw();
+});
 
 function drawNumbers(focus) {
   state.badges = [];
@@ -488,6 +574,9 @@ function renderLegend() {
     `<span><i style="background:${SLOTS[i]}"></i>#${c} (${state.clusterById.get(c)?.size ?? 0})</span>`);
   items.push(`<span><i style="background:${css("--point")}"></i>${state.highlight.length ? "other clusters" : "clustered"}</span>`);
   items.push(`<span><i class="ring"></i>unclustered</span>`);
+  for (const k of Object.keys(KIND_LABEL)) {
+    if (state.refKinds.has(k) && state.refs.some((r) => r.kind === k)) items.push(`<span>${shapeSVG(k)}${KIND_LABEL[k]}</span>`);
+  }
   if (state.query) {
     const n = state.points.filter(matches).length;
     items.push(`<span>“${esc(state.query)}”: ${n} match${n === 1 ? "" : "es"}</span>`);
@@ -503,6 +592,27 @@ function badgeAt(mx, my) {
   }
   return null;
 }
+
+function nearestRef(mx, my) {
+  let best = null, bd = 12 * 12;
+  for (const r of state.refs) {
+    if (!state.refKinds.has(r.kind)) continue;
+    const [x, y] = toScreen(r);
+    const d = (x - mx) ** 2 + (y - my) ** 2;
+    if (d < bd) { bd = d; best = r; }
+  }
+  return best && { ref: best, d: bd };
+}
+
+// The mark under the pointer: a reference item when it is at least as close as
+// the nearest trace, since references sit on top of the traces.
+function markAt(mx, my) {
+  const p = nearest(mx, my);
+  const r = nearestRef(mx, my);
+  if (r && (!p || r.d <= distSq(p, mx, my))) return { ref: r.ref };
+  return p ? { trace: p } : null;
+}
+function distSq(p, mx, my) { const [x, y] = toScreen(p); return (x - mx) ** 2 + (y - my) ** 2; }
 
 function nearest(mx, my) {
   let best = null, bd = 12 * 12; // hit radius larger than the mark
@@ -528,10 +638,14 @@ canvas.addEventListener("pointermove", (e) => {
   }
   const mx = e.clientX - r.left, my = e.clientY - r.top;
   const badge = badgeAt(mx, my);
-  const p = badge === null ? nearest(mx, my) : null;
-  canvas.style.cursor = badge !== null || p ? "pointer" : "";
-  if ((p && p.id) !== state.hover) { state.hover = p && p.id; draw(); }
+  const mark = badge === null ? markAt(mx, my) : null;
+  const p = mark?.trace || null, ref = mark?.ref || null;
+  canvas.style.cursor = badge !== null || mark ? "pointer" : "";
+  if ((p && p.id) !== state.hover || (ref && ref.id) !== state.hoverRef) {
+    state.hover = p && p.id; state.hoverRef = ref && ref.id; draw();
+  }
   if (badge !== null) showClusterTip(badge, mx, my);
+  else if (ref) showRefTip(ref, mx, my);
   else if (p) showTip(p, mx, my);
   else hideTip();
 });
@@ -544,12 +658,14 @@ canvas.addEventListener("pointerup", (e) => {
   const mx = e.clientX - r.left, my = e.clientY - r.top;
   const badge = badgeAt(mx, my);
   if (badge !== null) { selectCluster(badge, { toggle: true }); return; }
-  const p = nearest(mx, my);
+  const mark = markAt(mx, my);
+  if (mark?.ref) { selectRef(mark.ref.id); return; }
+  const p = mark?.trace;
   if (!p) return;
   if (e.shiftKey) selectCluster(p.cluster, { toggle: true });
   else select(p.id);
 });
-canvas.addEventListener("pointerleave", () => { if (!drag) { state.hover = null; hideTip(); draw(); } });
+canvas.addEventListener("pointerleave", () => { if (!drag) { state.hover = null; state.hoverRef = null; hideTip(); draw(); } });
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
   const r = canvas.getBoundingClientRect();
@@ -579,9 +695,20 @@ function showClusterTip(c, x, y) {
   const cl = state.clusterById.get(c);
   const d = describedOf(c);
   const tip = $("tip");
-  tip.innerHTML = `<div class="t">#${c} · ${esc(d?.name || cl?.label || "")}</div>
+  tip.innerHTML = `<div class="t">#${c} · ${esc(d?.title || cl?.label || "")}</div>
     <div class="muted">${cl?.size ?? 0} traces · click to select</div>
     ${d?.summary ? `<div>${esc(d.summary)}</div>` : ""}`;
+  tip.style.display = "block";
+  const wrap = $("mapwrap").getBoundingClientRect();
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  tip.style.left = Math.min(x + 14, wrap.width - tw - 6) + "px";
+  tip.style.top = (y + 14 + th > wrap.height ? y - th - 10 : y + 14) + "px";
+}
+function showRefTip(r, x, y) {
+  const tip = $("tip");
+  tip.innerHTML = `<div class="t">${shapeSVG(r.kind)} ${esc(r.name)}</div>
+    <div class="muted">${esc(r.kind)} · embedded, not clustered · click for nearest traces</div>
+    <div>${esc(r.text.length > 220 ? r.text.slice(0, 219) + "…" : r.text)}</div>`;
   tip.style.display = "block";
   const wrap = $("mapwrap").getBoundingClientRect();
   const tw = tip.offsetWidth, th = tip.offsetHeight;
@@ -591,6 +718,17 @@ function showClusterTip(c, x, y) {
 function hideTip() { $("tip").style.display = "none"; }
 
 // ---------------------------------------------------------------- detail
+
+function selectRef(id) {
+  state.selectedRef = id;
+  state.pane = "ref";
+  const r = state.refById.get(id);
+  if (r) state.refKinds.add(r.kind);
+  renderKinds();
+  renderDetail();
+  draw();
+  writeHash();
+}
 
 function select(id) {
   state.selected = id;
@@ -642,7 +780,7 @@ function renderClusterPane(el) {
   const d = describedOf(c);
   const prof = d?.profile;
   const color = slotOf(c);
-  const name = c === -1 ? "Unclustered traces" : (d?.name || cl.label);
+  const name = c === -1 ? "Unclustered traces" : (d?.title || cl.label);
   const pills = [
     c === -1 ? "" : `<span class="pill">cluster #${c}</span>`,
     `<span class="pill">${cl.size} traces</span>`,
@@ -655,7 +793,6 @@ function renderClusterPane(el) {
       so each is worth a look on its own.</p>`;
   } else {
     if (d?.summary) html += `<p class="kv">${esc(d.summary)}</p>`;
-    if (d?.variation) html += `<p class="kv muted">${esc(d.variation)}</p>`;
     if (prof) {
       html += `<h4>Tools that ran <span class="faint" style="text-transform:none;letter-spacing:0">· traces using each</span></h4>`;
       html += barsHTML(prof.tools, prof.size, color);
@@ -680,9 +817,33 @@ function renderClusterPane(el) {
   el.scrollTop = 0;
 }
 
+function traceLinkHTML(tid, score) {
+  const p = state.byId.get(tid);
+  if (!p) return "";
+  const cl = p.cluster === -1 ? "–" : "#" + p.cluster;
+  return `<a href="#" data-t="${esc(tid)}"><span class="num faint mono">${cl}</span>
+    <span>${esc(p.summary.title || tid)}</span><span class="score">${score.toFixed(2)}</span></a>`;
+}
+
+function renderRefPane(el) {
+  const r = state.refById.get(state.selectedRef);
+  if (!r) { el.innerHTML = INTRO; return; }
+  let html = `<div class="title">${shapeSVG(r.kind)} ${esc(r.name)}</div>
+    <div class="pills"><span class="pill">${esc(r.kind)}</span><span class="pill mono">${esc(r.id)}</span>
+    <span class="pill" title="Placed into the layout with UMAP's transform; not part of any cluster">not clustered</span></div>`;
+  html += `<div class="reftext">${esc(r.text)}</div>`;
+  html += `<h4>Nearest traces <span class="faint" style="text-transform:none;letter-spacing:0">· cosine similarity of embeddings</span></h4>`;
+  html += `<div class="reflist">` + r.nearest.map(([tid, sc]) => traceLinkHTML(tid, sc)).join("") + `</div>`;
+  html += `<div class="note">Nearness means similar wording, not that a trace applied or broke this
+    item. Read the conversation before drawing that conclusion.</div>`;
+  el.innerHTML = html;
+  el.scrollTop = 0;
+}
+
 function renderDetail() {
   const el = $("detail");
   if (state.pane === "cluster") { renderClusterPane(el); return; }
+  if (state.pane === "ref") { renderRefPane(el); return; }
   const p = state.pane === "trace" && state.selected && state.byId.get(state.selected);
   if (!p) { el.innerHTML = INTRO; return; }
   const s = p.summary;
@@ -708,6 +869,14 @@ function renderDetail() {
   if (s.outcome) html += `<p class="kv"><span class="muted">Outcome.</span> ${esc(s.outcome)}</p>`;
   if (s.notable?.length) html += `<ul class="tight">${s.notable.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
 
+  const near = state.run.traces[p.id]?.nearest_refs || [];
+  if (near.length) {
+    html += `<h4>Nearest reference items <span class="faint" style="text-transform:none;letter-spacing:0">· by wording, not a verdict</span></h4>`;
+    html += `<div class="reflist">` + near.map(([rid, sc]) => {
+      const r = state.refById.get(rid);
+      return r ? `<a href="#" data-r="${esc(rid)}">${shapeSVG(r.kind)}<span>${esc(r.name)}</span><span class="score">${sc.toFixed(2)}</span></a>` : "";
+    }).join("") + `</div>`;
+  }
   html += `<h4>Conversation</h4>`;
   if (!rec) {
     html += `<p class="muted">This trace is not in the review pool, so its steps are not available here.</p>`;
@@ -734,6 +903,8 @@ const INTRO = $("detail").innerHTML;
 $("detail").addEventListener("click", (e) => {
   const link = e.target.closest("a[data-t]");
   if (link) { e.preventDefault(); select(link.dataset.t); return; }
+  const refLink = e.target.closest("a[data-r]");
+  if (refLink) { e.preventDefault(); selectRef(refLink.dataset.r); return; }
   const pill = e.target.closest(".pill.link[data-c]");
   if (pill) selectCluster(Number(pill.dataset.c));
 });
@@ -746,7 +917,8 @@ $("reset").addEventListener("click", () => { fitView(); draw(); });
 $("clear").addEventListener("click", clearAll);
 function clearAll() {
   state.highlight = []; state.query = ""; $("search").value = "";
-  if (state.pane === "cluster") state.pane = state.selected ? "trace" : "intro";
+  if (state.pane === "cluster" || state.pane === "ref") state.pane = state.selected ? "trace" : "intro";
+  state.selectedRef = null;
   state.open = null;
   renderClusters(); renderDetail(); draw(); writeHash();
 }

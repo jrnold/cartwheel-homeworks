@@ -58,25 +58,23 @@ def _pool(n_each: int = 8) -> list[dict[str, Any]]:
 def _state_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Temp state root holding a small pool, so nothing touches committed files.
 
-    Also makes any call to the real Ollama chat endpoint fail at once, so a
-    test that forgets to stub the cluster describer errors instead of hanging.
+    Also makes any call to the live cluster describer fail at once, so a test
+    that forgets to stub it errors instead of spending a hosted-model call.
     """
     monkeypatch.setenv("CARTWHEEL_ANALYSIS_STATE", str(tmp_path))
 
-    def no_ollama(model: str, system: str, user: str) -> str:
-        raise AssertionError("a test reached the real Ollama describer")
+    def no_live_model(model: str, system: str, user: str) -> str:
+        raise AssertionError("a test reached the live cluster describer")
 
-    monkeypatch.setattr(describing, "ollama_complete", no_ollama)
+    monkeypatch.setattr(describing, "_litellm_completion", no_live_model)
     _state.write_json(tmp_path / "review_pool.json", _pool())
     return tmp_path
 
 
-# Kept before the autouse fixture swaps it out, for the one test that drives
-# the real client against a fake HTTP response.
-REAL_OLLAMA = describing.ollama_complete
-
 # PCA layout keeps these tests free of numba; the UMAP path has its own tests.
-OFFLINE = dataclasses.replace(build.PARAMS, projection="pca", n_components=5, min_cluster_size=3)
+OFFLINE = dataclasses.replace(
+    build.PARAMS, reducer="pca", projection="pca", n_components=5, min_cluster_size=3
+)
 
 
 def _page_data(html: str) -> dict[str, Any]:
@@ -85,20 +83,21 @@ def _page_data(html: str) -> dict[str, Any]:
     return json.loads(match.group(1))
 
 
-def test_build_defaults_are_hdbscan_on_pca_and_a_umap_layout() -> None:
-    assert build.PARAMS.projection == "umap"
-    assert build.PARAMS.reducer == "pca"  # the HDBSCAN input, not the layout
+def test_build_defaults_are_umap_for_clustering_and_layout() -> None:
+    assert build.PARAMS.reducer == "umap"  # the HDBSCAN input
+    assert build.PARAMS.projection == "umap"  # the 2-D layout, a separate fit
+    assert describing.DEFAULT_MODEL == "gpt-5.6-terra"
 
 
 def test_cached_mode_never_calls_a_model() -> None:
     # Nothing is cached in the temp state dir, so every trace must fall back.
-    data = build.build(TfidfEmbedder(), summaries="cached", params=OFFLINE, describe_model=None)
+    data = build.build(TfidfEmbedder(), references=[], summaries="cached", params=OFFLINE, describe_model=None)
     assert data["backends"]["summary_fallbacks"] == data["n_traces"] == 16
     assert {t["summary_source"] for t in data["traces"].values()} == {"heuristic-fallback"}
 
 
 def test_rendered_page_carries_the_map_and_no_grading_fields() -> None:
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE, describe_model=None)
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE, describe_model=None)
     html = build.render(data)
 
     assert "must not reach the page" not in html
@@ -201,16 +200,15 @@ def _describer(calls: list[str], reply: str | None = None) -> Any:
     def complete(model: str, system: str, user: str) -> str:
         calls.append(user)
         return reply or json.dumps({
-            "name": "Refund requests queued for approval",
+            "title": "Refund requests queued for approval",
             "summary": "Shoppers asked for refunds; get_order and issue_refund ran.",
-            "variation": "Order numbers differ.",
         })
     return complete
 
 
 def test_build_writes_a_summary_and_profile_per_cluster() -> None:
     calls: list[str] = []
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE,
                        describe_model="stub", describe_complete=_describer(calls))
     summaries = data["cluster_summaries"]
     assert set(summaries) == {str(c["cluster"]) for c in data["clusters"]}
@@ -218,7 +216,7 @@ def test_build_writes_a_summary_and_profile_per_cluster() -> None:
     refund = next(
         summaries[str(c["cluster"])] for c in data["clusters"] if "refund-0" in c["members"]
     )
-    assert refund["name"] == "Refund requests queued for approval"
+    assert refund["title"] == "Refund requests queued for approval"
     assert refund["source"] == "model:stub"
     prof = refund["profile"]
     tools = {t["value"]: t["count"] for t in prof["tools"]}
@@ -231,10 +229,10 @@ def test_build_writes_a_summary_and_profile_per_cluster() -> None:
 
 def test_cluster_summaries_are_cached_between_builds() -> None:
     first: list[str] = []
-    build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+    build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE,
                 describe_model="stub", describe_complete=_describer(first))
     again: list[str] = []
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE,
                        describe_model="stub", describe_complete=_describer(again))
     assert first and not again
     assert {v["source"] for v in data["cluster_summaries"].values()} == {"model:stub"}
@@ -242,17 +240,17 @@ def test_cluster_summaries_are_cached_between_builds() -> None:
 
 def test_unusable_cluster_summary_falls_back_to_the_keyword_label() -> None:
     calls: list[str] = []
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE,
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE,
                        describe_model="stub", describe_complete=_describer(calls, reply="not json"))
     assert len(calls) == 2 * len(data["clusters"])  # one retry each
     for c in data["clusters"]:
         entry = data["cluster_summaries"][str(c["cluster"])]
         assert entry["source"] == "heuristic-fallback"
-        assert entry["name"] == c["label"]
+        assert entry["title"] == c["label"]
 
 
 def test_describe_off_keeps_profiles_without_a_model() -> None:
-    data = build.build(TfidfEmbedder(), summaries="heuristic", params=OFFLINE, describe_model=None)
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE, describe_model=None)
     entries = data["cluster_summaries"].values()
     assert entries and all(e["source"] == "heuristic" and e["profile"]["size"] for e in entries)
     assert data["backends"]["cluster_summaries"] == "none"
@@ -265,18 +263,99 @@ def test_member_lines_are_clipped_to_fit_the_context() -> None:
     assert line.endswith("…")
 
 
-def test_empty_ollama_reply_raises_so_the_describer_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    # An overflowed Ollama context answers "" rather than an error status.
-    import io
+def test_cluster_title_is_one_line() -> None:
+    summary = describing.ClusterSummary.model_validate(
+        {"title": "Refund requests\n queued  for approval.", "summary": "Two\nlines."}
+    )
+    assert summary.title == "Refund requests queued for approval"
+    assert summary.summary == "Two lines."
 
-    sent: list[dict[str, Any]] = []
 
-    def fake_urlopen(request: Any, timeout: float) -> Any:
-        sent.append(json.loads(request.data))
-        return io.BytesIO(json.dumps({"message": {"content": ""}}).encode())
+def test_overlong_title_is_retried_then_falls_back() -> None:
+    calls: list[str] = []
+    reply = json.dumps({"title": "word " * 40, "summary": "s"})
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE,
+                       describe_model="stub", describe_complete=_describer(calls, reply=reply))
+    assert len(calls) == 2 * len(data["clusters"])
+    assert {v["source"] for v in data["cluster_summaries"].values()} == {"heuristic-fallback"}
 
-    monkeypatch.setattr(describing.urllib.request, "urlopen", fake_urlopen)
-    with pytest.raises(ValueError, match="num_ctx"):
-        REAL_OLLAMA("gemma4:latest", "system", "user")
-    assert sent[0]["options"]["num_ctx"] == describing.NUM_CTX
-    assert sent[0]["format"] == "json"
+
+# ---------------------------------------------------------------------------
+# reference items
+# ---------------------------------------------------------------------------
+
+
+class _HashEmbedder:
+    """Per-text bag-of-words vectors: deterministic, offline, and cacheable."""
+
+    name = "hash-test"
+    where = "offline"
+    cacheable = True
+
+    def embed(self, texts: list[str]) -> np.ndarray:
+        out = np.zeros((len(texts), 64))
+        for row, text in enumerate(texts):
+            for word in re.findall(r"[a-z_]+", text.lower()):
+                out[row, sum(map(ord, word)) % 64] += 1.0
+        return out
+
+
+def _items() -> list[dict[str, Any]]:
+    return [
+        {"id": "tool:issue_refund", "kind": "tool", "name": "issue_refund",
+         "text": "Refund an order.", "embed_text": "issue_refund refund order queued_for_approval"},
+        {"id": "store:juniper", "kind": "store", "name": "Juniper",
+         "text": "Store.", "embed_text": "store_info return window store"},
+    ]
+
+
+def test_references_are_placed_but_never_clustered() -> None:
+    data = build.build(_HashEmbedder(), references=_items(), summaries="heuristic",
+                       params=OFFLINE, describe_model=None)
+    placed = {r["id"]: r for r in data["references"]}
+    assert set(placed) == {"tool:issue_refund", "store:juniper"}
+    assert all(isinstance(r["x"], float) and isinstance(r["y"], float) for r in placed.values())
+    # Clustering saw traces only: every member id is a trace id.
+    members = {m for c in data["clusters"] for m in c["members"]} | set(data["unclustered"])
+    assert members == set(data["traces"])
+    assert "extra_coords" not in data
+    # The refund tool's nearest traces are the refund traces.
+    nearest = [tid for tid, _ in placed["tool:issue_refund"]["nearest"][:3]]
+    assert all(tid.startswith("refund-") for tid in nearest)
+    assert data["traces"]["faq-0"]["nearest_refs"][0][0] == "store:juniper"
+
+
+def test_references_refuse_a_corpus_fitted_embedder() -> None:
+    with pytest.raises(ValueError, match="per-text embedder"):
+        build.build(TfidfEmbedder(), references=_items(), summaries="heuristic",
+                    params=OFFLINE, describe_model=None)
+
+
+def test_extra_points_do_not_change_the_clusters() -> None:
+    pytest.importorskip("umap")
+    rng = np.random.default_rng(0)
+    x = np.vstack([rng.normal(0, 0.1, (15, 8)) + 3, rng.normal(0, 0.1, (15, 8)) - 3])
+    extra = rng.normal(0, 0.1, (4, 8)) + 3
+    plain = clustering.cluster(x, reducer="umap", n_components=4, min_cluster_size=3)
+    with_extra = clustering.cluster(x, reducer="umap", n_components=4, min_cluster_size=3, extra=extra)
+    np.testing.assert_array_equal(plain.labels, with_extra.labels)
+    np.testing.assert_allclose(plain.coords, with_extra.coords)
+    assert with_extra.extra_coords is not None and with_extra.extra_coords.shape == (4, 2)
+
+
+def test_reference_formatting() -> None:
+    from analysis.trace_map import references
+
+    store = references.stores([{
+        "store_id": 3, "name": "Juniper Home Goods", "slug": "juniper", "category": "home",
+        "return_window_days": 14, "overrides_platform_window": True,
+        "restocking_fee_opt_in": True, "policy_id": "store-juniper",
+    }])[0]
+    assert store["id"] == "store:juniper"
+    assert "14-day return window (store override)" in store["text"]
+    assert "store-juniper" in store["text"]
+    spec = references.spec([{"id": "TOOL-3", "section": "4. Tools",
+                             "text": "**TOOL-3.** Refunds **must** queue.", "tool": "issue_refund",
+                             "contract": {"success": "queued"}}])[0]
+    assert spec["name"] == "TOOL-3 (4. Tools)"
+    assert spec["text"] == "Refunds must queue. success: queued"

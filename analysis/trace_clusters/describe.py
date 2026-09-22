@@ -1,15 +1,15 @@
-"""Summarize each cluster: a counted profile, and a short written description.
+"""Summarize each cluster: a counted profile, and a written title and summary.
 
 ``profile`` is deterministic. It counts what the member summaries and the pool
 already record (tools that ran, result statuses, user roles, multi-turn
 sessions), so it needs no model and cannot drift.
 
-``describe`` asks a local model served by Ollama to name the cluster and say in
-a few sentences what its conversations share and how they differ. Like the
-trace summaries and the cluster labels, it describes and never judges: a
-cluster summary decides where a reviewer looks, so "refund requests" must not
-turn into "refund failures". A reply that fails twice falls back to the
-heuristic label and says so.
+``describe`` asks a hosted model (``gpt-5.6-terra`` through LiteLLM, keyed by
+``OPENAI_API_KEY`` in ``.env``) for a one-line title and a short summary of
+what the cluster's conversations share. Like the trace summaries and the
+cluster labels, it describes and never judges: a cluster summary decides where
+a reviewer looks, so "refund requests" must not turn into "refund failures". A
+reply that fails twice falls back to the keyword label and says so.
 
 Descriptions are cached in ``analysis/state/trace_clusters/cluster_summaries.json``
 keyed by the prompt, the model and the members' summaries, so a rebuild with
@@ -20,29 +20,22 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-import urllib.error
-import urllib.request
 from collections import Counter
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from analysis.helpers import _state
 
 from . import label as labeling
-from .summarize import TraceSummary
+from .summarize import DEFAULT_MODEL, TraceSummary, _litellm_completion
 
-DEFAULT_MODEL = "gemma4:latest"
+MAX_TITLE_CHARS = 90
 CACHE_DIR = "trace_clusters"
 CACHE_FILE = "cluster_summaries.json"
 MAX_MEMBERS = 20
-MAX_MEMBER_CHARS = 320
-# Ollama's default context is a few thousand tokens and silently drops the
-# overflow: the 32-trace cluster's prompt came back as an empty reply. 16k
-# tokens holds MAX_MEMBERS clipped lines with room to answer.
-NUM_CTX = 16384
+MAX_MEMBER_CHARS = 320  # keeps the largest cluster's prompt near 2k tokens
 # Result gists that say nothing about what happened.
 _BLAND = frozenset({"ok", "returned data", "no result recorded", ""})
 
@@ -67,17 +60,27 @@ Summaries (representatives first):
 
 Return JSON with exactly these keys:
 {{
-  "name": "at most 6 words naming the shared request or tool path",
-  "summary": "two or three sentences on what these conversations share: the request, the tools that ran, and what the replies told the user",
-  "variation": "one sentence on how the conversations differ from each other"
+  "title": "one line, at most 10 words, naming the shared request or tool path",
+  "summary": "two or three sentences on what these conversations share: the request, the tools that ran, and what the replies told the user"
 }}
 """
 
 
 class ClusterSummary(BaseModel):
-    name: str
+    title: str
     summary: str = ""
-    variation: str = ""
+
+    @field_validator("title", "summary", mode="after")
+    @classmethod
+    def _one_paragraph(cls, value: str) -> str:
+        return " ".join(value.split())
+
+    @field_validator("title", mode="after")
+    @classmethod
+    def _one_line(cls, value: str) -> str:
+        if len(value) > MAX_TITLE_CHARS:
+            raise ValueError(f"title is longer than {MAX_TITLE_CHARS} characters")
+        return value.rstrip(".")
 
 
 def prompt_digest() -> str:
@@ -131,34 +134,6 @@ def _member_text(s: TraceSummary) -> str:
     return line if len(line) <= MAX_MEMBER_CHARS else line[: MAX_MEMBER_CHARS - 1] + "…"
 
 
-def ollama_complete(model: str, system: str, user: str) -> str:
-    """One JSON-mode chat call to the local Ollama daemon (``OLLAMA_HOST``)."""
-    base = os.environ.get("OLLAMA_HOST") or "http://localhost:11434"
-    url = (base if "://" in base else f"http://{base}").rstrip("/") + "/api/chat"
-    body = {
-        "model": model,
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0, "num_ctx": NUM_CTX},
-        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-    }
-    request = urllib.request.Request(
-        url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=600) as response:
-            content = json.load(response)["message"]["content"]
-    except urllib.error.HTTPError as exc:
-        hint = f" Pull it with `ollama pull {model}`." if exc.code == 404 else ""
-        raise RuntimeError(f"Ollama returned {exc.code}.{hint}") from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f"cannot reach Ollama at {url} ({exc.reason})") from exc
-    if not content.strip():
-        # ValueError, so the caller retries and then falls back.
-        raise ValueError("Ollama returned an empty reply; the prompt may exceed num_ctx")
-    return content
-
-
 def _write(
     members: list[TraceSummary], prof: dict[str, Any], model: str, complete: Callable[[str, str, str], str]
 ) -> ClusterSummary:
@@ -171,9 +146,9 @@ def _write(
     for _ in range(2):
         try:
             result = ClusterSummary.model_validate_json(complete(model, SYSTEM_PROMPT, user))
-            if result.name.strip() and result.summary.strip():
+            if result.title and result.summary:
                 return result
-            last = ValueError("reply has no name or summary")
+            last = ValueError("reply has no title or summary")
         except ValueError as exc:
             last = exc
     raise ValueError(f"model returned an unusable cluster summary: {last}")
@@ -188,13 +163,13 @@ def describe(
     complete: Callable[[str, str, str], str] | None = None,
     log: Callable[[str], None] = lambda _msg: None,
 ) -> dict[int, dict[str, Any]]:
-    """Cluster id -> ``{"profile", "name", "summary", "variation", "source"}``.
+    """Cluster id -> ``{"profile", "title", "summary", "source"}``.
 
     ``clusters`` and ``traces`` are the pipeline result's fields of the same
     name. ``source`` is ``model:<name>``, or ``heuristic-fallback`` when the
     model's reply was unusable twice.
     """
-    call = complete or ollama_complete
+    call = complete or _litellm_completion
     cache_path = _state.state_path(CACHE_DIR, CACHE_FILE)
     cache = _state.read_json(cache_path, default={}) or {}
     out: dict[int, dict[str, Any]] = {}
@@ -221,7 +196,9 @@ def describe(
                 _state.write_json(cache_path, cache)
             except ValueError as exc:
                 log(f"  cluster {c['cluster']}: {exc}; using the heuristic label")
-                written = ClusterSummary(name=labeling.heuristic_label(members))
+                written = ClusterSummary.model_construct(
+                    title=labeling.heuristic_label(members), summary=""
+                )
                 source = "heuristic-fallback"
         out[int(c["cluster"])] = {"profile": prof, **written.model_dump(), "source": source}
     return out

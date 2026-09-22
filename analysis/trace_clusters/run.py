@@ -148,6 +148,7 @@ def run(
     *,
     source: str,
     complete: Callable[[str, str, str], str] | None = None,
+    extra: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Run every stage and return the result payload (also what ``latest.json`` holds)."""
     if not records:
@@ -169,6 +170,7 @@ def run(
         min_samples=params.min_samples,
         seed=params.seed,
         projection=params.projection,
+        extra=extra,
     )
     reps = clustering.representatives(result, params.per_cluster)
 
@@ -215,6 +217,8 @@ def run(
         "clusters": clusters,
         "unclustered": unclustered,
         "review_batch": [ids[i] for i in clustering.pick(result, params.pick)] if params.pick else [],
+        # Layout positions for ``extra`` rows, in order. They were never clustered.
+        "extra_coords": [] if result.extra_coords is None else result.extra_coords.tolist(),
         "traces": {
             trace_id: {
                 "cluster": int(result.labels[i]),

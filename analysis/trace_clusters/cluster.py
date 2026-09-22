@@ -8,8 +8,13 @@ with scikit-learn and is deterministic. UMAP usually separates clusters better
 but pulls in numba, so it is opt-in (``uv run --extra trace-map``).
 
 The 2-D projection for plotting is separate from the clustering reduction:
-``projection`` picks it, and defaults to the reducer. The trace map clusters on
-PCA and lays out with UMAP, which keeps neighbors together on screen.
+``projection`` picks it, and defaults to the reducer. The trace map uses UMAP
+for both, as two fits: many components packed tightly for HDBSCAN, and two
+components spread out for the scatter.
+
+``extra`` vectors (the trace map's policies, stores, tools and spec items) are
+placed into the fitted 2-D layout with ``transform`` and never clustered, so
+they cannot move a trace or change a cluster.
 """
 
 from __future__ import annotations
@@ -26,6 +31,7 @@ class ClusterResult:
     coords: np.ndarray  # n x 2 projection for plotting
     distance: np.ndarray  # distance of each trace to its cluster centroid
     reducer: str
+    extra_coords: np.ndarray | None = None  # m x 2 for ``extra``; never clustered
 
 
 def _normalize(x: np.ndarray) -> np.ndarray:
@@ -60,22 +66,34 @@ def _reduce(x: np.ndarray, reducer: str, n_components: int, seed: int) -> np.nda
     raise ValueError(f"unknown reducer: {reducer!r}")
 
 
-def _project_2d(x: np.ndarray, reducer: str, seed: int, *, strict: bool = False) -> np.ndarray:
-    """2-D layout. UMAP when asked; PCA otherwise, or when UMAP is missing and
-    ``strict`` is off (a caller that asked for UMAP by name sets it)."""
+def _project_2d(
+    x: np.ndarray,
+    reducer: str,
+    seed: int,
+    *,
+    strict: bool = False,
+    extra: np.ndarray | None = None,
+) -> tuple[np.ndarray, np.ndarray | None]:
+    """2-D layout fitted on ``x``, plus ``extra`` placed into it.
+
+    UMAP when asked; PCA otherwise, or when UMAP is missing and ``strict`` is
+    off (a caller that asked for UMAP by name sets it).
+    """
     if x.shape[1] < 2 or x.shape[0] < 3:
-        return np.zeros((x.shape[0], 2))
+        return np.zeros((x.shape[0], 2)), None if extra is None else np.zeros((len(extra), 2))
     if reducer == "umap":
         try:
             import umap
 
-            return umap.UMAP(
+            model = umap.UMAP(
                 n_components=2,
                 n_neighbors=min(15, x.shape[0] - 1),
                 min_dist=0.1,  # spread points so the scatter stays readable
                 metric="cosine",
                 random_state=seed,
-            ).fit_transform(x)
+            )
+            coords = model.fit_transform(x)
+            return coords, None if extra is None else np.asarray(model.transform(extra))
         except ImportError as exc:
             if strict:
                 raise RuntimeError(
@@ -83,7 +101,9 @@ def _project_2d(x: np.ndarray, reducer: str, seed: int, *, strict: bool = False)
                 ) from exc
     from sklearn.decomposition import PCA
 
-    return PCA(n_components=2, random_state=seed).fit_transform(x)
+    pca = PCA(n_components=2, random_state=seed)
+    coords = pca.fit_transform(x)
+    return coords, None if extra is None else pca.transform(extra)
 
 
 def cluster(
@@ -95,8 +115,12 @@ def cluster(
     min_samples: int | None = None,
     seed: int = 0,
     projection: str | None = None,
+    extra: np.ndarray | None = None,
 ) -> ClusterResult:
-    """Cluster ``vectors`` (one row per trace).
+    """Cluster ``vectors`` (one row per trace) and lay them out in 2-D.
+
+    ``extra`` rows share the layout but not the clustering: they are placed
+    with the fitted projection's ``transform`` after everything else is done.
 
     Too few traces to form even one cluster of ``min_cluster_size`` returns
     everything as unclustered instead of raising, so a small export still runs.
@@ -105,10 +129,10 @@ def cluster(
 
     n = vectors.shape[0]
     x = _normalize(np.asarray(vectors, dtype=float))
+    ex = None if extra is None else _normalize(np.asarray(extra, dtype=float))
     if n < max(min_cluster_size, 3):
-        return ClusterResult(
-            np.full(n, -1), _project_2d(x, "pca", seed), np.zeros(n), reducer
-        )
+        coords, extra_coords = _project_2d(x, "pca", seed, extra=ex)
+        return ClusterResult(np.full(n, -1), coords, np.zeros(n), reducer, extra_coords)
     reduced = _reduce(x, reducer, n_components, seed)
     with warnings.catch_warnings():
         # scikit-learn 1.9 warns that HDBSCAN's `copy` default changes in 1.10.
@@ -125,8 +149,10 @@ def cluster(
         members = labels == label
         centroid = reduced[members].mean(axis=0)
         distance[members] = np.linalg.norm(reduced[members] - centroid, axis=1)
-    layout = _project_2d(x, projection or reducer, seed, strict=projection == "umap")
-    return ClusterResult(labels, layout, distance, reducer)
+    layout, extra_coords = _project_2d(
+        x, projection or reducer, seed, strict=(projection or reducer) == "umap", extra=ex
+    )
+    return ClusterResult(labels, layout, distance, reducer, extra_coords)
 
 
 def representatives(result: ClusterResult, per_cluster: int = 3) -> dict[int, list[int]]:

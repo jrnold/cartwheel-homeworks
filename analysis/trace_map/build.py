@@ -5,6 +5,16 @@ the rest of that directory). Summaries and embeddings come from the per-trace
 cache that ``analysis.trace_clusters`` keeps, so a rebuild only calls Ollama for
 traces whose summary changed.
 
+Three backends, all fixed:
+
+* trace embeddings: Qwen3-Embedding-0.6B on a local Ollama daemon
+* clusters: HDBSCAN on a 5-component UMAP reduction; layout: a 2-component UMAP
+* cluster titles and summaries: ``gpt-5.6-terra`` through LiteLLM, which reads
+  ``OPENAI_API_KEY`` from ``.env`` (live, one call per uncached cluster)
+
+Policies, stores, tools and spec items are embedded with the same model and
+placed into the layout, but never clustered (see ``references``).
+
 The page carries the conversation steps and session position of each trace and
 nothing else from the pool. Scenario expectations, derived flags and
 specification slices stay out: the map is for choosing what to read, and
@@ -22,13 +32,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from analysis.helpers import _state
 from analysis.review_app.traces import read_pool
 from analysis.trace_clusters import describe as describing
 from analysis.trace_clusters import run as pipeline
-from analysis.trace_clusters import sources
+from analysis.trace_clusters import sources, summarize
 from analysis.trace_clusters.embed import DEFAULT_OLLAMA_MODEL, Embedder, OllamaEmbedder
 from analysis.trace_clusters.run import CACHE_DIR
+from analysis.trace_map import references as refs
 from observability.instrument import load_env
 
 Complete = Callable[[str, str, str], str]
@@ -37,16 +50,21 @@ TEMPLATE = Path(__file__).resolve().parent / "ui" / "index.html"
 DATA_SLOT = "/*MAP_DATA*/null"
 DEFAULT_PORT = 8766
 
-# The settings of the Ollama run the clusters were reviewed on: 15 components
-# and min_samples=2 left 47 of 267 traces unclustered.
+# UMAP for both the clustering reduction and the layout, as PostHog does. On
+# the 267-trace pool, 5 components with HDBSCAN's default min_samples gave 15
+# clusters and left 10 traces unclustered. 10 or 30 components, or
+# min_samples 2-3, absorbed every outlier into some cluster, which hides the
+# traces most worth a separate look.
 PARAMS = pipeline.Params(
     summarizer="llm",
-    reducer="pca",
+    reducer="umap",
     projection="umap",
-    n_components=15,
+    n_components=5,
     min_cluster_size=5,
-    min_samples=2,
+    min_samples=None,
 )
+NEAREST_TRACES = 8  # per reference item
+NEAREST_REFS = 4  # per trace
 
 SUMMARY_MODES = ("cached", "llm", "heuristic")
 
@@ -85,11 +103,13 @@ def build(
     params: pipeline.Params = PARAMS,
     describe_model: str | None = describing.DEFAULT_MODEL,
     describe_complete: Complete | None = None,
+    references: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Run the pipeline over the pool and return the page's data.
 
-    ``describe_model`` names the local Ollama model that writes each cluster's
-    summary; None skips the written summaries and keeps the counted profiles.
+    ``describe_model`` names the model that writes each cluster's title and
+    summary; None skips them and keeps the counted profiles. ``references``
+    defaults to :func:`references.load`; pass ``[]`` to leave them off.
     """
     if summaries not in SUMMARY_MODES:
         raise ValueError(f"summaries must be one of {', '.join(SUMMARY_MODES)}")
@@ -102,13 +122,23 @@ def build(
     run_params = dataclasses.replace(
         params, summarizer="heuristic" if summaries == "heuristic" else "llm"
     )
+    embedder = embedder or OllamaEmbedder(DEFAULT_OLLAMA_MODEL)
+    items = refs.load() if references is None else references
+    if items and not embedder.cacheable:
+        # A corpus-fitted embedder (TF-IDF) gives the references and the traces
+        # different vocabularies, so their vectors would not share a space.
+        raise ValueError(f"reference items need a per-text embedder, not {embedder.name}")
+    ref_vectors = embedder.embed([i["embed_text"] for i in items]) if items else None
+    records = sources.from_pool(pool)
     result = pipeline.run(
-        sources.from_pool(pool),
+        records,
         run_params,
-        embedder or OllamaEmbedder(DEFAULT_OLLAMA_MODEL),
+        embedder,
         source="pool",
         complete=_cached_only if summaries == "cached" else None,
+        extra=ref_vectors,
     )
+    _attach_references(result, records, embedder, items, ref_vectors)
     view = pool_view(pool)
     if describe_model is None:
         described = describing.describe(
@@ -123,11 +153,61 @@ def build(
             model=describe_model, complete=describe_complete, log=pipeline._log,
         )
     result["cluster_summaries"] = {str(k): v for k, v in described.items()}
-    result["backends"]["cluster_summaries"] = (
-        f"ollama:{describe_model} (local model)" if describe_model else "none"
-    )
+    result["backends"]["cluster_summaries"] = f"{describe_model} (live)" if describe_model else "none"
     result["pool"] = view
     return result
+
+
+def _unit(x: np.ndarray) -> np.ndarray:
+    norms = np.linalg.norm(x, axis=1, keepdims=True)
+    return x / np.where(norms == 0, 1, norms)
+
+
+def _attach_references(
+    result: dict[str, Any],
+    records: list[Any],
+    embedder: Embedder,
+    items: list[dict[str, Any]],
+    ref_vectors: np.ndarray | None,
+) -> None:
+    """Add ``references`` (with layout positions) and each side's nearest items.
+
+    Nearness is cosine similarity in the full embedding space, not distance on
+    the 2-D map, which UMAP distorts.
+    """
+    coords = result.pop("extra_coords", [])
+    result["references"] = []
+    if not items or ref_vectors is None:
+        return
+    ids = [r.trace_id for r in records]
+    texts = [
+        summarize.embedding_text(summarize.TraceSummary.model_validate(result["traces"][i]["summary"]))
+        for i in ids
+    ]
+    # The pipeline just embedded these, so a cacheable embedder answers from cache.
+    trace_vectors = pipeline.embed_all(ids, texts, embedder)
+    sims = _unit(np.asarray(ref_vectors, dtype=float)) @ _unit(trace_vectors).T
+    for row, (item, (x, y)) in enumerate(zip(items, coords)):
+        top = np.argsort(-sims[row], kind="stable")[:NEAREST_TRACES]
+        result["references"].append(
+            {
+                "id": item["id"],
+                "kind": item["kind"],
+                "name": item["name"],
+                "text": item["text"],
+                "x": float(x),
+                "y": float(y),
+                "nearest": [[ids[j], round(float(sims[row, j]), 3)] for j in top],
+            }
+        )
+    for col, trace_id in enumerate(ids):
+        top = np.argsort(-sims[:, col], kind="stable")[:NEAREST_REFS]
+        result["traces"][trace_id]["nearest_refs"] = [
+            [items[i]["id"], round(float(sims[i, col]), 3)] for i in top
+        ]
+    result["backends"]["references"] = (
+        f"{len(items)} embedded with {embedder.name}; placed, not clustered"
+    )
 
 
 def render(data: dict[str, Any]) -> str:
@@ -186,8 +266,8 @@ def serve(path: Path, *, host: str = "127.0.0.1", port: int = DEFAULT_PORT, open
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Build the static trace map: Ollama embeddings, HDBSCAN clusters, "
-            "UMAP layout. Calls no hosted model unless --summaries llm."
+            "Build the static trace map: Ollama embeddings, HDBSCAN on UMAP, a UMAP "
+            "layout, and cluster titles from gpt-5.6-terra (live, cached per cluster)."
         )
     )
     parser.add_argument(
@@ -201,7 +281,8 @@ def main() -> None:
     parser.add_argument(
         "--describe-model",
         default=describing.DEFAULT_MODEL,
-        help="local Ollama model that writes each cluster's summary; 'none' to skip",
+        help="model that writes each cluster's title and summary (live, via LiteLLM "
+        "and OPENAI_API_KEY in .env); 'none' to skip",
     )
     parser.add_argument("--out", type=Path, default=None, help="default: analysis/state/trace_clusters/map.html")
     parser.add_argument("--open", action="store_true", help="open the page when done")
