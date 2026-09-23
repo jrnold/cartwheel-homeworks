@@ -1,42 +1,71 @@
 {
   "modes": [
     {
-      "name": "verbosity_describing_steps",
-      "definition": "",
-      "boundary": "",
+      "name": "narrates_internal_process",
+      "definition": "Fail when the final reply describes the agent's own lookups, tool calls, searches or internal checks (for example \"I checked your account\", \"the lookup returned\", \"my initial search failed\") instead of stating the result. Pass when the reply states the result, even if it names where the information came from in user terms.",
+      "boundary": "vs unnecessary_detail: this mode is about HOW the agent reached the answer (process narration); unnecessary_detail is extra FACTS about the answer itself.",
       "evaluator": "LLM judge",
-      "requirement": "",
+      "requirement": "Spec revision needed: new RESP rule, \"State results, not the steps taken to find them.\" Partly supported by RESP-5 (direct language).",
       "annotations": [
         "amuc2icun3ium",
         "amuc2nbzllteo",
-        "amuc2o4ctkvnv",
-        "amuc3pi0yll8b",
         "amuc2m3qsd0oo",
+        "amuc2o4ctkvnv",
+        "amuc2tuktv3w5",
+        "amuc3pi0yll8b",
         "amuc4i7m6ke9b",
         "amuc4kb779dzd",
-        "amuc4gy2964j2",
-        "amuc412c6vmep",
         "amuc3u6hlcg8p",
-        "amuc30r44925t",
         "amuc2zq5pjlog",
-        "amuc2uo8r8v9k",
-        "amuc2tuktv3w5",
         "amuc3l9f0hi30",
         "amuc3ly9x2ptc",
         "amudebc5hbu8r",
-        "amudfxl8md7fg",
-        "amudecc1pfoq0"
+        "amudecc1pfoq0",
+        "amudfxl8md7fg"
       ],
       "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-22T23:27:19.788Z"
+      "close_negatives": []
     },
     {
-      "name": "no_confirmation_of_ambiguous_order",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
+      "name": "unnecessary_detail",
+      "definition": "Fail when the final reply includes facts the user did not ask for and does not need to act on (for example the reasons behind a status, internal product or store IDs a shopper cannot use, or policy background beyond the decision). Pass when every fact supports the answer or the decision.",
+      "boundary": "vs incomplete_answer: this mode is too much; incomplete_answer is too little to identify or act. vs exposes_internal_identifiers: a cw- policy ID shown to a shopper belongs there, not here.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-5 (direct language that explains the relevant decision).",
+      "annotations": [
+        "amuc3x891c1dm",
+        "amuc2zfn4qgkd",
+        "amuc3k3o09365",
+        "amudeefqwdzu6",
+        "amudffzh1lv3v",
+        "amudi1lpprarf",
+        "amuc4gy2964j2",
+        "amuc412c6vmep",
+        "amuc3n0y5lwh4"
+      ],
+      "positives": [],
+      "close_negatives": []
+    },
+    {
+      "name": "exposes_internal_identifiers",
+      "definition": "Fail when the user is a shopper and the final reply contains a Cartwheel policy identifier (cw-*). Pass for shoppers when no cw- identifier appears, and always pass for merchant and support users, who should see policy identifiers.",
+      "boundary": "vs unnecessary_detail: store and product IDs are not covered here; whether they help depends on the question and audience, so judge them under unnecessary_detail.",
+      "evaluator": "code check",
+      "requirement": "Spec revision to RESP-1: cite policy identifiers for merchant and support users; for shoppers, state the policy in plain language without the cw- identifier.",
+      "annotations": [
+        "amuc2wivc2cf7",
+        "amuc3smtmr70o",
+        "amuc3vsln1hdn"
+      ],
+      "positives": [],
+      "close_negatives": []
+    },
+    {
+      "name": "acts_on_unconfirmed_order",
+      "definition": "Fail when the agent takes an immediate action on an order (cancel_order, issue_refund, or escalate_to_human opening a ticket about it) without the user first confirming that order: either the order was inferred from a description, or the ID was taken as typed without reading back its details. Pass when the agent confirms the order before acting, or takes no action.",
+      "boundary": "vs invents_or_contradicts_facts: this mode is about acting before confirming WHICH order; that mode is about stating values no tool returned. Asking the user to choose between orders (44b9269f) is a close negative.",
+      "evaluator": "LLM judge",
+      "requirement": "Spec revision needed: new rule, \"Confirm the order with the user before cancelling, refunding, or opening a ticket about it.\"",
       "annotations": [
         "amuc2mu6gk53v",
         "amuc3tv6suyrx",
@@ -44,112 +73,95 @@
         "amudefs2win5d"
       ],
       "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T00:08:25.394Z"
+      "close_negatives": []
     },
     {
-      "name": "citing_internal_policies",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
-      "annotations": [
-        "amuc2wivc2cf7",
-        "amuc3smtmr70o",
-        "amuc3vsln1hdn",
-        "amuc3n0y5lwh4"
-      ],
-      "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T00:09:03.503Z"
-    },
-    {
-      "name": "verbosity_unnecessary_information",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
-      "annotations": [
-        "amuc3x891c1dm",
-        "amuc2zfn4qgkd",
-        "amuc3k3o09365",
-        "amuc4hpfo982p",
-        "amudeefqwdzu6",
-        "amudffzh1lv3v"
-      ],
-      "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T00:54:20.728Z"
-    },
-    {
-      "name": "proceeding_with_inconsistent_evidence",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
+      "name": "invents_or_contradicts_facts",
+      "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), or contradicts what a tool or an earlier turn reported. Pass when every stated fact traces to a tool result, and missing or inconsistent information is stated as such.",
+      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-3.",
       "annotations": [
         "amuc2t6gb3sxd",
         "amuc3j9gdvkap",
         "amuc3o9t3khou",
-        "amuc3r7g36ks6",
-        "amudfi7b1h4ds"
+        "amuc3r7g36ks6"
       ],
       "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T00:56:03.497Z"
+      "close_negatives": []
     },
     {
-      "name": "missing_tool_capability",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
+      "name": "incomplete_answer",
+      "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered, the order referred to cannot be identified, the reason for a refusal is missing, or no alternative or next step is offered when the direct request cannot be met. Pass when the user could act on the reply without asking again.",
+      "boundary": "vs unnecessary_detail: too little vs too much. vs missing tool capability: an honest \"cannot do that\" with a next step passes.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-5 (explains the relevant decision); spec revision recommended for identifying details and next steps.",
+      "annotations": [
+        "amudflqbsb4je",
+        "amudfkkvah6i3",
+        "amudiat27tffw",
+        "amudi0ya8nxeb",
+        "amudhh9ckqtjm",
+        "amudimt4qysz8",
+        "amudhtbaa6xq3",
+        "amudi4k8yvx7y",
+        "amudg0e5k509r",
+        "amuc4hpfo982p"
+      ],
+      "positives": [],
+      "close_negatives": []
+    },
+    {
+      "name": "reveals_unauthorized_records",
+      "definition": "Fail when the final reply mentions or lists an order, store or user record the requester is not authorized to see under the AUTH-1 matrix. Pass when only authorized records appear.",
+      "boundary": "vs exposes_internal_identifiers: this mode is someone else's data; that mode is the user's own data in internal form.",
+      "evaluator": "code check",
+      "requirement": "AUTH-1, RESP-4.",
+      "annotations": [
+        "amude9q3g5hyp",
+        "amudi832427iu"
+      ],
+      "positives": [],
+      "close_negatives": []
+    },
+    {
+      "name": "disrespectful_or_distrustful_tone",
+      "definition": "Fail when the reply sounds impatient, condescending, or distrustful of the user, or suggests it is guessing. Pass when the tone is direct and respectful, including when refusing.",
+      "boundary": "vs narrates_internal_process: awkward wording caused by narration belongs there; this mode is about attitude toward the user.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-5.",
+      "annotations": [
+        "amuc30r44925t",
+        "amudhpx62pcpo",
+        "amuc2uo8r8v9k"
+      ],
+      "positives": [],
+      "close_negatives": []
+    },
+    {
+      "name": "false_success_claim",
+      "definition": "HELD, fewer than 3 positives: keep only if the Part D search confirms at least 3. Fail when the reply says an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports. Pass otherwise.",
+      "boundary": "vs invents_or_contradicts_facts: this mode is specifically an unsupported claim that an ACTION succeeded.",
+      "evaluator": "code check",
+      "requirement": "RESP-2.",
       "annotations": [
         "amuc3zmilhvvw"
       ],
       "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T02:17:32.635Z"
+      "close_negatives": []
     },
     {
-      "name": "confirm_email_settings_changes",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
+      "name": "misapplied_escalation",
+      "definition": "HELD, fewer than 3 positives: keep only if the Part D search confirms at least 3. Fail when the agent offers, explains or performs an escalation that the escalation policy does not call for or cannot apply, for example offering a support user escalation to a human when they are that human. Pass otherwise.",
+      "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly.",
+      "evaluator": "LLM judge",
+      "requirement": "ESC-1 to ESC-4, AUTH-1.",
       "annotations": [
-        "amudg0e5k509r"
+        "amudig94js9re",
+        "amudhnrh6k4do"
       ],
       "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T02:18:39.798Z"
-    },
-    {
-      "name": "responding_to_unauth_orders",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
-      "annotations": [
-        "amude9q3g5hyp"
-      ],
-      "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T02:20:26.592Z"
-    },
-    {
-      "name": "did_not_answer_users_question",
-      "definition": "",
-      "boundary": "",
-      "evaluator": "",
-      "requirement": "",
-      "annotations": [
-        "amudflqbsb4je",
-        "amudfkkvah6i3"
-      ],
-      "positives": [],
-      "close_negatives": [],
-      "created": "2026-09-23T02:21:18.893Z"
+      "close_negatives": []
     }
   ]
 }
