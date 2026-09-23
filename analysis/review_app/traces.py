@@ -58,7 +58,13 @@ DEFAULT_WORKERS = 8
 
 
 def load_scenarios() -> dict[str, dict[str, Any]]:
-    """Map scenario id -> scenario record, flattening the role tuple."""
+    """Map scenario id -> scenario record.
+
+    ``role`` and ``user_id`` are lifted to the top level for the code that
+    already reads them there; the whole tuple is kept too, because its other
+    dimensions (intent, record state, difficulty, user style, ...) are what
+    the reviewer reads the trace against.
+    """
     out: dict[str, dict[str, Any]] = {}
     if not SCENARIO_PATH.exists():
         return out
@@ -73,6 +79,7 @@ def load_scenarios() -> dict[str, dict[str, Any]]:
             "data_quality_case_id": row.get("data_quality_case_id"),
             "role": tup.get("role"),
             "user_id": tup.get("user_id"),
+            "tuple": dict(tup),
             "opening_message": row.get("opening_message"),
             "followups": row.get("followups") or [],
             "expected": row.get("expected") or {},
@@ -271,6 +278,24 @@ def read_pool() -> list[dict[str, Any]]:
     return _state.read_json(_state.state_path(CACHE_FILE), default=[]) or []
 
 
+def rejoin_scenarios(records: list[dict[str, Any]]) -> int:
+    """Refresh each record's scenario join from the scenario file, in place.
+
+    Offline and cheap: no Langfuse fetch and no model call, so a change to the
+    scenario join does not cost a full pool rebuild. Every other field is left
+    untouched. Returns the number of records whose scenario changed.
+    """
+    scenarios = load_scenarios()
+    changed = 0
+    for record in records:
+        scenario_id = (record.get("langfuse") or {}).get("scenario_id") or ""
+        fresh = scenarios.get(scenario_id)
+        if fresh != record.get("scenario"):
+            record["scenario"] = fresh
+            changed += 1
+    return changed
+
+
 def summarize(records: list[dict[str, Any]]) -> None:
     """Print what landed, so the enrichment can be checked before any UI."""
     print(f"\n{'=' * 64}\npool: {len(records)} traces")
@@ -333,7 +358,21 @@ def main() -> None:
     )
     parser.add_argument("--model", default=spec_relevance.DEFAULT_MODEL)
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
+    parser.add_argument(
+        "--rejoin-scenarios",
+        action="store_true",
+        help="refresh only the scenario join of the existing pool (offline)",
+    )
     args = parser.parse_args()
+
+    if args.rejoin_scenarios:
+        records = read_pool()
+        if not records:
+            sys.exit("no review pool to update; build it first")
+        changed = rejoin_scenarios(records)
+        path = write_pool(records)
+        print(f"rejoined scenarios: {changed}/{len(records)} records changed -> {path}")
+        return
 
     load_env()
     records = build_pool(

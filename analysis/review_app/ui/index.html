@@ -154,6 +154,13 @@ table.matrix td:last-child { color: var(--asst); font-family: var(--mono); text-
   display: flex; justify-content: space-between; gap: 6px;
 }
 .note .meta button { padding: 0 5px; font-size: 10px; }
+.note .meta .acts { display: flex; gap: 4px; }
+.note .rev { color: #b9903f; cursor: help; }
+.note textarea {
+  width: 100%; background: var(--panel2); color: var(--ink); font: inherit;
+  border: 1px solid #4a3a1c; border-radius: 4px; padding: 4px 6px;
+  min-height: 56px; resize: vertical;
+}
 .sugg {
   background: #1e1a26; border: 1px solid #40325c; border-left: 3px solid var(--llm);
   border-radius: 5px; padding: 7px 9px; margin-bottom: 7px; font-size: 12px;
@@ -201,6 +208,17 @@ tr.cur td { background: #232a3a; }
 .md li { margin: 1px 0; }
 .md strong { color: #fff; font-weight: 600; }
 .md em { color: #d6dce8; }
+/* The agent emits GFM tables for product search results, where the reply has
+   to be read against what the tool returned. Rendered flat they were a run-on
+   paragraph of pipes. */
+.md table.tbl { border-collapse: collapse; margin: 7px 0; font-size: 11.5px; }
+.md table.tbl th, .md table.tbl td {
+  border: 1px solid var(--line); padding: 2px 7px; vertical-align: top;
+}
+.md table.tbl th {
+  background: var(--panel2); color: var(--dim); font-weight: 600;
+  font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+}
 .md code {
   background: #14171f; border: 1px solid var(--line); border-radius: 3px;
   padding: 0 4px; font-size: 11.5px; color: #d3b98a;
@@ -325,6 +343,86 @@ td.struck { color: var(--faint); text-decoration: line-through; }
 td.dim { color: var(--dim); }
 .refcols tr[data-store]:hover td, .refcols tr[data-trace]:hover td { background: #232a3a; }
 
+/* ---- map ----
+   Colour carries review coverage (reviewed / sampled / rest of pool), not
+   cluster identity: fifteen hues cannot be told apart, so clusters are named
+   by an #id at their centroid instead. */
+:root { --m-reviewed: #3987e5; --m-sampled: #d95926; --m-pool: #545a68; }
+.mapwrap {
+  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px;
+  align-items: start;
+}
+.mappanel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+  padding: 12px 12px 8px; display: grid; gap: 7px;
+}
+.mapfigs {
+  display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.mapfigs b { color: var(--ink); font-weight: 600; font-size: 14px; }
+.maphead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; }
+.maplegend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.maplegend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.sw.reviewed { background: var(--m-reviewed); }
+.sw.sampled { background: var(--m-sampled); }
+.sw.pool { background: var(--m-pool); width: 7px; height: 7px; }
+.sw.current { border: 1.5px solid #fff; background: transparent; }
+#map-clear { border-radius: 999px; padding: 2px 11px; font-size: 12px; color: var(--dim); }
+.mapbox { position: relative; }
+#map { display: block; width: 100%; height: calc(100vh - 230px); min-height: 400px; }
+#map .frame { fill: none; stroke: var(--line); }
+#map .pt { transition: opacity .15s; }
+#map .pt.pool { fill: var(--m-pool); }
+#map .pt.sampled { fill: var(--m-sampled); stroke: var(--panel); stroke-width: 2; }
+#map .pt.reviewed { fill: var(--m-reviewed); stroke: var(--panel); stroke-width: 2; }
+#map .dim { opacity: .12; }
+#map .clab {
+  font: 500 11px var(--mono); fill: var(--faint); pointer-events: none;
+  paint-order: stroke; stroke: var(--panel); stroke-width: 3.5px; stroke-linejoin: round;
+}
+#map .clab.on { fill: var(--ink); font-weight: 600; }
+#map .ring { fill: none; stroke: var(--ink); stroke-width: 1.5; pointer-events: none; }
+#map .cur { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
+.mapcap { margin: 0; font-size: 11.5px; color: var(--faint); max-width: 90ch; }
+#map-tip {
+  position: absolute; display: none; pointer-events: none; z-index: 5;
+  max-width: 300px; background: var(--ink); color: var(--bg);
+  border-radius: 7px; padding: 7px 10px; font-size: 12px; line-height: 1.4;
+  box-shadow: 0 6px 20px rgba(0,0,0,.45);
+}
+#map-tip .t { font-weight: 600; margin-bottom: 3px; }
+#map-tip .m { font: 10.5px/1.5 var(--mono); opacity: .75; }
+#map-tip .s { display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; }
+#map-tip .s i { width: 12px; height: 2px; display: inline-block; }
+.mapside {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+  padding: 12px 8px 8px; max-height: calc(100vh - 110px); overflow-y: auto;
+}
+.mapside h4 { margin: 0 6px 4px; }
+.mapside .hint { margin: 0 6px 6px; }
+.clist { display: grid; gap: 2px; }
+.crow {
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 2px 8px;
+  width: 100%; text-align: left; background: none; border: 1px solid transparent;
+  border-radius: 7px; padding: 6px 7px; cursor: pointer;
+}
+.crow:hover { background: var(--panel2); }
+.crow[aria-pressed="true"] { border-color: #4a6ba8; background: #1f2636; }
+.crow .cid { font: 500 11.5px/1.4 var(--mono); color: var(--dim); grid-row: span 2; }
+.crow .lab { font-size: 12px; line-height: 1.35; color: var(--dim); overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.crow .meta { display: flex; align-items: center; gap: 8px; font: 10.5px var(--mono);
+  color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.crow .bar { flex: 1; display: flex; gap: 2px; height: 4px; min-width: 40px; }
+.crow .bar i { display: block; height: 100%; border-radius: 2px; }
+.crow .bar .r { background: var(--m-reviewed); }
+.crow .bar .s { background: var(--m-sampled); }
+.crow .bar .p { background: var(--line); }
+.mapfoot { margin: 8px 6px 0; font-size: 11px; color: var(--faint); }
+@media (prefers-reduced-motion: reduce) { #map .pt { transition: none; } }
+
 /* ---- shortcut help ---- */
 #help {
   position: fixed; inset: 0; z-index: 90; display: none;
@@ -374,6 +472,7 @@ kbd {
     <button id="tab-tax">Taxonomy</button>
     <button id="tab-label">Labeling</button>
     <button id="tab-prog">Progress</button>
+    <button id="tab-map">Map</button>
     <button id="tab-ref">Reference</button>
   </div>
   <div class="grow"></div>
@@ -381,6 +480,7 @@ kbd {
   <span id="hdr-pills"></span>
   <div class="grow"></div>
   <button id="helpbtn" title="keyboard shortcuts (?)">?</button>
+  <button id="toolbtn" title="tool detail: compact, full, off (t)">tools: compact</button>
   <button id="prev">&larr;</button>
   <span id="pos" class="id">0 / 0</span>
   <button id="next">&rarr;</button>
@@ -475,6 +575,30 @@ kbd {
     <div id="prog"></div>
   </div>
 
+  <!-- ============ MAP ============ -->
+  <div class="col view" data-view="map" style="grid-column:1/-1">
+    <div class="mapwrap">
+      <section class="mappanel" aria-label="Trace map">
+        <div class="mapfigs" id="map-figs"></div>
+        <div class="maphead">
+          <div class="maplegend" id="map-legend"></div>
+          <button id="map-clear" hidden>Show all clusters</button>
+        </div>
+        <div class="mapbox">
+          <svg id="map" role="img" aria-label="Scatter plot of review-pool traces, coloured by review coverage"></svg>
+          <div id="map-tip" role="status"></div>
+        </div>
+        <p class="mapcap" id="map-cap"></p>
+      </section>
+      <aside class="mapside" aria-label="Clusters">
+        <h4>Clusters</h4>
+        <div class="hint">Coverage, not failure: a cluster says which traces resemble each other. Click a cluster to isolate it, a point to open its trace. Bars: reviewed, sampled but unread, rest of the cluster.</div>
+        <div class="clist" id="map-clusters"></div>
+        <div class="mapfoot" id="map-foot"></div>
+      </aside>
+    </div>
+  </div>
+
   <!-- ============ REFERENCE ============ -->
   <div class="col view" data-view="ref" style="grid-column:1/-1">
     <div class="refbar">
@@ -518,7 +642,25 @@ const S = {
   // the manifest's batches, and opening on the pool invites reviewing traces
   // that count toward nothing.
   manifest: { batches: [] }, batchOf: {},
+  // How much tool activity the conversation shows: "compact" (calls on one
+  // line, results as a verdict line), "full" (arguments and result JSON
+  // expanded), "off" (tool steps hidden). Deliberately not persisted: this
+  // interface exists because the stock Langfuse view separated tool calls from
+  // replies, so "off" has to be a mode you chose just now, not one you are
+  // still in tomorrow without remembering why.
+  tools: "compact",
+  // Annotation id of the open code currently being reworded, or null.
+  editing: null,
+  // The clustering projection, fetched when the Map tab first opens. It only
+  // changes when trace_clusters is rerun, so it is not polled.
+  graph: null, mapFocus: null,
+  // Live polling. `writes` counts POSTs this tab has started; a poll whose
+  // responses arrive after a write began is discarded, because it may carry
+  // the file as it was before that write and would roll the local edit back.
+  // `stale` records polled changes held back while the reviewer was mid-edit.
+  sig: {}, writes: 0, inflight: 0, stale: false,
 };
+const TOOL_LEVELS = ["compact", "full", "off"];
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -540,6 +682,46 @@ function inline(s) {
       '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
+// ---- GFM tables
+// Splits a row into cells, tolerating the optional leading and trailing pipe.
+function tblCells(line) {
+  let s = line.trim();
+  if (s.startsWith("|")) s = s.slice(1);
+  if (s.endsWith("|")) s = s.slice(0, -1);
+  return s.split("|").map((c) => c.trim());
+}
+
+// The alignment row, or null when this is not one. Colons set the alignment,
+// which the agent does use: prices and ids come back right aligned.
+function tblAligns(line) {
+  if (!line || line.indexOf("|") < 0) return null;
+  const aligns = [];
+  for (const c of tblCells(line)) {
+    const m = /^(:?)-+(:?)$/.exec(c);
+    if (!m) return null;
+    aligns.push(m[1] && m[2] ? "center" : m[2] ? "right" : m[1] ? "left" : "");
+  }
+  return aligns.length ? aligns : null;
+}
+
+function tblHTML(header, aligns, rows) {
+  const sty = (j) => (aligns[j] ? ` style="text-align:${aligns[j]}"` : "");
+  const head = header.map((c, j) => `<th${sty(j)}>${inline(c)}</th>`).join("");
+  const body = rows.map((r) => {
+    // A ragged row is padded, and any overflow is folded into the last cell
+    // rather than dropped. A malformed table in a trace under review may be
+    // the evidence; discarding cells would hide it.
+    const cells = [];
+    for (let j = 0; j < header.length; j++) {
+      const v = j === header.length - 1 && r.length > header.length
+        ? r.slice(j).join(" | ") : (r[j] ?? "");
+      cells.push(`<td${sty(j)}>${inline(v)}</td>`);
+    }
+    return `<tr>${cells.join("")}</tr>`;
+  }).join("");
+  return `<table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
 function md(src) {
   const lines = esc(String(src ?? "")).replace(/\r/g, "").split("\n");
   const out = [];
@@ -552,9 +734,28 @@ function md(src) {
     while (list) { out.push(`</${list.tag}>`); list = list.prev; }
   };
 
-  for (const raw of lines) {
-    const line = raw.replace(/\s+$/, "");
+  // Indexed rather than for-of: a table is recognised by looking at the line
+  // after the header, which needs one line of lookahead.
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].replace(/\s+$/, "");
     if (!line.trim()) { flushPara(); closeLists(); continue; }
+
+    if (line.indexOf("|") >= 0 && i + 1 < lines.length) {
+      const aligns = tblAligns(lines[i + 1]);
+      const header = tblCells(line);
+      if (aligns && aligns.length === header.length) {
+        flushPara(); closeLists();
+        const rows = [];
+        let j = i + 2;
+        while (j < lines.length && lines[j].indexOf("|") >= 0 && lines[j].trim()) {
+          rows.push(tblCells(lines[j]));
+          j++;
+        }
+        out.push(tblHTML(header, aligns, rows));
+        i = j - 1; // the loop's own increment lands on the first line after
+        continue;
+      }
+    }
 
     const h = line.match(/^(#{1,4})\s+(.*)$/);
     if (h) {
@@ -641,17 +842,23 @@ function toast(msg) {
 }
 
 async function api(path, body) {
-  const opt = body === undefined ? {} : {
+  const write = body !== undefined;
+  const opt = !write ? {} : {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   };
-  const r = await fetch(path, opt);
-  if (!r.ok) {
-    let msg = r.statusText;
-    try { msg = (await r.json()).error || msg; } catch (e) { /* keep statusText */ }
-    throw new Error(msg);
+  if (write) { S.writes++; S.inflight++; }
+  try {
+    const r = await fetch(path, opt);
+    if (!r.ok) {
+      let msg = r.statusText;
+      try { msg = (await r.json()).error || msg; } catch (e) { /* keep statusText */ }
+      throw new Error(msg);
+    }
+    return await r.json();
+  } finally {
+    if (write) S.inflight--;
   }
-  return r.json();
 }
 
 // ---------------------------------------------------------------- load
@@ -663,22 +870,94 @@ async function load() {
   ]);
   S.pool = pool;
   S.spec = spec;
-  S.ann = ann.annotations || [];
-  S.modes = pat.modes || [];
-  S.suggs = Array.isArray(suggs) ? suggs : [];
-  S.labels = labels || {};
-  S.manifest = manifest && Array.isArray(manifest.batches) ? manifest : { batches: [] };
-  S.batchOf = {};
-  S.manifest.batches.forEach((b) => {
-    (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] = b.name; });
-  });
-  fillScopeFilter();
+  applyLive({ ann, pat, suggs, labels, manifest });
   S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
   $("#specn").textContent = "sha " + (spec.digest || "?").slice(0, 8);
   // Autocomplete for a mode's requirement source, so the id is picked from
   // SPEC.md rather than typed from memory.
   $("#req-ids").innerHTML = Object.keys(spec.requirements || {})
     .sort().map((id) => `<option value="${esc(id)}">`).join("");
+  render();
+}
+
+// ---------------------------------------------------------------- live polling
+// The state files an agent writes while you review: a draft taxonomy
+// (patterns), depth-search suggestions, a newly drawn batch (manifest), and
+// labels or notes from another tab. The pool is 2 MB and fixed, so it is not
+// polled.
+const LIVE = [
+  ["ann", "/api/annotations"], ["pat", "/api/patterns"],
+  ["suggs", "/api/suggestions"], ["labels", "/api/labels"],
+  ["manifest", "/api/manifest"],
+];
+const POLL_MS = 2000;
+
+function applyLive(d) {
+  if ("ann" in d) S.ann = (d.ann && d.ann.annotations) || [];
+  if ("pat" in d) S.modes = (d.pat && d.pat.modes) || [];
+  if ("suggs" in d) S.suggs = Array.isArray(d.suggs) ? d.suggs : [];
+  if ("labels" in d) S.labels = d.labels || {};
+  if ("manifest" in d) {
+    const m = d.manifest;
+    S.manifest = m && Array.isArray(m.batches) ? m : { batches: [] };
+    S.batchOf = {};
+    S.manifest.batches.forEach((b) => {
+      (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] = b.name; });
+    });
+    fillScopeFilter();
+  }
+  Object.entries(d).forEach(([k, v]) => { S.sig[k] = JSON.stringify(v); });
+}
+
+// True while re-rendering would destroy something the reviewer is doing. The
+// open popover, a note being reworded, a taxonomy field with focus, and a
+// half-made text selection all live in DOM that render() replaces. Their
+// handlers also hold the objects they will mutate, so the polled data is not
+// even applied until the reviewer is done; the next tick picks it up.
+function busy() {
+  if ($("#popover").style.display === "block" || S.editing) return true;
+  const a = document.activeElement;
+  // Form fields only: a clicked button keeps focus in some browsers and would
+  // otherwise hold polling off until the reviewer happened to click elsewhere.
+  if (a && a.matches && a.matches("input, textarea, select") &&
+      a.closest("#tax, #ungrouped, #notes")) return true;
+  const sel = window.getSelection();
+  return !!(sel && !sel.isCollapsed && $("#convo").contains(sel.anchorNode));
+}
+
+async function poll() {
+  if (document.hidden || S.inflight) return;
+  const seq = S.writes;
+  let res;
+  try { res = await Promise.all(LIVE.map(([, path]) => api(path))); }
+  catch (e) { return; } // server restarting; the next tick retries
+  if (seq !== S.writes || S.inflight) return;
+
+  const d = {};
+  LIVE.forEach(([k], i) => {
+    if (JSON.stringify(res[i]) !== S.sig[k]) d[k] = res[i];
+  });
+  if (!Object.keys(d).length || busy()) return;
+
+  const pending = () => S.suggs.filter((s) => !s.verdict).length;
+  const before = { sugg: pending(), batches: S.manifest.batches.length, modes: S.modes.length };
+  const keep = (cur() || {}).trace_id;
+  applyLive(d);
+
+  const news = [];
+  if (S.manifest.batches.length > before.batches) news.push("new batch drawn");
+  if (pending() > before.sugg) news.push(`${pending() - before.sugg} new suggestion(s)`);
+  if (S.modes.length !== before.modes) news.push(`taxonomy now ${S.modes.length} modes`);
+  if (news.length) toast(news.join(" · "));
+
+  // Stay on the trace being read. A new batch reorders the sample, so the
+  // old index would silently point at a different trace.
+  if (keep) {
+    const i = visible().findIndex((t) => t.trace_id === keep);
+    if (i >= 0) S.idx = i;
+  }
+  if (S.view === "ref") return; // the Reference tab reads none of this
+  if (S.view === "review") S.keepScroll = $("#convo").scrollTop;
   render();
 }
 
@@ -744,13 +1023,14 @@ function render() {
     el.classList.toggle("active", el.dataset.view === S.view);
   });
   $("#main").classList.toggle("wide", S.view !== "review");
-  ["review", "tax", "label", "prog", "ref"].forEach((v) =>
+  ["review", "tax", "label", "prog", "map", "ref"].forEach((v) =>
     $("#tab-" + v).classList.toggle("on", S.view === v));
 
   if (S.view === "review") renderReview();
   else if (S.view === "tax") renderTax();
   else if (S.view === "label") renderGrid();
   else if (S.view === "ref") renderRef();
+  else if (S.view === "map") renderMap();
   else renderProg();
 }
 
@@ -787,12 +1067,41 @@ function renderHeader(t) {
   if (t.derived.permission_denied) p.push(`<span class="pill warn">denied</span>`);
   if (notesFor(t.trace_id).length) p.push(`<span class="pill">coded</span>`);
   $("#hdr-pills").innerHTML = p.join(" ");
+  renderToolBtn(t);
+}
+
+// The button always states the level, and when steps survive "off" it says how
+// many, so a visible tool step in a hidden view is explained rather than odd.
+function renderToolBtn(t) {
+  let label = `tools: ${S.tools}`;
+  if (S.tools === "off" && t) {
+    const anns = annotatedKeys(t);
+    const kept = (t.steps || []).filter((st, i) =>
+      (st.role === "tool_call" || st.role === "tool_result") && anns.has("s" + i)).length;
+    if (kept) label += ` (${kept} kept)`;
+  }
+  $("#toolbtn").textContent = label;
+}
+
+function cycleTools() {
+  S.tools = TOOL_LEVELS[(TOOL_LEVELS.indexOf(S.tools) + 1) % TOOL_LEVELS.length];
+  S.keepScroll = $("#convo").scrollTop;
+  render();
 }
 
 function renderScenario(t) {
   const sc = t.scenario;
   if (!sc) { $("#scen").innerHTML = '<div class="empty">no scenario join</div>'; return; }
-  let h = `<div class="fact"><span class="k">group</span><span class="v">${esc(sc.scenario_group)}</span></div>`;
+  const row = (k, v) =>
+    `<div class="fact"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;
+  // The full tuple, in the scenario file's order: each dimension is one reason
+  // the expected behavior differs, so the trace is read against all of them,
+  // not just the role.
+  let h = "";
+  if (sc.tuple) Object.entries(sc.tuple).forEach(([k, v]) => { h += row(k, v ?? "—"); });
+  else h += `<div class="hint">Tuple missing from this pool. Run
+    <code>uv run python -m analysis.review_app.traces --rejoin-scenarios</code>.</div>`;
+  h += row("group", sc.scenario_group);
   if (sc.data_quality_case_id)
     h += `<div class="fact"><span class="k">defect</span><span class="v hot">${esc(sc.data_quality_case_id)}</span></div>`;
   const ev = (sc.expected || {}).evaluation;
@@ -866,8 +1175,15 @@ function renderSpec(t) {
   });
 }
 
-function stepHTML(st, key, prior) {
+function stepHTML(st, key, prior, annotated) {
   const role = st.role;
+  const isTool = role === "tool_call" || role === "tool_result";
+  // "off" never hides a step that carries a note. The anchor lookup in
+  // renderConvo silently no-ops when the element is missing, so hiding an
+  // annotated step would leave an open code pointing at evidence the reviewer
+  // can no longer see, with nothing on screen saying so.
+  if (isTool && S.tools === "off" && !annotated) return "";
+  const full = S.tools === "full";
   const cls = ["step", role, prior ? "prior" : ""].join(" ");
   const noteBtn = prior ? "" :
     `<button class="note-btn" data-anchor="${key}">note</button>`;
@@ -880,9 +1196,14 @@ function stepHTML(st, key, prior) {
       <div class="who">${role}</div>${body}${noteBtn}</div>`;
   }
   if (role === "tool_call") {
+    // Arguments are never truncated, at either level. A quote anchored inside
+    // them has to keep matching, and clipped text would silently stop being
+    // findable. "full" only changes the indentation.
+    const args = st.arguments || {};
+    const body = full ? JSON.stringify(args, null, 2) : JSON.stringify(args);
     return `<div class="${cls}" data-key="${key}">
       <div class="who">call</div>
-      <div class="txt mono annotatable">${esc(st.name)}(${esc(JSON.stringify(st.arguments || {}))})</div>
+      <div class="txt mono annotatable">${esc(st.name)}(${esc(body)})</div>
       ${noteBtn}</div>`;
   }
   // tool_result: collapse the JSON to a verdict line, expand on click.
@@ -904,23 +1225,33 @@ function stepHTML(st, key, prior) {
       <span class="${ok ? "ok" : "no"}">${ok ? "ok" : "fail"}</span>
       <span>${esc(st.name)}</span><span>${gist}</span><span style="color:#5a6273">&#9662;</span>
     </div>
-    <div class="full annotatable" id="full-${key}">${esc(JSON.stringify(c, null, 2))}</div>
+    <div class="full annotatable${full ? " open" : ""}" id="full-${key}">${
+      esc(JSON.stringify(c, null, 2))}</div>
     ${noteBtn}</div>`;
+}
+
+// Anchors of this trace's notes, so "off" can keep the steps they point at.
+function annotatedKeys(t) {
+  return new Set(notesFor(t.trace_id).map((a) => a.anchor).filter(Boolean));
 }
 
 function renderConvo(t) {
   let h = "";
+  const anns = annotatedKeys(t);
   const prior = (t.session.prior_trace_ids || []).map((id) => S.byId[id]).filter(Boolean);
   if (prior.length) {
     h += `<div class="ctxbanner">Earlier turns of session <code>${
       esc(t.session.session_id.slice(0, 12))}</code> — read-only context. Label the current turn below.</div>`;
     prior.forEach((p, pi) => {
       h += `<div class="turnsep">turn ${pi + 1}</div>`;
-      (p.steps || []).forEach((st, si) => (h += stepHTML(st, `p${pi}-${si}`, true)));
+      (p.steps || []).forEach((st, si) => {
+        const key = `p${pi}-${si}`;
+        h += stepHTML(st, key, true, anns.has(key));
+      });
     });
     h += `<div class="turnsep">turn ${prior.length + 1} &mdash; under review</div>`;
   }
-  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false)));
+  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false, anns.has("s" + i))));
   $("#convo").innerHTML = h;
 
   $("#convo").querySelectorAll(".summary").forEach((el) => {
@@ -956,24 +1287,94 @@ function renderConvo(t) {
   else $("#convo").scrollTop = 0;
 }
 
+// Which note card is open for editing, by annotation id. Held in S so a
+// re-render (saving elsewhere, switching tab and back) does not silently drop
+// what the reviewer was part way through typing.
+function noteBody(a, i) {
+  if (S.editing === annId(a)) {
+    return `<textarea data-edit="${i}">${esc(a.note)}</textarea>
+      <div class="meta"><span>&#8984;&#8629; save &middot; esc cancel</span>
+        <span class="acts">
+          <button data-save="${i}">save</button>
+          <button data-cancel="${i}">cancel</button>
+        </span></div>`;
+  }
+  const revs = (a.revisions || []).length;
+  // The prior wording sits in the tooltip rather than a separate view: the
+  // history has to stay inspectable, but it is not what the reviewer reads.
+  const revTag = revs
+    ? ` &middot; <span class="rev" title="${esc((a.revisions || [])
+        .map((r, n) => `v${n + 1}: ${r.note}`).join("\n\n"))}">edited, ${
+        revs} revision${revs > 1 ? "s" : ""}</span>`
+    : "";
+  return `<div>${esc(a.note)}</div>
+    <div class="meta">
+      <span>${a.anchor ? "@" + esc(a.anchor) + " &middot; " : ""}${
+        esc((a.ts || "").slice(0, 16))}${revTag}</span>
+      <span class="acts">
+        <button data-edit-btn="${i}">edit</button>
+        <button data-del="${i}">delete</button>
+      </span>
+    </div>`;
+}
+
 function renderNotes(t) {
   const list = notesFor(t.trace_id);
   $("#notes").innerHTML = list.length ? list.map((a, i) => `
     <div class="note" data-note="n${i}">
       ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 150))}&rdquo;</div>` : ""}
-      <div>${esc(a.note)}</div>
-      <div class="meta">
-        <span>${a.anchor ? "@" + esc(a.anchor) + " · " : ""}${esc((a.ts || "").slice(0, 16))}</span>
-        <button data-del="${i}">delete</button>
-      </div>
+      ${noteBody(a, i)}
     </div>`).join("") : '<div class="empty">not yet coded</div>';
+
   $("#notes").querySelectorAll("[data-del]").forEach((b) => {
     b.onclick = async () => {
       const target = list[+b.dataset.del];
       S.ann = S.ann.filter((a) => a !== target);
+      if (S.editing === annId(target)) S.editing = null;
       await saveAnn(); render();
     };
   });
+  $("#notes").querySelectorAll("[data-edit-btn]").forEach((b) => {
+    b.onclick = () => { S.editing = annId(list[+b.dataset.editBtn]); render(); };
+  });
+  $("#notes").querySelectorAll("[data-cancel]").forEach((b) => {
+    b.onclick = () => { S.editing = null; render(); };
+  });
+  $("#notes").querySelectorAll("[data-save]").forEach((b) => {
+    b.onclick = () => saveEdit(list[+b.dataset.save]);
+  });
+  const box = $("#notes").querySelector("[data-edit]");
+  if (box) {
+    box.focus();
+    box.setSelectionRange(box.value.length, box.value.length);
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { e.stopPropagation(); S.editing = null; render(); }
+      else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        saveEdit(list[+box.dataset.edit]);
+      }
+    });
+  }
+}
+
+// Revising an open code keeps the earlier wording. The handout requires the
+// path from observation to category stay inspectable, and a mode built from
+// this annotation cites it by id, so the id and the original timestamp are
+// left alone; only the text moves.
+async function saveEdit(a) {
+  const box = $("#notes").querySelector("[data-edit]");
+  if (!a || !box) return;
+  const text = box.value.trim();
+  if (!text) { toast("an open code cannot be empty"); return; }
+  if (text === a.note) { S.editing = null; render(); return; }
+  a.revisions = a.revisions || [];
+  a.revisions.push({ note: a.note, ts: a.edited_ts || a.ts });
+  a.note = text;
+  a.edited_ts = new Date().toISOString();
+  S.editing = null;
+  await saveAnn();
+  render();
+  toast("open code revised; previous wording kept");
 }
 
 async function saveAnn() {
@@ -1440,6 +1841,194 @@ function renderProg() {
   $("#prog").innerHTML = h;
 }
 
+// ---------------------------------------------------------------- map
+// A scatter of the whole pool in the clustering run's 2D projection. It
+// answers the Part B coverage question: which regions of the trace store the
+// drawn sample reaches, and which of those have actually been read. Colour is
+// review status; clusters are named by an #id at their centroid, because
+// fifteen hues cannot be told apart.
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const MAP_STATUS = {
+  reviewed: "Reviewed",
+  sampled: "In sample, not yet reviewed",
+  pool: "Not in the review sample",
+};
+// Draw order puts the traces that count on top.
+const MAP_RANK = { pool: 0, sampled: 1, reviewed: 2 };
+
+async function loadGraph() {
+  if (!S.graph) S.graph = await api("/api/graph");
+  return S.graph;
+}
+
+function renderMap() {
+  const G = S.graph;
+  if (!G) {
+    $("#map-legend").textContent = "loading…";
+    loadGraph().then(() => { if (S.view === "map") renderMap(); })
+      .catch((e) => { $("#map-legend").textContent = "map failed: " + e.message; });
+    return;
+  }
+  const svg = $("#map");
+  svg.replaceChildren();
+  S._pts = [];
+  const nodes = G.nodes || [];
+  if (!nodes.length) {
+    $("#map-legend").innerHTML = 'No projection yet. Run <code>uv run python -m analysis.trace_clusters</code>, then reload.';
+    ["#map-figs", "#map-clusters", "#map-cap", "#map-foot"].forEach((s) => { $(s).innerHTML = ""; });
+    return;
+  }
+
+  const coded = new Set(S.ann.map((a) => a.trace_id));
+  const status = (id) => coded.has(id) ? "reviewed" : S.batchOf[id] ? "sampled" : "pool";
+  const count = { reviewed: 0, sampled: 0, pool: 0 };
+  nodes.forEach((n) => count[status(n.trace_id)]++);
+  const focus = S.mapFocus;
+
+  // ---- figures, legend, caption
+  $("#map-figs").innerHTML = [
+    [nodes.length, "traces"],
+    [(G.clusters || []).length, "clusters"],
+    [nodes.filter((n) => n.cluster < 0).length, "unclustered"],
+    [count.reviewed + count.sampled, "in the review sample"],
+    [count.reviewed, "reviewed"],
+  ].map(([v, k]) => `<span><b>${v}</b> ${k}</span>`).join("");
+  $("#map-legend").innerHTML = ["reviewed", "sampled", "pool"].map((k) =>
+    `<span><i class="sw ${k}"></i>${MAP_STATUS[k]} (${count[k]})</span>`).join("") +
+    `<span><i class="sw current"></i>current trace</span>`;
+  $("#map-clear").hidden = focus === null;
+  $("#map-cap").textContent =
+    `Each dot is one trace, placed by a ${String(G.reducer || "?").toUpperCase()} projection of the embedding of its LLM-written summary. ` +
+    `Nearby dots describe similar conversations; the axes have no units. Clusters come from HDBSCAN` +
+    `${G.min_cluster_size ? ` (minimum size ${G.min_cluster_size})` : ""} and are labelled by their common tools and results.`;
+  $("#map-foot").textContent =
+    `Summaries: ${G.summarizer || "?"}. Embeddings: ${G.embedder || "?"}. Projection: ${G.reducer || "?"}.`;
+
+  // ---- scatter, in pixel units so dots and labels stay a fixed size
+  const w = svg.clientWidth, h = svg.clientHeight, pad = 26;
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const sx = (v) => pad + ((v - minX) / (maxX - minX || 1)) * (w - 2 * pad);
+  const sy = (v) => pad + ((maxY - v) / (maxY - minY || 1)) * (h - 2 * pad);
+
+  svgEl("rect", { class: "frame", x: 0.5, y: 0.5, width: w - 1, height: h - 1, rx: 6 }, svg);
+  const gPts = svgEl("g", {}, svg), gLab = svgEl("g", {}, svg);
+  S._pts = nodes.map((n) => ({ ...n, px: sx(n.x), py: sy(n.y), st: status(n.trace_id) }));
+  [...S._pts].sort((a, b) => MAP_RANK[a.st] - MAP_RANK[b.st]).forEach((p) => {
+    svgEl("circle", {
+      class: `pt ${p.st}${focus !== null && p.cluster !== focus ? " dim" : ""}`,
+      cx: p.px.toFixed(1), cy: p.py.toFixed(1), r: p.st === "pool" ? 3.2 : 5.5,
+    }, gPts);
+  });
+
+  const byCluster = {};
+  S._pts.forEach((p) => (byCluster[p.cluster] ||= []).push(p));
+  (G.clusters || []).forEach((c) => {
+    const m = byCluster[c.cluster] || [];
+    if (!m.length) return;
+    const cx = m.reduce((a, p) => a + p.px, 0) / m.length;
+    const cy = m.reduce((a, p) => a + p.py, 0) / m.length;
+    const on = focus === c.cluster, off = focus !== null && !on;
+    svgEl("text", {
+      class: `clab${on ? " on" : ""}${off ? " dim" : ""}`,
+      x: cx.toFixed(1), y: (cy - 9).toFixed(1), "text-anchor": "middle",
+    }, gLab).textContent = "#" + c.cluster;
+  });
+
+  const current = S._pts.find((p) => p.trace_id === (cur() || {}).trace_id);
+  if (current) svgEl("circle", { class: "cur", cx: current.px, cy: current.py, r: 11 }, svg);
+  S._ring = svgEl("circle", { class: "ring", r: 10, visibility: "hidden" }, svg);
+
+  // ---- cluster list: largest first, unclustered last. A row with nothing
+  // sampled is a gap worth drawing from.
+  const rows = [...(G.clusters || [])].sort((a, b) => b.size - a.size)
+    .map((c) => ({ id: c.cluster, label: c.label }));
+  if (byCluster[-1]) rows.push({ id: -1, label: "Traces no cluster explains. Outliers are worth reading on their own." });
+  $("#map-clusters").innerHTML = rows.map((r) => {
+    const m = byCluster[r.id] || [];
+    const rv = m.filter((p) => p.st === "reviewed").length;
+    const sm = m.filter((p) => p.st === "sampled").length;
+    const bar = [["r", rv], ["s", sm], ["p", m.length - rv - sm]]
+      .filter(([, v]) => v).map(([k, v]) => `<i class="${k}" style="flex:${v}"></i>`).join("");
+    return `<button type="button" class="crow" data-c="${r.id}" aria-pressed="${focus === r.id}" title="${esc(r.label)}">
+      <span class="cid">${r.id < 0 ? "—" : "#" + r.id}</span>
+      <span class="lab">${r.id < 0 ? "Unclustered · " : ""}${esc(r.label)}</span>
+      <span class="meta">${m.length} · ${rv + sm} sampled · ${rv} read<span class="bar">${bar}</span></span>
+    </button>`;
+  }).join("");
+  $("#map-clusters").querySelectorAll(".crow").forEach((el) => {
+    el.onclick = () => setMapFocus(+el.dataset.c);
+  });
+}
+
+function setMapFocus(c) {
+  S.mapFocus = S.mapFocus === c ? null : c;
+  renderMap();
+}
+$("#map-clear").addEventListener("click", () => setMapFocus(S.mapFocus));
+
+// Nearest point within 18px, not pixel-perfect aim.
+function mapHit(e) {
+  const r = $("#map").getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = null, bestD = 18 * 18;
+  (S._pts || []).forEach((p) => {
+    if (S.mapFocus !== null && p.cluster !== S.mapFocus) return;
+    const d = (p.px - mx) ** 2 + (p.py - my) ** 2;
+    if (d < bestD) { bestD = d; best = p; }
+  });
+  return best;
+}
+
+function showMapTip(p) {
+  const tip = $("#map-tip"), ring = S._ring;
+  $("#map").style.cursor = p ? "pointer" : "default";
+  if (!p) { tip.style.display = "none"; if (ring) ring.setAttribute("visibility", "hidden"); return; }
+  ring.setAttribute("cx", p.px); ring.setAttribute("cy", p.py);
+  ring.setAttribute("visibility", "visible");
+  const t = S.byId[p.trace_id];
+  const batch = S.batchOf[p.trace_id];
+  const n = notesFor(p.trace_id).length;
+  const who = t ? [t.langfuse.scenario_id, t.langfuse.user_role,
+    ((t.scenario || {}).tuple || {}).intent] : [p.trace_id.slice(0, 10)];
+  tip.innerHTML = `<div class="t">${esc(p.title || "(no summary)")}</div>
+    <div class="m">${esc(who.filter(Boolean).join(" · "))}</div>
+    <div class="m">${p.cluster < 0 ? "unclustered" : "cluster " + p.cluster}${
+      batch ? " · batch " + esc(batch) : ""}${n ? ` · ${n} note${n > 1 ? "s" : ""}` : ""}</div>
+    <div class="s"><i style="background:var(--m-${p.st})"></i>${MAP_STATUS[p.st]}</div>`;
+  tip.style.display = "block";
+  const box = $(".mapbox").getBoundingClientRect();
+  const left = Math.min(Math.max(8, p.px + 14), box.width - tip.offsetWidth - 8);
+  const top = p.py + 14 + tip.offsetHeight > box.height ? p.py - tip.offsetHeight - 14 : p.py + 14;
+  tip.style.left = left + "px"; tip.style.top = Math.max(4, top) + "px";
+}
+
+$("#map").addEventListener("mousemove", (e) => showMapTip(mapHit(e)));
+$("#map").addEventListener("mouseleave", () => showMapTip(null));
+$("#map").addEventListener("click", (e) => {
+  const p = mapHit(e);
+  if (!p || !S.byId[p.trace_id]) return;
+  // Open it under a scope that contains it. An off-manifest trace switches the
+  // scope to all traces, and says so: reading it does not count toward the 100.
+  if (!visible().some((t) => t.trace_id === p.trace_id)) {
+    S.filter = S.batchOf[p.trace_id] ? "sample" : "all";
+    $("#filter").value = S.filter;
+    if (S.filter === "all") toast("off-manifest trace — does not count toward the 100");
+  }
+  S.idx = visible().findIndex((t) => t.trace_id === p.trace_id);
+  showMapTip(null);
+  S.view = "review"; render();
+});
+window.addEventListener("resize", () => { if (S.view === "map") renderMap(); });
+
 // ---------------------------------------------------------------- reference
 // Every source of truth in one searchable place. Checking a reply against the
 // document it cites is the commonest thing a reviewer does, and leaving the
@@ -1698,6 +2287,7 @@ $("#tab-review").onclick = () => { S.view = "review"; render(); };
 $("#tab-tax").onclick = () => { S.view = "tax"; render(); };
 $("#tab-label").onclick = () => { S.view = "label"; render(); };
 $("#tab-prog").onclick = () => { S.view = "prog"; render(); };
+$("#tab-map").onclick = () => { S.view = "map"; render(); };
 $("#new-mode").onclick = () => newMode();
 $("#new-mode-name").addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); newMode(); }
@@ -1729,7 +2319,12 @@ const SHORTCUTS = [
     run: () => { $("#tab-ref").click(); setTimeout(() => $("#ref-q").focus(), 60); } },
   { group: "Move", key: "r", label: "back to Review",
     run: () => { S.view = "review"; render(); } },
+  { group: "Move", key: "m", label: "Map: cluster coverage, click a point to open it",
+    run: () => { S.view = "map"; render(); } },
 
+  { group: "Open coding", key: "t", label: "cycle tool detail: compact, full, off",
+    run: () => cycleTools(),
+    note: "“off” keeps any tool step a note is anchored to" },
   { group: "Open coding", key: "n", label: "focus the open-code box",
     run: () => $("#note-in").focus() },
   { group: "Open coding", key: "x", label: "record “no failure observed”",
@@ -1814,10 +2409,11 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+$("#toolbtn").onclick = () => cycleTools();
 $("#helpbtn").onclick = () => toggleHelp();
 $("#help").onclick = (e) => { if (e.target.id === "help") toggleHelp(false); };
 
-load().catch((e) => {
+load().then(() => setInterval(poll, POLL_MS)).catch((e) => {
   document.body.innerHTML =
     `<div style="padding:30px;font-family:var(--mono)">Failed to load: ${esc(e.message)}
      <br><br>Build the pool first:<br><code>uv run python -m analysis.review_app.traces</code></div>`;

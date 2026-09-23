@@ -103,6 +103,57 @@ def _mode_names() -> list[str]:
     return sorted(path.stem for path in root.glob("*.jsonl"))
 
 
+GRAPH_FILE = ("trace_clusters", "latest.json")
+
+
+def graph_payload() -> dict[str, Any]:
+    """The 2D projection from the last clustering run, trimmed for the map view.
+
+    ``latest.json`` carries a full LLM summary per trace (~400 KB). The map
+    needs only position, cluster, and a one-line title for the hover, so the
+    rest stays on disk. An absent run returns empty lists rather than an error,
+    so the map can say what to run instead of failing.
+    """
+    run = _state.read_json(_state.state_path(*GRAPH_FILE), default=None)
+    if not run:
+        return {"nodes": [], "clusters": [], **_graph_method({})}
+    nodes = []
+    for trace_id, rec in (run.get("traces") or {}).items():
+        if rec.get("x") is None or rec.get("y") is None:
+            continue
+        summary = rec.get("summary") or {}
+        nodes.append(
+            {
+                "trace_id": trace_id,
+                "x": rec["x"],
+                "y": rec["y"],
+                "cluster": rec.get("cluster", -1),
+                "title": summary.get("title") if isinstance(summary, dict) else None,
+            }
+        )
+    clusters = [
+        {
+            "cluster": c.get("cluster"),
+            "label": c.get("label", ""),
+            "size": c.get("size", 0),
+            "representatives": c.get("representatives", []),
+        }
+        for c in run.get("clusters") or []
+    ]
+    return {"nodes": nodes, "clusters": clusters, **_graph_method(run)}
+
+
+def _graph_method(run: dict[str, Any]) -> dict[str, Any]:
+    """How the map was made, for its caption and footer."""
+    backends = run.get("backends") or {}
+    return {
+        "reducer": backends.get("reducer"),
+        "summarizer": backends.get("summarizer"),
+        "embedder": backends.get("embedder"),
+        "min_cluster_size": (run.get("params") or {}).get("min_cluster_size"),
+    }
+
+
 def _sync_score(trace_id: str, mode: str, label: int, note: str | None) -> str | None:
     """Mirror one judgment to Langfuse as a score named after the mode.
 
@@ -206,6 +257,10 @@ class ReviewHandler(BaseHTTPRequestHandler):
 
         if path == "/api/labels":
             self._send_json({mode: _live_labels(mode) for mode in _mode_names()})
+            return
+
+        if path == "/api/graph":
+            self._send_json(graph_payload())
             return
 
         if path in API_FILES:
