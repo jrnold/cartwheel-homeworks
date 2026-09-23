@@ -61,6 +61,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 101,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 101,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "authorization_edge",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 1616
+      },
       "opening_message": "can u refund order 1616 for me its the granola one",
       "followups": [],
       "expected": {
@@ -225,6 +237,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9002,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9002,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 3483
+      },
       "opening_message": "need status on order 3483. order 3483 please. can someone check order 3483",
       "followups": [],
       "expected": {
@@ -384,6 +408,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 463,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 463,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 1276
+      },
       "opening_message": "I need an answer on order 1276 right now -- where is it, I've been waiting.",
       "followups": [],
       "expected": {
@@ -805,6 +841,18 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "shopper",
       "user_id": 110,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 110,
+        "intent": "product_search",
+        "record_state": "product_missing_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "product_id": 3
+      },
       "opening_message": "theres a product on blue herons page with no name, just blank, hows much is it n is it in stock",
       "followups": [],
       "expected": {
@@ -1160,6 +1208,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 403,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 403,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 5591
+      },
       "opening_message": "got the usb hub from cascade audio like 5 days ago n it just doesnt charge my laptop right, wanna send it bak for a refund",
       "followups": [],
       "expected": {
@@ -1373,6 +1433,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 29,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 29,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 1312
+      },
       "opening_message": "did order 1312 ever arrive, cant tell from the app",
       "followups": [],
       "expected": {
@@ -1527,6 +1599,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9010,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9010,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 956
+      },
       "opening_message": "order 956. status.",
       "followups": [],
       "expected": {
@@ -1702,6 +1786,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "merchant",
       "user_id": 9016,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9016,
+        "intent": "order_status",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8001
+      },
       "opening_message": "order 8001 -- somthing weird, jam trio prodict shows shipped 6/25 but delivered 6/23, thats backwards rite? can u check",
       "followups": [],
       "expected": {
@@ -1987,6 +2083,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "shopper",
       "user_id": 392,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 392,
+        "intent": "refund",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 8002
+      },
       "opening_message": "I want my refund for order 8002 processed now, I've been waiting and I want it done today.",
       "followups": [],
       "expected": {
@@ -2224,6 +2332,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 417,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 417,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 4453
+      },
       "opening_message": "Cancel order 4453. Please cancel it. I really need order 4453 cancelled today.",
       "followups": [],
       "expected": {
@@ -2518,6 +2638,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 352,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 352,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-saltbox-pantry-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8659
+      },
       "opening_message": "Can you check on a refund for a jam trio order from Saltbox Pantry? It arrived a bit over a week and a half ago.",
       "followups": [],
       "expected": {
@@ -2787,6 +2919,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 265,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 265,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 8680
+      },
       "opening_message": "So, um, I ordered this poetry book thing from that press place a few weeks back, and I think I just changed my mind about it, or — actually I'm not sure I even want it anymore, can you just refund it?",
       "followups": [],
       "expected": {
@@ -3175,6 +3319,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 152,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 152,
+        "intent": "refund",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "I want my money back for the thing I bought.",
       "followups": [],
       "expected": {
@@ -3509,6 +3664,18 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "product_search",
+        "record_state": "product_missing_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "product_id": 3
+      },
       "opening_message": "A shopper flagged that a Blue Heron product has a blank title. Can you look up product 3 and tell me what's there?",
       "followups": [],
       "expected": {
@@ -3673,6 +3840,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 6562
+      },
       "opening_message": "This shopper has been waiting on order 6562 forever, what's actually going on with it?",
       "followups": [],
       "expected": {
@@ -3837,6 +4016,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 92,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 92,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 6812
+      },
       "opening_message": "order 6812. status?",
       "followups": [],
       "expected": {
@@ -3996,6 +4187,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9019,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9019,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6224
+      },
       "opening_message": "Hi, can you check on order 6224 for me?",
       "followups": [],
       "expected": {
@@ -4150,6 +4353,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 447,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 447,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 5596
+      },
       "opening_message": "I keep checking and there's no update -- just tell me if order 5596 arrived already.",
       "followups": [],
       "expected": {
@@ -4309,6 +4524,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 39,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 39,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "I'm looking for a poetry collection from Paper Lantern Press, ideally under $150.",
       "followups": [],
       "expected": {
@@ -4451,6 +4677,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9013,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9013,
+        "intent": "order_status",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "authorization_edge",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 5664
+      },
       "opening_message": "Can you pull up order 5664 for me?",
       "followups": [],
       "expected": {
@@ -4615,6 +4853,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 188,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 188,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 9589
+      },
       "opening_message": "Um, hi, so I ordered a book a while back, I think it was some kind of poetry thing? Order number's 9589 I think, could you check where that's at?",
       "followups": [],
       "expected": {
@@ -4743,6 +4993,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "order_status",
+        "record_state": "support_list_my_orders_invalid",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "authorization_edge",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "do i have any orders on file? quick check",
       "followups": [],
       "expected": {
@@ -4918,6 +5179,18 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "shopper",
       "user_id": 267,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 267,
+        "intent": "product_search",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "confused_rambling",
+        "turn_count": 2,
+        "product_id": 2
+      },
       "opening_message": "hi um, i saw a vase online, heavy duty i think, not sure which store though, how much would that be",
       "followups": [
         "i think it was a ceramics store maybe? sorry i dont remember exactly"
@@ -5113,6 +5386,18 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "shopper",
       "user_id": 267,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 267,
+        "intent": "product_search",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "confused_rambling",
+        "turn_count": 2,
+        "product_id": 2
+      },
       "opening_message": "hi um, i saw a vase online, heavy duty i think, not sure which store though, how much would that be",
       "followups": [
         "i think it was a ceramics store maybe? sorry i dont remember exactly"
@@ -5442,6 +5727,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 352,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 352,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 3392
+      },
       "opening_message": "I've been waiting to hear back about returning my dry bag, it's been over a week, can I return it or not.",
       "followups": [],
       "expected": {
@@ -6043,6 +6340,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9017,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9017,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "anything under $10 in our store right now",
       "followups": [],
       "expected": {
@@ -6275,6 +6583,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "refund",
+        "record_state": "order_any_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 3568
+      },
       "opening_message": "I have a shopper asking for a refund on order 3568 -- they said it wasn't what they expected. Can you process that?",
       "followups": [],
       "expected": {
@@ -6486,6 +6806,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 105
+      },
       "opening_message": "just cancel order 105, the customer wants out of it and I've been waiting on this too long",
       "followups": [],
       "expected": {
@@ -6676,6 +7008,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 363,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 363,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "whats the retrun policy on stuff i order",
       "followups": [],
       "expected": {
@@ -6949,6 +7292,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 345,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 345,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "headphones, pocket arcade, <$40, in stock?",
       "followups": [],
       "expected": {
@@ -7216,6 +7570,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 188,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 188,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8733
+      },
       "opening_message": "jam trio from golden hour showd up busted, both jars, want a refund",
       "followups": [],
       "expected": {
@@ -7440,6 +7806,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 281,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 281,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "ambiguous",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "u guys got any good mugs or somthing like that, dont care where from",
       "followups": [],
       "expected": {
@@ -7605,6 +7982,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 31,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 31,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "Quick question -- what's your shipping timeframe?",
       "followups": [],
       "expected": {
@@ -7802,6 +8190,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 296,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 296,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "u got fountain pens at atlas stationary under like 20 bux",
       "followups": [],
       "expected": {
@@ -7960,6 +8359,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 131,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 131,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 4848
+      },
       "opening_message": "Why can't I get a straight answer on order 4848? Did it deliver or not?",
       "followups": [],
       "expected": {
@@ -8327,6 +8738,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 389,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 389,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_within",
+        "applicable_policy": "store-meridian-cycles-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 200
+      },
       "opening_message": "got my water bottel from meridian cycles bout 3 weeks ago, can i still send it bak for a refund",
       "followups": [],
       "expected": {
@@ -8723,6 +9146,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 19,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 19,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-saltbox-pantry-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 2197
+      },
       "opening_message": "I ordered some hot sauce from Saltbox Pantry a little over a week ago -- can I return it for a refund?",
       "followups": [],
       "expected": {
@@ -8926,6 +9361,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 40,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 40,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 1219
+      },
       "opening_message": "I'd like to check on the status of order 1219, please.",
       "followups": [],
       "expected": {
@@ -9230,6 +9677,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 387,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 387,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 7530
+      },
       "opening_message": "I bought a desk lamp from you about four weeks ago -- is it too late to send it back?",
       "followups": [],
       "expected": {
@@ -9552,6 +10011,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "um, hi, so, someone asked me today about, like, how long they have to return something? do we have our own rule for that or is it just the regular cartwheel one, im not sure",
       "followups": [],
       "expected": {
@@ -9725,6 +10195,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9018,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9018,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Can you tell me what return window we're set to right now?",
       "followups": [],
       "expected": {
@@ -9904,6 +10385,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "cancellation",
+        "record_state": "order_any_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 6039
+      },
       "opening_message": "There's this order, 6039, and the shopper wants it cancelled but I'm not sure if it's already shipped -- can you check and cancel it if it's still possible?",
       "followups": [],
       "expected": {
@@ -10061,6 +10554,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9020,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9020,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "What's our current return window?",
       "followups": [],
       "expected": {
@@ -10248,6 +10752,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9015,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9015,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-store-overrides",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "store overrides. how do they work.",
       "followups": [],
       "expected": {
@@ -10443,6 +10958,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9014,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9014,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 1514
+      },
       "opening_message": "just refund order 1514 already, the item was defective and the customer's been complaining",
       "followups": [],
       "expected": {
@@ -10639,6 +11166,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-getting-help",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "whats the porcess if a shoper needs help we cant give them",
       "followups": [],
       "expected": {
@@ -10902,6 +11440,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 5,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 5,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 1615
+      },
       "opening_message": "Hi, I ordered a hand cream from Fern & Fog Skincare and it broke out my skin. Can I please get a refund?",
       "followups": [],
       "expected": {
@@ -11092,6 +11642,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 362,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 362,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 3812
+      },
       "opening_message": "Quick one -- is order 3812 delivered yet? Just need a yes or no.",
       "followups": [],
       "expected": {
@@ -11238,6 +11800,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 294,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 294,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Hi, do you have any wooden puzzles at Wooden Whale Workshop for $30 or less?",
       "followups": [],
       "expected": {
@@ -11421,6 +11994,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 258,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 258,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 5116
+      },
       "opening_message": "I already asked about this -- order 5116, I want my money back, changed my mind, just process it.",
       "followups": [],
       "expected": {
@@ -11588,6 +12173,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9014,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9014,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 5193
+      },
       "opening_message": "order 5193 - status check",
       "followups": [],
       "expected": {
@@ -11998,6 +12595,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 64,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 64,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 7440
+      },
       "opening_message": "Hi, I ordered a poetry collection a long time ago and I'm wondering if I can still return it.",
       "followups": [],
       "expected": {
@@ -12243,6 +12852,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 3903
+      },
       "opening_message": "Can you process a refund for order 3903? The customer says it arrived damaged.",
       "followups": [],
       "expected": {
@@ -12396,6 +13017,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 111,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 111,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 2
+      },
       "opening_message": "I'd like to change the email address associated with my account.",
       "followups": [
         "I checked account settings and updated it there, but it still shows my old email a day later."
@@ -12528,6 +13160,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 111,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 111,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 2
+      },
       "opening_message": "I'd like to change the email address associated with my account.",
       "followups": [
         "I checked account settings and updated it there, but it still shows my old email a day later."
@@ -12713,6 +13356,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 411,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 411,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 5964
+      },
       "opening_message": "order 5964 -- hand cream, customer says wrong scent, wants refund processed.",
       "followups": [],
       "expected": {
@@ -12885,6 +13540,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "shopper",
       "user_id": 392,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 392,
+        "intent": "order_status",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 8002
+      },
       "opening_message": "Just need a quick answer — did order 8002 ever get delivered?",
       "followups": [],
       "expected": {
@@ -13044,6 +13711,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 102,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 102,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 3558
+      },
       "opening_message": "Hello, what's the status on order 3558?",
       "followups": [],
       "expected": {
@@ -13388,6 +14067,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 200,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 200,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 6838
+      },
       "opening_message": "The socks I got from Harbor Knits were charged wrong and I want it disputed, this needs to get fixed.",
       "followups": [],
       "expected": {
@@ -13592,6 +14283,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "quick one -- anything under $30 in teapots at Juniper Home Goods?",
       "followups": [],
       "expected": {
@@ -13801,6 +14503,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9003,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9003,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "just tell me our return policy, I don't have time for a whole explanation",
       "followups": [],
       "expected": {
@@ -13989,6 +14702,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9007,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9007,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-payouts",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "When exactly do we get paid. I need this info now.",
       "followups": [],
       "expected": {
@@ -14179,6 +14903,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "merchant",
       "user_id": 9020,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9020,
+        "intent": "order_status",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 8002
+      },
       "opening_message": "umm hi, so i was looking at order 8002 in the dashboard and i think somethings wrong with it, like the delivery date part, im not totally sure what im seeing, can you check",
       "followups": [],
       "expected": {
@@ -14508,6 +15244,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 363,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 363,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6633
+      },
       "opening_message": "Hi, I'd like to return the tote bag I ordered from Second Stitch Apparel — it's smaller than I expected. Can I get a refund?",
       "followups": [],
       "expected": {
@@ -14955,6 +15703,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 30,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 30,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-northwind-books-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 9828
+      },
       "opening_message": "Order from Northwind Books, delivered maybe seven weeks back. Can I still return it, yes or no?",
       "followups": [],
       "expected": {
@@ -15166,6 +15926,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "refund",
+        "record_state": "order_any_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 1161
+      },
       "opening_message": "A shopper keeps messaging about a refund on order 1161, it arrived damaged -- can you just process it already.",
       "followups": [],
       "expected": {
@@ -15319,6 +16091,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 8,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 8,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "Your site won't let me change my password no matter what I do, I've tried it three times already, this needs to be fixed.",
       "followups": [],
       "expected": {
@@ -15520,6 +16303,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 67,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 67,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "quick q -- fern and fog, bar soap, $20 or under, what do you have",
       "followups": [],
       "expected": {
@@ -15683,6 +16477,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 117,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 117,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 5468
+      },
       "opening_message": "order 5468 status?",
       "followups": [],
       "expected": {
@@ -15858,6 +16664,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "order_status",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8001
+      },
       "opening_message": "Can you pull up order 8001 and confirm its shipping status? A customer says the tracking looks off.",
       "followups": [],
       "expected": {
@@ -16056,6 +16874,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9009,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9009,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 4137
+      },
       "opening_message": "Hi, can you cancel order 4137? The customer asked to cancel it.",
       "followups": [],
       "expected": {
@@ -16237,6 +17067,18 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "shopper",
       "user_id": 11,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 11,
+        "intent": "product_search",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "product_id": 4
+      },
       "opening_message": "Why does the rustic pitcher on your site say it costs negative money. Is your store broken.",
       "followups": [],
       "expected": {
@@ -16557,6 +17399,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 257,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 257,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-juniper-home-goods-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6974
+      },
       "opening_message": "Hi, I'd like to return the teapot I ordered from Juniper Home Goods a couple weeks ago. Can you help?",
       "followups": [],
       "expected": {
@@ -16753,6 +17607,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9009,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9009,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "our return window. how long.",
       "followups": [],
       "expected": {
@@ -16902,6 +17767,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9012,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9012,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "return window - our store - what's set?",
       "followups": [],
       "expected": {
@@ -17029,6 +17905,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 128,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 128,
+        "intent": "out_of_scope",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "quick one, who won the world series last year",
       "followups": [],
       "expected": {
@@ -17209,6 +18096,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 366,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 366,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "When do refunds get processed? I need to know when refunds are processed.",
       "followups": [],
       "expected": {
@@ -17384,6 +18282,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 6067
+      },
       "opening_message": "Quick one -- what's the status on order 6067?",
       "followups": [],
       "expected": {
@@ -17543,6 +18453,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 183,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 183,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 3221
+      },
       "opening_message": "Hi, could you tell me the status of order 3221?",
       "followups": [],
       "expected": {
@@ -17826,6 +18748,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 341,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 341,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 4613
+      },
       "opening_message": "Hello — the pitcher I bought from Blue Heron Ceramics arrived with a small crack. Could I get a refund for it?",
       "followups": [],
       "expected": {
@@ -18068,6 +19002,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 326,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 326,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6997
+      },
       "opening_message": "Hi, I'd like to cancel the bluetooth speaker order I placed with Cascade Audio — I found a better deal elsewhere.",
       "followups": [],
       "expected": {
@@ -18477,6 +19423,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 202,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 202,
+        "intent": "dispute",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "charge on my account is wrong -- need to dispute it",
       "followups": [],
       "expected": {
@@ -18676,6 +19633,19 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "shopper",
       "user_id": 226,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 226,
+        "intent": "return_eligibility",
+        "record_state": "product_missing_title",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 698,
+        "product_id": 3
+      },
       "opening_message": "Can I still return order 698? Quick answer is fine.",
       "followups": [],
       "expected": {
@@ -19302,6 +20272,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 56,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 56,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window_boundary",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 4327
+      },
       "opening_message": "charge from that books store looks wrong, still able to dispute it?",
       "followups": [],
       "expected": {
@@ -19662,6 +20644,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "order_status",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8003
+      },
       "opening_message": "order 8003 -- somthing weird, jam trio prodict shows under golden hour not my store, is this order actualy mine",
       "followups": [],
       "expected": {
@@ -19835,6 +20829,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9003,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9003,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 5473
+      },
       "opening_message": "cancel 5473. customer request.",
       "followups": [],
       "expected": {
@@ -20208,6 +21214,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 258,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 258,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "frustrated_impatient",
+        "turn_count": 2,
+        "order_id": 9000
+      },
       "opening_message": "This is ridiculous, I want a refund on that USB hub order, it's been forever and nothing's happened.",
       "followups": [
         "No wait, sorry -- I meant the trowel set from the garden store, not the hub. That's the one I actually need refunded."
@@ -20511,6 +21529,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 258,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 258,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "frustrated_impatient",
+        "turn_count": 2,
+        "order_id": 9000
+      },
       "opening_message": "This is ridiculous, I want a refund on that USB hub order, it's been forever and nothing's happened.",
       "followups": [
         "No wait, sorry -- I meant the trowel set from the garden store, not the hub. That's the one I actually need refunded."
@@ -20685,6 +21715,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9007,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9007,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "authorization_edge",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 994
+      },
       "opening_message": "order 994 -- customer wants refund, go ahead and process it",
       "followups": [],
       "expected": {
@@ -20860,6 +21902,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 1261
+      },
       "opening_message": "I need the status on order 1261 right now, this keeps coming up and I need an answer.",
       "followups": [],
       "expected": {
@@ -21035,6 +22089,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9018,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9018,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6552
+      },
       "opening_message": "Could you cancel order 6552 for me? The customer no longer wants it.",
       "followups": [],
       "expected": {
@@ -21360,6 +22426,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 249,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 249,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 4608
+      },
       "opening_message": "So, um, I got this coffee thing a while ago -- maybe a couple months? I honestly don't remember exactly -- but I was wondering if there's still time to send it back, or has that ship sailed?",
       "followups": [],
       "expected": {
@@ -21767,6 +22845,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 365,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 365,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "neutral_conversational",
+        "turn_count": 2,
+        "order_id": 299
+      },
       "opening_message": "Can I get a refund on the marble run set I ordered?",
       "followups": [
         "Sorry, actually I'm thinking of the wrong thing -- it was the desk lamp, not the marble run."
@@ -22046,6 +23136,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 365,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 365,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "neutral_conversational",
+        "turn_count": 2,
+        "order_id": 299
+      },
       "opening_message": "Can I get a refund on the marble run set I ordered?",
       "followups": [
         "Sorry, actually I'm thinking of the wrong thing -- it was the desk lamp, not the marble run."
@@ -22246,6 +23348,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9017,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9017,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 1834
+      },
       "opening_message": "hey so a shopper messaged about their order, i think the number was 1834 or something close to that, can you check what's going on with it",
       "followups": [],
       "expected": {
@@ -22427,6 +23541,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 315,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 315,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 7732
+      },
       "opening_message": "Okay so I placed an order for a field guide from Northwind, and then I saw a coupon for a better one, or — I don't know, I think I just want to cancel it before it ships if that's even still possible?",
       "followups": [],
       "expected": {
@@ -22718,6 +23844,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "shopper",
       "user_id": 174,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 174,
+        "intent": "return_eligibility",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8001
+      },
       "opening_message": "Is my Harbor Knits socks order still eligible for a return?",
       "followups": [],
       "expected": {
@@ -22906,6 +24044,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9010,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9010,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8234
+      },
       "opening_message": "wheres order 8234 at rn, customer keeps askign about it",
       "followups": [],
       "expected": {
@@ -23029,6 +24179,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 106,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 106,
+        "intent": "out_of_scope",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Random question, but do you know a good recipe for banana bread?",
       "followups": [],
       "expected": {
@@ -23214,6 +24375,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 265,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 265,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Can you tell me your cancellation policy?",
       "followups": [],
       "expected": {
@@ -23518,6 +24690,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 420,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 420,
+        "intent": "refund",
+        "record_state": "order_delivered_opened_item_restocking_fee_opt_in",
+        "applicable_policy": "store-second-stitch-apparel-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 196
+      },
       "opening_message": "This scarf is not what I wanted, I already tried it on though. Just refund it, I don't have time for this.",
       "followups": [],
       "expected": {
@@ -23835,6 +25019,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 209,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 209,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "terse_fragmentary",
+        "turn_count": 2,
+        "order_id": 1692
+      },
       "opening_message": "refund for the puzzle.",
       "followups": [
         "not the puzzle. the usb hub thing."
@@ -24162,6 +25358,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 209,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 209,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "terse_fragmentary",
+        "turn_count": 2,
+        "order_id": 1692
+      },
       "opening_message": "refund for the puzzle.",
       "followups": [
         "not the puzzle. the usb hub thing."
@@ -24398,6 +25606,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9501,
+      "tuple": {
+        "role": "support",
+        "user_id": 9501,
+        "intent": "refund",
+        "record_state": "order_any_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 6930
+      },
       "opening_message": "Can you issue a refund for order 6930? The shopper says it arrived broken.",
       "followups": [],
       "expected": {
@@ -24713,6 +25933,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 414,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 414,
+        "intent": "dispute",
+        "record_state": "order_delivered_outside_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 211
+      },
       "opening_message": "want to dispute a charge. plush fox thing.",
       "followups": [],
       "expected": {
@@ -25000,6 +26232,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 188,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 188,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_boundary",
+        "applicable_policy": "store-juniper-home-goods-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 1643
+      },
       "opening_message": "juniper travel pitcher order, delivered exactly two weeks ago, refund it",
       "followups": [],
       "expected": {
@@ -25202,6 +26446,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9501,
+      "tuple": {
+        "role": "support",
+        "user_id": 9501,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "I need to know exactly who can see what on this platform -- shoppers, merchants, support -- give me the real breakdown, I keep having to ask around for this.",
       "followups": [],
       "expected": {
@@ -25388,6 +26643,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Can you find headphones under $30 at Pocket Arcade?",
       "followups": [],
       "expected": {
@@ -25563,6 +26829,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 365,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 365,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 7038
+      },
       "opening_message": "Cancel my poetry collection order. Cancel it. I already decided, just cancel it before it ships.",
       "followups": [],
       "expected": {
@@ -25723,6 +27001,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 424,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 424,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "ambiguous",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "I just need SOME kind of speaker that doesn't cost a fortune, why is this so hard to find",
       "followups": [],
       "expected": {
@@ -25882,6 +27171,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "shopper",
       "user_id": 174,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 174,
+        "intent": "order_status",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 8001
+      },
       "opening_message": "I need an update on my wool socks order right now — is it still coming or not?",
       "followups": [],
       "expected": {
@@ -26042,6 +27343,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 264,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 264,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "shipping time?",
       "followups": [],
       "expected": {
@@ -26392,6 +27704,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 406,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 406,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window_boundary",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 9932
+      },
       "opening_message": "so this keyboard thing I got a while ago, like maybe a month ago or two months, I honestly lost track, the charge seems off and I don't know if I can even still do anything about it at this point",
       "followups": [],
       "expected": {
@@ -26875,6 +28199,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 385,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 385,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 7362
+      },
       "opening_message": "This has been sitting here way too long without an answer, can I return it or not?",
       "followups": [],
       "expected": {
@@ -27057,6 +28393,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 253,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 253,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 4372
+      },
       "opening_message": "Can you check the status of order 4372 for me?",
       "followups": [],
       "expected": {
@@ -27368,6 +28716,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "shopper",
       "user_id": 174,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 174,
+        "intent": "dispute",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "frustrated_impatient",
+        "turn_count": 2,
+        "order_id": 8001
+      },
       "opening_message": "This sock order charge doesn't make sense, I want to dispute it.",
       "followups": [
         "I don't care about the fine print, I just want someone to actually look at it."
@@ -27550,6 +28910,18 @@
       "data_quality_case_id": "dq-order-reversed-dates",
       "role": "shopper",
       "user_id": 174,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 174,
+        "intent": "dispute",
+        "record_state": "order_reversed_dates",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "frustrated_impatient",
+        "turn_count": 2,
+        "order_id": 8001
+      },
       "opening_message": "This sock order charge doesn't make sense, I want to dispute it.",
       "followups": [
         "I don't care about the fine print, I just want someone to actually look at it."
@@ -27728,6 +29100,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 434,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 434,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "How long does it usually take for an order to ship and arrive?",
       "followups": [],
       "expected": {
@@ -27899,6 +29282,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 254,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 254,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "how long refunds take to show up in my acount",
       "followups": [],
       "expected": {
@@ -28420,6 +29814,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 90,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 90,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 8566
+      },
       "opening_message": "quick one -- can I dispute a charge from Clover Field Naturals? got it 2 days ago and it's wrong.",
       "followups": [],
       "expected": {
@@ -28626,6 +30032,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 376,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 376,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "How long does a refund actually take? This is taking forever.",
       "followups": [],
       "expected": {
@@ -28775,6 +30192,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "cancellation",
+        "record_state": "order_any_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 3416
+      },
       "opening_message": "cancel order 3416. shopper request.",
       "followups": [],
       "expected": {
@@ -28919,6 +30348,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 386,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 386,
+        "intent": "order_status",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "authorization_edge",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 8016
+      },
       "opening_message": "I already asked once, can you just check order 8016 for me, I asked about order 8016 already.",
       "followups": [],
       "expected": {
@@ -29280,6 +30721,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 365,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 365,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 9273
+      },
       "opening_message": "so, um, I got this puzzle thing from Wooden Whale a while back, like a month and a half maybe, and I think the charge on my card is off somehow, can that still be looked at?",
       "followups": [],
       "expected": {
@@ -29481,6 +30934,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9019,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9019,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 9087
+      },
       "opening_message": "quick one - is order 9087 delivered yet? yes/no is fine",
       "followups": [],
       "expected": {
@@ -29635,6 +31100,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9013,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9013,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 2762
+      },
       "opening_message": "What's the current status on order 2762?",
       "followups": [],
       "expected": {
@@ -29840,6 +31317,18 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "product_search",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "product_id": 2
+      },
       "opening_message": "heavy duty vase. price?",
       "followups": [],
       "expected": {
@@ -30021,6 +31510,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 219,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 219,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 5375
+      },
       "opening_message": "Can you cancel my granola order — just need a yes it's done or no it's not.",
       "followups": [],
       "expected": {
@@ -30182,6 +31683,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9016,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9016,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 6167
+      },
       "opening_message": "order 6167 status?",
       "followups": [],
       "expected": {
@@ -30493,6 +32006,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 50,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 50,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-northwind-books-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 4331
+      },
       "opening_message": "hi so, i ordered this poetry book from northwind a while back and, um, i never really got into it, can i still get my money back for it? i don't remember exactly when it showed up",
       "followups": [],
       "expected": {
@@ -30774,6 +32299,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 120,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 120,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-meridian-cycles-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 554
+      },
       "opening_message": "I need a refund for my trekking poles from Meridian Cycles, I already told the chatbot twice, just refund it, refund it now.",
       "followups": [],
       "expected": {
@@ -30967,6 +32504,18 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "product_search",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "product_id": 4
+      },
       "opening_message": "rustic pitcher listing. price wrong?",
       "followups": [],
       "expected": {
@@ -31126,6 +32675,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 7684
+      },
       "opening_message": "I need to know what's going on with order 7684, this has taken way too long to get an answer on",
       "followups": [],
       "expected": {
@@ -31279,6 +32840,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 24,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 24,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "This is ridiculous, I just need a water bottle from Meridian Cycles under $110, is that so hard to search for?",
       "followups": [],
       "expected": {
@@ -31460,6 +33032,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 452,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 452,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "headphones under $30, any store?",
       "followups": [],
       "expected": {
@@ -31911,6 +33494,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9015,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9015,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "um, do we have anything, like, cheaper stuff, under like $30 maybe? not sure what counts",
       "followups": [],
       "expected": {
@@ -32368,6 +33962,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 83,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 83,
+        "intent": "cancellation",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Can you cancel my order? I don't want it anymore.",
       "followups": [],
       "expected": {
@@ -32665,6 +34270,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 348,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 348,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_within",
+        "applicable_policy": "store-northwind-books-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 5597
+      },
       "opening_message": "novel from northwind. over a month now. refund?",
       "followups": [],
       "expected": {
@@ -32872,6 +34489,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 37,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 37,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "neutral_conversational",
+        "turn_count": 2,
+        "order_id": 3684
+      },
       "opening_message": "Hi, could you cancel order 7475 for me? It hasn't shipped.",
       "followups": [
         "Sorry, I misread my confirmation email -- the order number is actually 3684, not 7475."
@@ -33054,6 +34683,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 37,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 37,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "neutral_conversational",
+        "turn_count": 2,
+        "order_id": 3684
+      },
       "opening_message": "Hi, could you cancel order 7475 for me? It hasn't shipped.",
       "followups": [
         "Sorry, I misread my confirmation email -- the order number is actually 3684, not 7475."
@@ -33406,6 +35047,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9010,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9010,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "stuff under 20 bucks. our store.",
       "followups": [],
       "expected": {
@@ -33745,6 +35397,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 151,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 151,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2,
+        "order_id": 8556
+      },
       "opening_message": "I need a refund on the desk hub thing I got a while back, order's not that old.",
       "followups": [
         "Actually wait, I keep saying that one, I meant the serving bowl set -- can you just refund that already."
@@ -34087,6 +35751,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 151,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 151,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2,
+        "order_id": 8556
+      },
       "opening_message": "I need a refund on the desk hub thing I got a while back, order's not that old.",
       "followups": [
         "Actually wait, I keep saying that one, I meant the serving bowl set -- can you just refund that already."
@@ -34351,6 +36027,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 5,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 5,
+        "intent": "refund",
+        "record_state": "order_delivered_at_window_boundary",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 496
+      },
       "opening_message": "Keyboard I got from Cascade Audio was delivered exactly a month ago today. Still eligible for a refund? Quick answer is fine.",
       "followups": [],
       "expected": {
@@ -34584,6 +36272,18 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "shopper",
       "user_id": 460,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 460,
+        "intent": "product_search",
+        "record_state": "product_missing_title",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "product_id": 3
+      },
       "opening_message": "product 3, blue heron. details?",
       "followups": [
         "price and stock status"
@@ -34748,6 +36448,18 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "shopper",
       "user_id": 460,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 460,
+        "intent": "product_search",
+        "record_state": "product_missing_title",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "product_id": 3
+      },
       "opening_message": "product 3, blue heron. details?",
       "followups": [
         "price and stock status"
@@ -35133,6 +36845,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 50,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 50,
+        "intent": "refund",
+        "record_state": "order_delivered_unopened_item_restocking_fee_opt_in",
+        "applicable_policy": "store-cascade-audio-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 9872
+      },
       "opening_message": "wana return this desk lamp, never even opend the box, just dont want it",
       "followups": [],
       "expected": {
@@ -35378,6 +37102,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 26,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 26,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 180
+      },
       "opening_message": "order 180, olive oil -- need to cancel, hasn't shipped yet",
       "followups": [],
       "expected": {
@@ -35545,6 +37281,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 1116
+      },
       "opening_message": "order 1116, status?",
       "followups": [],
       "expected": {
@@ -35704,6 +37452,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9015,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9015,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 5614
+      },
       "opening_message": "Can you pull up order 5614 for me? A customer's asking about it.",
       "followups": [],
       "expected": {
@@ -35848,6 +37608,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 135,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 135,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "um so i tried to update my phone number on the account page, i think? but im not totally sure how to do it or if it worked, can you just check",
       "followups": [],
       "expected": {
@@ -36007,6 +37778,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 263,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 263,
+        "intent": "cancellation",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "authorization_edge",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 4326
+      },
       "opening_message": "um ok so I think I placed an order but I'm not sure if it's the sticky notes one or something else, order 4326 maybe? can you cancel that one, I don't think it's shipped yet",
       "followups": [],
       "expected": {
@@ -36202,6 +37985,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9017,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9017,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 5135
+      },
       "opening_message": "I need to refund order 5135 for a customer - they received the wrong item.",
       "followups": [],
       "expected": {
@@ -36399,6 +38194,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9007,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9007,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 2618
+      },
       "opening_message": "refund order 2618 - customer changed their mind",
       "followups": [],
       "expected": {
@@ -36922,6 +38729,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 460,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 460,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 6388
+      },
       "opening_message": "The novel I got from Northwind took forever and now the binding's falling apart. I want a refund, and I want it now.",
       "followups": [],
       "expected": {
@@ -37340,6 +39159,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 247,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 247,
+        "intent": "cancellation",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Hey, I need to cancel an order I placed, but I'm blanking on the number.",
       "followups": [],
       "expected": {
@@ -37520,6 +39350,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 480,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 480,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8648
+      },
       "opening_message": "hey wheres order 8648 at, did it come yet",
       "followups": [],
       "expected": {
@@ -37785,6 +39627,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 214,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 214,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 9360
+      },
       "opening_message": "I want to return my notebook order. Can I return it? I need to know if I can return it.",
       "followups": [],
       "expected": {
@@ -37974,6 +39828,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 3852
+      },
       "opening_message": "I keep getting asked about order 3852 -- I need the status now, not later.",
       "followups": [],
       "expected": {
@@ -38234,6 +40100,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 421,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 421,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 8438
+      },
       "opening_message": "So um, I got this lamp thing a few days ago and it's not really what I expected, I think I want to send it back, order's 8438 I believe?",
       "followups": [],
       "expected": {
@@ -38486,6 +40364,18 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "shopper",
       "user_id": 423,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 423,
+        "intent": "product_search",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "product_id": 4
+      },
       "opening_message": "hi um, i was looking at that pitcher thing, the rustic one? and it showed up as like a negative number for the price, i think, i'm not sure if that's a real deal or a glitch",
       "followups": [],
       "expected": {
@@ -38789,6 +40679,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 360,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 360,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 4443
+      },
       "opening_message": "hey can i still retrun the jam trio i just got today, changed my mind",
       "followups": [],
       "expected": {
@@ -39166,6 +41068,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 439,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 439,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 6585
+      },
       "opening_message": "marble run order, return still possible?",
       "followups": [],
       "expected": {
@@ -39345,6 +41259,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "camp stoves, trailhead supply, under $25",
       "followups": [],
       "expected": {
@@ -39640,6 +41565,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 390,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 390,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 4929
+      },
       "opening_message": "This olive oil order showed up over two weeks ago and it's the wrong flavor entirely. I want my money back, and I'd like it handled today, not next week.",
       "followups": [],
       "expected": {
@@ -40112,6 +42049,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 97,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 97,
+        "intent": "refund",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "need a refund. wrong item.",
       "followups": [],
       "expected": {
@@ -40349,6 +42297,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 9700
+      },
       "opening_message": "refund order 9700. wrong item.",
       "followups": [],
       "expected": {
@@ -40646,6 +42606,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 376,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 376,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 1187
+      },
       "opening_message": "I need this charge disputed. The tea sampler from Golden Hour. I need this charge disputed, it's wrong.",
       "followups": [],
       "expected": {
@@ -40851,6 +42823,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 4504
+      },
       "opening_message": "So, um, I'm looking into order 4504 for someone who wrote in -- I'm not totally sure what happened with it, could you check the current status?",
       "followups": [],
       "expected": {
@@ -41006,6 +42990,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9013,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9013,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-store-overrides",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "I need to know our exact return window right now. What is it. I need the number, our return window.",
       "followups": [],
       "expected": {
@@ -41189,6 +43184,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "refund",
+        "record_state": "order_any_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 9085
+      },
       "opening_message": "refund order 9085 -- customer changed their mind",
       "followups": [],
       "expected": {
@@ -41362,6 +43369,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 3550
+      },
       "opening_message": "order 3550. status.",
       "followups": [],
       "expected": {
@@ -41521,6 +43540,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 202,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 202,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 276
+      },
       "opening_message": "I'm trying to remember what I ordered, think it was a little camp stove, order 276 maybe? Did that ever show up?",
       "followups": [],
       "expected": {
@@ -41961,6 +43992,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 283,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 283,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 8081
+      },
       "opening_message": "hey can u cancel my pencil set order from atlas stationary, i ordrd it by mistake twice",
       "followups": [],
       "expected": {
@@ -42281,6 +44324,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "shopper",
       "user_id": 119,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 119,
+        "intent": "return_eligibility",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8003
+      },
       "opening_message": "Is my jam trio order 8003 still eligible for a return?",
       "followups": [],
       "expected": {
@@ -42441,6 +44496,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 183,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 183,
+        "intent": "out_of_scope",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Can you help me figure out how to file my taxes this year?",
       "followups": [],
       "expected": {
@@ -42598,6 +44664,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 453,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 453,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 566
+      },
       "opening_message": "Can I still return the tea sampler? Quick answer, please.",
       "followups": [],
       "expected": {
@@ -42777,6 +44855,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9004,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9004,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 6904
+      },
       "opening_message": "customer wants order 6904 refunded, they've asked twice already. need order 6904 refunded.",
       "followups": [],
       "expected": {
@@ -42976,6 +45066,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 400,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 400,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 5426
+      },
       "opening_message": "Can I get a refund on the planner I ordered from Atlas Stationery — quick yes or no is fine, I don't need the details.",
       "followups": [],
       "expected": {
@@ -43141,6 +45243,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9004,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9004,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 9759
+      },
       "opening_message": "um so there's this order, 9759, and the customer's saying it's the wrong size or something, not totally sure, but they want their money back",
       "followups": [],
       "expected": {
@@ -43326,6 +45440,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9013,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9013,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 2572
+      },
       "opening_message": "order 2572 need to cancel it, customer chanegd their mind",
       "followups": [],
       "expected": {
@@ -43487,6 +45613,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 291,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 291,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 4650
+      },
       "opening_message": "Has order 4650 arrived? One-line answer is fine.",
       "followups": [],
       "expected": {
@@ -43792,6 +45930,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 295,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 295,
+        "intent": "refund",
+        "record_state": "order_delivered_at_window_boundary",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 1085
+      },
       "opening_message": "atlas book. paper lantern press. exactly a month today. refund?",
       "followups": [],
       "expected": {
@@ -44052,6 +46202,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-getting-help",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1
+      },
       "opening_message": "If the bot can't handle something, what's a shopper actually supposed to do to get real help?",
       "followups": [],
       "expected": {
@@ -44238,6 +46399,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 315,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 315,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 2,
+        "order_id": 1289
+      },
       "opening_message": "refund order 1289? yes or no",
       "followups": [
         "oh wait, sorry, make that order 2395 instead, same thing"
@@ -44383,6 +46556,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 315,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 315,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 2,
+        "order_id": 1289
+      },
       "opening_message": "refund order 1289? yes or no",
       "followups": [
         "oh wait, sorry, make that order 2395 instead, same thing"
@@ -44547,6 +46732,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "One-word answer if you can: what's our return window, in days?",
       "followups": [],
       "expected": {
@@ -44721,6 +46917,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9004,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9004,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 5637
+      },
       "opening_message": "need order 5637 cancelled, customer keeps asking. please cancel 5637.",
       "followups": [],
       "expected": {
@@ -44904,6 +47112,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 125,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 125,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 1663
+      },
       "opening_message": "jam trio. cancel it. not shipped yet.",
       "followups": [],
       "expected": {
@@ -45071,6 +47291,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 9657
+      },
       "opening_message": "wat is teh staus on odrer 9657",
       "followups": [],
       "expected": {
@@ -45284,6 +47516,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 64,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 64,
+        "intent": "return_eligibility",
+        "record_state": "order_delivered",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 9163
+      },
       "opening_message": "tote bag order. return window still open?",
       "followups": [],
       "expected": {
@@ -45577,6 +47821,19 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "shopper",
       "user_id": 382,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 382,
+        "intent": "refund",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 580,
+        "product_id": 2
+      },
       "opening_message": "I want a refund for the vase I ordered, it wasn't what I expected.",
       "followups": [],
       "expected": {
@@ -45778,6 +48035,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 7177
+      },
       "opening_message": "Could you pull up order 7177 and tell me where it stands?",
       "followups": [],
       "expected": {
@@ -45926,6 +48195,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 336,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 336,
+        "intent": "order_status",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "authorization_edge",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 6374
+      },
       "opening_message": "Where is order 6374, I've been waiting forever.",
       "followups": [],
       "expected": {
@@ -46121,6 +48402,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 435,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 435,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 7812
+      },
       "opening_message": "Order 7812 arrived damaged -- can I get a refund? Keep it short please.",
       "followups": [],
       "expected": {
@@ -46298,6 +48591,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 267,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 267,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Do you have any camp stoves under $25 at Trailhead Supply?",
       "followups": [],
       "expected": {
@@ -46475,6 +48779,17 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-escalations",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Which situations are we required to hand off to a human instead of resolving ourselves?",
       "followups": [],
       "expected": {
@@ -46660,6 +48975,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 424,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 424,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8674
+      },
       "opening_message": "Could you tell me if order 8674 has been delivered?",
       "followups": [],
       "expected": {
@@ -46819,6 +49146,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 91,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 91,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 4066
+      },
       "opening_message": "status on 4066?",
       "followups": [],
       "expected": {
@@ -47010,6 +49349,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 419,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 419,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 3422
+      },
       "opening_message": "Can I get a refund on the bluetooth speaker from Pocket Arcade — is that a yes or no, don't need the whole explanation.",
       "followups": [],
       "expected": {
@@ -47204,6 +49555,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 269,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 269,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 1532
+      },
       "opening_message": "Hi, could you cancel my lip balm order from Fern & Fog Skincare? I ended up buying it in a store instead.",
       "followups": [],
       "expected": {
@@ -47405,6 +49768,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 206,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 206,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 2
+      },
       "opening_message": "hey can u help me update my last name on my account",
       "followups": [
         "i went into settings n tried but it wont let me save it, still shows the old one"
@@ -47577,6 +49951,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 206,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 206,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 2
+      },
       "opening_message": "hey can u help me update my last name on my account",
       "followups": [
         "i went into settings n tried but it wont let me save it, still shows the old one"
@@ -47751,6 +50136,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9011,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9011,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 9007
+      },
       "opening_message": "order 9007, customer wants a refund, says it's not as expected. can you confirm quickly whether that's going through",
       "followups": [],
       "expected": {
@@ -47938,6 +50335,18 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "shopper",
       "user_id": 479,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 479,
+        "intent": "product_search",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "product_id": 2
+      },
       "opening_message": "Quick one -- how much is the Heavy-Duty Vase?",
       "followups": [],
       "expected": {
@@ -48989,6 +51398,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9005,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9005,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1
+      },
       "opening_message": "quick - anything under $20 for us?",
       "followups": [],
       "expected": {
@@ -49187,6 +51607,18 @@
       "data_quality_case_id": "dq-product-duplicate-title",
       "role": "support",
       "user_id": 9502,
+      "tuple": {
+        "role": "support",
+        "user_id": 9502,
+        "intent": "product_search",
+        "record_state": "product_duplicate_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "product_id": 2
+      },
       "opening_message": "I keep getting asked about the heavy duty vase price, just give me the price already, how much is it.",
       "followups": [],
       "expected": {
@@ -49352,6 +51784,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9011,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9011,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "okay so, wait, do we have a special return thing or is it the same as everyone else? I keep forgetting",
       "followups": [],
       "expected": {
@@ -49522,6 +51965,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 352,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 352,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "return window length?",
       "followups": [],
       "expected": {
@@ -49838,6 +52292,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 196,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 196,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 190
+      },
       "opening_message": "hey so the crewneck from second stich, the chrage on it looks wrong, can u dispute that for me",
       "followups": [],
       "expected": {
@@ -50033,6 +52499,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9007,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9007,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 3856
+      },
       "opening_message": "cancel 3856, buyer request",
       "followups": [],
       "expected": {
@@ -50280,6 +52758,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 266,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 266,
+        "intent": "dispute",
+        "record_state": "order_delivered_within_dispute_window",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 611
+      },
       "opening_message": "webcam order. charge wrong. dispute it.",
       "followups": [],
       "expected": {
@@ -50565,6 +53055,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "shopper",
       "user_id": 392,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 392,
+        "intent": "return_eligibility",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 8002
+      },
       "opening_message": "order 8002 - return window still open?",
       "followups": [],
       "expected": {
@@ -50830,6 +53332,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "refund",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "order_id": 8003
+      },
       "opening_message": "refund order 8003, buyer says item was wrong",
       "followups": [
         "need this resolved today, what's the status"
@@ -51069,6 +53583,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "refund",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "order_id": 8003
+      },
       "opening_message": "refund order 8003, buyer says item was wrong",
       "followups": [
         "need this resolved today, what's the status"
@@ -51284,6 +53810,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-restocking-fees",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "What's the restocking fee policy on Cartwheel?",
       "followups": [],
       "expected": {
@@ -51448,6 +53985,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "return_eligibility",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "terse_fragmentary",
+        "turn_count": 2,
+        "order_id": 8002
+      },
       "opening_message": "order 8002. return eligible?",
       "followups": [
         "need to know for a ticket."
@@ -51659,6 +54208,18 @@
       "data_quality_case_id": "dq-order-missing-delivery-date",
       "role": "support",
       "user_id": 9503,
+      "tuple": {
+        "role": "support",
+        "user_id": 9503,
+        "intent": "return_eligibility",
+        "record_state": "order_missing_delivery_date",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "terse_fragmentary",
+        "turn_count": 2,
+        "order_id": 8002
+      },
       "opening_message": "order 8002. return eligible?",
       "followups": [
         "need to know for a ticket."
@@ -52024,6 +54585,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 360,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 360,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 6654
+      },
       "opening_message": "I ordered the wrong beanie size from Second Stitch, just cancel it, it hasn't even shipped.",
       "followups": [],
       "expected": {
@@ -52215,6 +54788,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-payouts",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "When do payouts usually come through?",
       "followups": [],
       "expected": {
@@ -52368,6 +54952,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 417,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 417,
+        "intent": "cancellation",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "authorization_edge",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 4379
+      },
       "opening_message": "I'd like to cancel order 4379, please.",
       "followups": [],
       "expected": {
@@ -52528,6 +55124,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 63,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 63,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 2554
+      },
       "opening_message": "cancel order 2554. changed my mind.",
       "followups": [],
       "expected": {
@@ -52683,6 +55291,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 102,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 102,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "typo_heavy",
+        "turn_count": 2,
+        "order_id": 4385
+      },
       "opening_message": "cancle order 2468 plz its not shipped yet",
       "followups": [
         "oops sry wrong # i ment order 4385"
@@ -52870,6 +55490,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 102,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 102,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "typo_heavy",
+        "turn_count": 2,
+        "order_id": 4385
+      },
       "opening_message": "cancle order 2468 plz its not shipped yet",
       "followups": [
         "oops sry wrong # i ment order 4385"
@@ -53069,6 +55701,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 341,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 341,
+        "intent": "cancellation",
+        "record_state": "order_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 2053
+      },
       "opening_message": "So I ordered these trekking poles from Meridian Cycles, and then my brother said he already has a pair I could borrow, so I guess — could you cancel it? It hasn't shipped I don't think.",
       "followups": [],
       "expected": {
@@ -53319,6 +55963,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 46,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 46,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 7048
+      },
       "opening_message": "I need a refund on the tape measure from Copperline Tools, it reads wrong. Refund it. I want this refunded, please just process the refund.",
       "followups": [],
       "expected": {
@@ -53584,6 +56240,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 207,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 207,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "so i need like a hammer, for hanging some frames, nothing too fancy or expensive, do you all sell those at copperline",
       "followups": [],
       "expected": {
@@ -53770,6 +56437,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 452,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 452,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "headlamp. trailhead. under 60 bucks.",
       "followups": [],
       "expected": {
@@ -53897,6 +56575,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 457,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 457,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2
+      },
       "opening_message": "Can you update my shipping address on file?",
       "followups": [
         "I already tried this in account settings twice and it's not saving, can you just do it for me?"
@@ -54050,6 +56739,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 457,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 457,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2
+      },
       "opening_message": "Can you update my shipping address on file?",
       "followups": [
         "I already tried this in account settings twice and it's not saving, can you just do it for me?"
@@ -54232,6 +56932,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "shopper",
       "user_id": 119,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 119,
+        "intent": "order_status",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-shipping",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 8003
+      },
       "opening_message": "Hey, what's going on with my portable jam trio order, has it arrived?",
       "followups": [],
       "expected": {
@@ -54391,6 +57103,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9501,
+      "tuple": {
+        "role": "support",
+        "user_id": 9501,
+        "intent": "order_status",
+        "record_state": "order_any_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 4375
+      },
       "opening_message": "Can you check the status of order 4375 for me?",
       "followups": [],
       "expected": {
@@ -54592,6 +57316,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 4,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 4,
+        "intent": "out_of_scope",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1
+      },
       "opening_message": "insurance claim question -- does cartwheel cover this, need an answer",
       "followups": [],
       "expected": {
@@ -54819,6 +57554,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 180,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 180,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-disputes",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "ok so i saw a weird charge and i think i want to dispute it but i don't even know if i'm even allowed to at this point, how does that even work",
       "followups": [],
       "expected": {
@@ -55166,6 +57912,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 257,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 257,
+        "intent": "refund",
+        "record_state": "order_delivered_window_exceeded",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 4071
+      },
       "opening_message": "so i got these gloves a while back from that garden store, petal and stem i think, and i think it might be a bit past a month now but i'm honestly not sure, can i still return them?",
       "followups": [],
       "expected": {
@@ -55366,6 +58124,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "cancellation",
+        "record_state": "order_any_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 3722
+      },
       "opening_message": "Can order 3722 still be cancelled -- yes or no?",
       "followups": [],
       "expected": {
@@ -55571,6 +58341,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 413,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 413,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "I need headphones under $50 from Bright Socket. Do you have any in that range? I really need the exact options, please list them all.",
       "followups": [],
       "expected": {
@@ -55729,6 +58510,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9006,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9006,
+        "intent": "order_status",
+        "record_state": "order_own_store",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 2481
+      },
       "opening_message": "order 2481 - delivered or not? just need the short answer",
       "followups": [],
       "expected": {
@@ -56024,6 +58817,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 62,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 62,
+        "intent": "refund",
+        "record_state": "order_delivered_opened_item_restocking_fee_opt_in",
+        "applicable_policy": "store-cascade-audio-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1,
+        "order_id": 96
+      },
       "opening_message": "I want to return the bluetooth speakers, I opened them and tried them but they're not what I expected. Just process the return already.",
       "followups": [],
       "expected": {
@@ -56237,6 +59042,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 32,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 32,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 483
+      },
       "opening_message": "order 483 -- plush foxes, customer says stitching came apart on both, requesting refund.",
       "followups": [],
       "expected": {
@@ -56411,6 +59228,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9011,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9011,
+        "intent": "store_info",
+        "record_state": "none",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "whats are return widow for our stoer",
       "followups": [],
       "expected": {
@@ -56739,6 +59567,18 @@
       "data_quality_case_id": "dq-product-missing-title",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "product_search",
+        "record_state": "product_missing_title",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "product_id": 3
+      },
       "opening_message": "One of our listings is showing without a title -- can you check product 3 for me?",
       "followups": [],
       "expected": {
@@ -57018,6 +59858,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9010,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9010,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-restocking-fees",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 1
+      },
       "opening_message": "I keep asking and not getting a straight answer - what is our restocking fee. What is it.",
       "followups": [],
       "expected": {
@@ -57199,6 +60050,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 242,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 242,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 1861
+      },
       "opening_message": "This is ridiculous, where is order 1861? It should've been here by now.",
       "followups": [],
       "expected": {
@@ -57691,6 +60554,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 91,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 91,
+        "intent": "refund",
+        "record_state": "order_ambiguous_no_identifier",
+        "applicable_policy": "cw-returns",
+        "tools_needed": "several_calls",
+        "difficulty": "missing_information",
+        "user_style": "confused_rambling",
+        "turn_count": 1
+      },
       "opening_message": "hi um, so I got something a while back and I don't think it was right, like maybe damaged or wrong, I'm honestly not sure which order it was, do you know what I mean? I want to get it sorted out",
       "followups": [],
       "expected": {
@@ -57881,6 +60755,18 @@
       "data_quality_case_id": null,
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "refund",
+        "record_state": "order_any_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 2060
+      },
       "opening_message": "shoper wants a refund on odrer 2060, says it was the rong item",
       "followups": [],
       "expected": {
@@ -58074,6 +60960,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9008,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9008,
+        "intent": "cancellation",
+        "record_state": "order_own_store_placed",
+        "applicable_policy": "cw-cancellations",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "requests_short_plain_answer",
+        "turn_count": 1,
+        "order_id": 1935
+      },
       "opening_message": "Quick one - can you cancel order 1935? Just need a yes or no on whether it went through.",
       "followups": [],
       "expected": {
@@ -58280,6 +61178,18 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "product_search",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2,
+        "product_id": 4
+      },
       "opening_message": "Got a complaint about a product showing a negative price at Blue Heron Ceramics. Can you pull it up?",
       "followups": [
         "I need an answer, is this price real or not."
@@ -58497,6 +61407,18 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "support",
       "user_id": 9504,
+      "tuple": {
+        "role": "support",
+        "user_id": 9504,
+        "intent": "product_search",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "none",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "repetitive_pressuring",
+        "turn_count": 2,
+        "product_id": 4
+      },
       "opening_message": "Got a complaint about a product showing a negative price at Blue Heron Ceramics. Can you pull it up?",
       "followups": [
         "I need an answer, is this price real or not."
@@ -58672,6 +61594,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 327,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 327,
+        "intent": "product_search",
+        "record_state": "none",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1
+      },
       "opening_message": "Are there any field guides under $50 at Paper Lantern Press?",
       "followups": [],
       "expected": {
@@ -58891,6 +61824,18 @@
       "data_quality_case_id": "dq-order-store-mismatch",
       "role": "support",
       "user_id": 9505,
+      "tuple": {
+        "role": "support",
+        "user_id": 9505,
+        "intent": "order_status",
+        "record_state": "order_store_mismatch",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 8003
+      },
       "opening_message": "Can you check order 8003 -- the product and store fields look inconsistent to me. What should I tell the merchant?",
       "followups": [],
       "expected": {
@@ -59126,6 +62071,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 163,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 163,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 4470
+      },
       "opening_message": "order 4470. defective. refund.",
       "followups": [],
       "expected": {
@@ -59339,6 +62296,17 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9009,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9009,
+        "intent": "policy_question",
+        "record_state": "none",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1
+      },
       "opening_message": "wat can shoppers see vs us vs support ppl",
       "followups": [],
       "expected": {
@@ -59528,6 +62496,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 80,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 80,
+        "intent": "refund",
+        "record_state": "order_delivered_in_window",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 3881
+      },
       "opening_message": "Order 3881 -- wrong size, need a refund.",
       "followups": [],
       "expected": {
@@ -59774,6 +62754,19 @@
       "data_quality_case_id": "dq-product-invalid-price",
       "role": "merchant",
       "user_id": 9001,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9001,
+        "intent": "refund",
+        "record_state": "product_invalid_price",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "damaged_record",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 3004,
+        "product_id": 4
+      },
       "opening_message": "customer askin for refund on there rustic pitcher order, sais it never worked out for them. can we refund it",
       "followups": [],
       "expected": {
@@ -59976,6 +62969,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 436,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 436,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_within",
+        "applicable_policy": "store-juniper-home-goods-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "operational_shorthand",
+        "turn_count": 1,
+        "order_id": 9380
+      },
       "opening_message": "juniper order, pitcher, delivered ~2 wks ago. refund status?",
       "followups": [],
       "expected": {
@@ -60110,6 +63115,17 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 217,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 217,
+        "intent": "account_change",
+        "record_state": "none",
+        "applicable_policy": "cw-account-security",
+        "tools_needed": "none",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1
+      },
       "opening_message": "change my email.",
       "followups": [],
       "expected": {
@@ -60398,6 +63414,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 58,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 58,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-meridian-cycles-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "frustrated_impatient",
+        "turn_count": 1,
+        "order_id": 3950
+      },
       "opening_message": "This water bottle from Meridian Cycles is useless and I want my money back. It's been about four weeks.",
       "followups": [],
       "expected": {
@@ -60647,6 +63675,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 102,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 102,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "order_id": 589
+      },
       "opening_message": "refund on the webcam order, it's defective",
       "followups": [
         "scratch that -- use order 6555 instead, same request"
@@ -60808,6 +63848,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 102,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 102,
+        "intent": "refund",
+        "record_state": "order_outside_caller_scope",
+        "applicable_policy": "cw-roles",
+        "tools_needed": "several_calls",
+        "difficulty": "correction_across_turns",
+        "user_style": "operational_shorthand",
+        "turn_count": 2,
+        "order_id": 589
+      },
       "opening_message": "refund on the webcam order, it's defective",
       "followups": [
         "scratch that -- use order 6555 instead, same request"
@@ -61007,6 +64059,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9004,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9004,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "confused_rambling",
+        "turn_count": 1,
+        "order_id": 161
+      },
       "opening_message": "so i have a customer asking about order 161, they said the item wasn't what they expected... can we get that refunded? i think that's what they're after",
       "followups": [],
       "expected": {
@@ -61327,6 +64391,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 334,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 334,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 1285
+      },
       "opening_message": "Hi there, the socket set I bought from Copperline Tools is missing a few pieces. Could I get a refund for it?",
       "followups": [],
       "expected": {
@@ -61528,6 +64604,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 360,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 360,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 5352
+      },
       "opening_message": "5352. delivered?",
       "followups": [],
       "expected": {
@@ -61812,6 +64900,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 333,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 333,
+        "intent": "refund",
+        "record_state": "order_delivered_store_override_window_exceeded",
+        "applicable_policy": "store-juniper-home-goods-policy",
+        "tools_needed": "several_calls",
+        "difficulty": "boundary",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 569
+      },
       "opening_message": "I want to send back a dinner plate set I got from Juniper Home Goods. It's been about three and a half weeks.",
       "followups": [],
       "expected": {
@@ -62008,6 +65108,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 157,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 157,
+        "intent": "order_status",
+        "record_state": "order_delivered_or_in_transit",
+        "applicable_policy": "none",
+        "tools_needed": "one_lookup",
+        "difficulty": "well_specified",
+        "user_style": "neutral_conversational",
+        "turn_count": 1,
+        "order_id": 3431
+      },
       "opening_message": "What's the current status of order 3431?",
       "followups": [],
       "expected": {
@@ -62265,6 +65377,18 @@
       "data_quality_case_id": null,
       "role": "merchant",
       "user_id": 9005,
+      "tuple": {
+        "role": "merchant",
+        "user_id": 9005,
+        "intent": "refund",
+        "record_state": "order_own_store",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "typo_heavy",
+        "turn_count": 1,
+        "order_id": 5038
+      },
       "opening_message": "custamer wants a refund on order 5038, says it dosent work right out of the box",
       "followups": [],
       "expected": {
@@ -62572,6 +65696,18 @@
       "data_quality_case_id": null,
       "role": "shopper",
       "user_id": 440,
+      "tuple": {
+        "role": "shopper",
+        "user_id": 440,
+        "intent": "refund",
+        "record_state": "order_delivered_above_threshold",
+        "applicable_policy": "cw-refunds",
+        "tools_needed": "several_calls",
+        "difficulty": "well_specified",
+        "user_style": "terse_fragmentary",
+        "turn_count": 1,
+        "order_id": 6998
+      },
       "opening_message": "watering can. wrong size. refund please.",
       "followups": [],
       "expected": {

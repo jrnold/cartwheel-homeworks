@@ -1,1 +1,155 @@
-{"modes": []}
+{
+  "modes": [
+    {
+      "name": "verbosity_describing_steps",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "LLM judge",
+      "requirement": "",
+      "annotations": [
+        "amuc2icun3ium",
+        "amuc2nbzllteo",
+        "amuc2o4ctkvnv",
+        "amuc3pi0yll8b",
+        "amuc2m3qsd0oo",
+        "amuc4i7m6ke9b",
+        "amuc4kb779dzd",
+        "amuc4gy2964j2",
+        "amuc412c6vmep",
+        "amuc3u6hlcg8p",
+        "amuc30r44925t",
+        "amuc2zq5pjlog",
+        "amuc2uo8r8v9k",
+        "amuc2tuktv3w5",
+        "amuc3l9f0hi30",
+        "amuc3ly9x2ptc",
+        "amudebc5hbu8r",
+        "amudfxl8md7fg",
+        "amudecc1pfoq0"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-22T23:27:19.788Z"
+    },
+    {
+      "name": "no_confirmation_of_ambiguous_order",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amuc2mu6gk53v",
+        "amuc3tv6suyrx",
+        "amudfpyon75uz",
+        "amudefs2win5d"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T00:08:25.394Z"
+    },
+    {
+      "name": "citing_internal_policies",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amuc2wivc2cf7",
+        "amuc3smtmr70o",
+        "amuc3vsln1hdn",
+        "amuc3n0y5lwh4"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T00:09:03.503Z"
+    },
+    {
+      "name": "verbosity_unnecessary_information",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amuc3x891c1dm",
+        "amuc2zfn4qgkd",
+        "amuc3k3o09365",
+        "amuc4hpfo982p",
+        "amudeefqwdzu6",
+        "amudffzh1lv3v"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T00:54:20.728Z"
+    },
+    {
+      "name": "proceeding_with_inconsistent_evidence",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amuc2t6gb3sxd",
+        "amuc3j9gdvkap",
+        "amuc3o9t3khou",
+        "amuc3r7g36ks6",
+        "amudfi7b1h4ds"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T00:56:03.497Z"
+    },
+    {
+      "name": "missing_tool_capability",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amuc3zmilhvvw"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T02:17:32.635Z"
+    },
+    {
+      "name": "confirm_email_settings_changes",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amudg0e5k509r"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T02:18:39.798Z"
+    },
+    {
+      "name": "responding_to_unauth_orders",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amude9q3g5hyp"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T02:20:26.592Z"
+    },
+    {
+      "name": "did_not_answer_users_question",
+      "definition": "",
+      "boundary": "",
+      "evaluator": "",
+      "requirement": "",
+      "annotations": [
+        "amudflqbsb4je",
+        "amudfkkvah6i3"
+      ],
+      "positives": [],
+      "close_negatives": [],
+      "created": "2026-09-23T02:21:18.893Z"
+    }
+  ]
+}
