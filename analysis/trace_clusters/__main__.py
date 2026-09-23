@@ -8,7 +8,8 @@ from observability.instrument import load_env
 
 from . import report, run, sources
 from .embed import DEFAULT_MODEL as DEFAULT_EMBED_MODEL
-from .embed import DEFAULT_OLLAMA_MODEL, Embedder, LiteLLMEmbedder, OllamaEmbedder, TfidfEmbedder
+from .embed import DEFAULT_OLLAMA_MODEL, EMBEDDERS
+from .embed import build as build_embedder
 from .summarize import DEFAULT_MODEL
 
 
@@ -29,7 +30,7 @@ def main() -> None:
     parser.add_argument("--summarizer", choices=["heuristic", "llm"], default="heuristic")
     parser.add_argument(
         "--embedder",
-        choices=["tfidf", "ollama", "openai"],
+        choices=list(EMBEDDERS),
         default="tfidf",
         help="tfidf (offline), ollama (local open model), openai (hosted)",
     )
@@ -57,13 +58,7 @@ def main() -> None:
 
     load_env()
     records = sources.load(args.source, tag=args.tag, limit=args.limit)
-    embedder: Embedder
-    if args.embedder == "ollama":
-        embedder = OllamaEmbedder(args.embed_model or DEFAULT_OLLAMA_MODEL)
-    elif args.embedder == "openai":
-        embedder = LiteLLMEmbedder(args.embed_model or DEFAULT_EMBED_MODEL)
-    else:
-        embedder = TfidfEmbedder()
+    embedder = build_embedder(args.embedder, args.embed_model)
     params = run.Params(
         summarizer=args.summarizer,
         model=args.model,
