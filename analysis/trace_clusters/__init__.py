@@ -17,7 +17,7 @@ Pipeline
 1. ``sources``    load traces from the review pool, Langfuse, or a JSON export.
 2. ``summarize``  turn each trace into a neutral structured summary.
 3. ``embed``      embed the summary text (never the raw trace).
-4. ``cluster``    reduce (PCA, or UMAP if installed) then HDBSCAN.
+4. ``cluster``    reduce (UMAP by default, or PCA) then HDBSCAN.
 5. ``report``     write ``latest.json`` and ``latest.md`` under
                   ``analysis/state/trace_clusters/``.
 
@@ -40,5 +40,5 @@ Run it::
     uv run python -m analysis.trace_clusters                       # offline
     uv run python -m analysis.trace_clusters --embedder ollama     # local Qwen3-Embedding-0.6B
     uv run python -m analysis.trace_clusters --summarizer llm --embedder openai
-    uv run --with umap-learn python -m analysis.trace_clusters --reducer umap
+    uv run python -m analysis.trace_clusters --reducer pca         # deterministic, no numba
 """

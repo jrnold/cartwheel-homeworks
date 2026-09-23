@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
 
@@ -161,7 +160,13 @@ def test_normalized_traces_order_each_session_by_timestamp() -> None:
 def test_two_obvious_behaviors_separate_into_two_clusters() -> None:
     records = _records()
     texts = [summarize.embedding_text(summarize.heuristic_summary(r.steps)) for r in records]
-    result = clustering.cluster(TfidfEmbedder().embed(texts), min_cluster_size=4, min_samples=2)
+    # The heuristic summary drops order ids, so this fixture is 12 exact copies
+    # of two vectors. UMAP's neighbour graph cannot separate exact duplicates,
+    # so this HDBSCAN property is checked under PCA; the UMAP test below uses
+    # distinct points.
+    result = clustering.cluster(
+        TfidfEmbedder().embed(texts), reducer="pca", min_cluster_size=4, min_samples=2
+    )
     kinds = {}
     for record, lab in zip(records, result.labels.tolist()):
         kinds.setdefault(record.trace_id.split("-")[0], set()).add(lab)
@@ -185,11 +190,23 @@ def test_pick_spreads_across_clusters_and_skips_unclustered() -> None:
     assert sum(labels[i] == 1 for i in picked) == 2
 
 
-def test_umap_reducer_explains_how_to_install_when_missing() -> None:
-    if importlib.util.find_spec("umap") is not None:
-        pytest.skip("umap-learn is installed")
-    with pytest.raises(RuntimeError, match="uv run --with umap-learn"):
-        clustering.cluster(np.random.default_rng(0).random((20, 8)), reducer="umap")
+def test_umap_separates_two_distinct_groups() -> None:
+    rng = np.random.default_rng(0)
+    centers = rng.normal(size=(2, 64)) * 5
+    x = np.vstack([c + rng.normal(scale=0.3, size=(15, 64)) for c in centers])
+    result = clustering.cluster(x, reducer="umap", min_cluster_size=5, min_samples=2)
+    first, second = set(result.labels[:15].tolist()), set(result.labels[15:].tolist())
+    assert first.isdisjoint(second)
+    assert -1 not in first | second
+
+
+def test_umap_is_the_default_reducer() -> None:
+    # The review map reads the run's projection, so a default that silently
+    # fell back to PCA would change the map without anyone asking for it.
+    assert run.Params().reducer == "umap"
+    result = clustering.cluster(np.random.default_rng(0).random((20, 8)), min_cluster_size=4)
+    assert result.reducer == "umap"
+    assert result.coords.shape == (20, 2)
 
 
 # ---------------------------------------------------------------------------

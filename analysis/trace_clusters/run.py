@@ -35,7 +35,7 @@ class Params:
     summarizer: str = "heuristic"  # heuristic (offline) | llm (live)
     model: str = summarize.DEFAULT_MODEL
     labeler: str = "heuristic"  # heuristic (offline) | llm (live)
-    reducer: str = "pca"
+    reducer: str = "umap"
     # Tuned on the 267-trace review pool with the offline summarizer: 10
     # components and min_samples=3 left 13% of traces unclustered, against 35%
     # at 15 components and min_samples=min_cluster_size. Re-tune on new data.

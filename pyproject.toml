@@ -20,6 +20,7 @@ dependencies = [
     "docetl>=0.2",
     "rapidfuzz>=3.14.5",
     "raindrop-openai-agents>=0.0.11",
+    "umap-learn>=0.5.12",
 ]
 
 [dependency-groups]
@@ -64,11 +65,4 @@ include = ["optimize/gepa_adapter.py"]
 [tool.ty.overrides.rules]
 unresolved-import = "ignore"
 
-# umap-learn is opt-in (`uv run --with umap-learn`) because it pulls in numba.
-# Without it, --reducer umap raises a message that says how to install it.
-[[tool.ty.overrides]]
-include = ["analysis/trace_clusters/cluster.py"]
-
-[tool.ty.overrides.rules]
-unresolved-import = "ignore"
 

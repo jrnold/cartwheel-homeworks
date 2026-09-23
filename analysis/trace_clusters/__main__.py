@@ -40,7 +40,7 @@ def main() -> None:
         default=None,
         help=f"default: {DEFAULT_OLLAMA_MODEL} for ollama, {DEFAULT_EMBED_MODEL} for openai",
     )
-    parser.add_argument("--reducer", choices=["pca", "umap", "none"], default="pca")
+    parser.add_argument("--reducer", choices=["umap", "pca", "none"], default="umap")
     parser.add_argument("--min-cluster-size", type=int, default=5)
     parser.add_argument(
         "--min-samples",
