@@ -21,9 +21,17 @@
         "amuc3ly9x2ptc",
         "amudebc5hbu8r",
         "amudecc1pfoq0",
-        "amudfxl8md7fg"
+        "amudfxl8md7fg",
+        "a0cf52f6c4mmpz",
+        "a0cf52f6d4q7qj",
+        "a0cf52f6dbry6q"
       ],
-      "positives": [],
+      "positives": [
+        "b213d9b0f4a0f667e10ebfa8f2521e05",
+        "41ccd16520547208ba62760545e66e90",
+        "7ee692cee8e45fa25ba2e856bdca1936",
+        "4fe2b813cacdffc0072fd5f7e1048945"
+      ],
       "close_negatives": []
     },
     {
@@ -41,9 +49,12 @@
         "amudi1lpprarf",
         "amuc4gy2964j2",
         "amuc412c6vmep",
-        "amuc3n0y5lwh4"
+        "amuc3n0y5lwh4",
+        "a0cf52f6c1bw37"
       ],
-      "positives": [],
+      "positives": [
+        "f909cb7b19cfa6faeb74ec7f6c59b29f"
+      ],
       "close_negatives": []
     },
     {
@@ -55,9 +66,17 @@
       "annotations": [
         "amuc2wivc2cf7",
         "amuc3smtmr70o",
-        "amuc3vsln1hdn"
+        "amuc3vsln1hdn",
+        "a0cf52f6bfzvrs",
+        "a0cf52f6c6glng"
       ],
-      "positives": [],
+      "positives": [
+        "d762db41f33414ca3c8e2b8b2b0886be",
+        "f909cb7b19cfa6faeb74ec7f6c59b29f",
+        "fc301510846d2936512cf3162415b19a",
+        "7ee692cee8e45fa25ba2e856bdca1936",
+        "704df2c3cba566b2de3d791d3e752086"
+      ],
       "close_negatives": []
     },
     {
@@ -85,9 +104,17 @@
         "amuc2t6gb3sxd",
         "amuc3j9gdvkap",
         "amuc3o9t3khou",
-        "amuc3r7g36ks6"
+        "amuc3r7g36ks6",
+        "a0cf52f6cbw8g9",
+        "a0cf52f6d9uqgy",
+        "a0cf52f6de4hob"
       ],
-      "positives": [],
+      "positives": [
+        "41e68abb1ace115b1d0f88a61213bcc5",
+        "9ad0d23ac84fad177ca95c455f3af265",
+        "704df2c3cba566b2de3d791d3e752086",
+        "a42bdc5d049a3f1b7c48aa7b879315ae"
+      ],
       "close_negatives": []
     },
     {
@@ -108,7 +135,9 @@
         "amudg0e5k509r",
         "amuc4hpfo982p"
       ],
-      "positives": [],
+      "positives": [
+        "41e68abb1ace115b1d0f88a61213bcc5"
+      ],
       "close_negatives": []
     },
     {
@@ -122,7 +151,15 @@
         "amudi832427iu"
       ],
       "positives": [],
-      "close_negatives": []
+      "close_negatives": [
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "3adc095a8c545ec4c36ab10b78c94300",
+        "791ad08e6b55b2e883e06e4627ab24ce",
+        "3748d5a06902bf56c3c03f084ff36043",
+        "8cd95b4b36b1816a0de20b759a22ff34",
+        "b1dd5bac0139c6006dad82c5b99a9c17",
+        "e91af0c017ce2a61c16afc4c4b79fbec"
+      ]
     },
     {
       "name": "disrespectful_or_distrustful_tone",
@@ -148,7 +185,14 @@
         "amuc3zmilhvvw"
       ],
       "positives": [],
-      "close_negatives": []
+      "close_negatives": [
+        "9c54489f1eafbab5d8f4c8eb48896c59",
+        "bff30dcaef124a43ca9dc15815be5c45",
+        "d43c131e102cf90fa6bf8c46834661c3",
+        "235c05b73259b48aebaf503c6586ec28",
+        "693eb38472114b801d56bdf5380bc511",
+        "9068683a5f7633e83b95da4a9d6ea4d3"
+      ]
     },
     {
       "name": "misapplied_escalation",
@@ -158,10 +202,85 @@
       "requirement": "ESC-1 to ESC-4, AUTH-1.",
       "annotations": [
         "amudig94js9re",
-        "amudhnrh6k4do"
+        "amudhnrh6k4do",
+        "a0cf0aca81ie1k",
+        "a0cf52f6cf2dk1"
       ],
+      "positives": [
+        "8f616c8ead8dd282a636eb3bf5ce79b0",
+        "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+        "9ad0d23ac84fad177ca95c455f3af265"
+      ],
+      "close_negatives": [
+        "cdd173cd61973b71cf41a21def903325",
+        "948d8c4c22cb53304287ce3b39dd9b26",
+        "cb1bdd24112dce17038b78061059fcf7",
+        "fa5a50fd7487fab3ac6fce59245aa9b6",
+        "c4d58335fd8af76b32a8ce2457683c45"
+      ]
+    },
+    {
+      "name": "echoes_confirm_or_deny",
+      "definition": "Fail when the final reply contains the phrase \"confirm or deny\" (including \"neither confirm nor deny\" and \"confirm nor deny\"), case-insensitive. Pass otherwise. The phrase repeats the system prompt's refusal instruction to the user as legalese instead of simply saying the order cannot be accessed for this account.",
+      "boundary": "vs reveals_unauthorized_records: this mode is about wording; it fails even when no other user's data is revealed. vs narrates_internal_process: the phrase is checked on its own; other process narration in the same reply is judged there.",
+      "evaluator": "code check",
+      "requirement": "System prompt tone rule (\"Plain and warm. No legalese.\") and RESP-5. Spec or prompt revision needed: the refusal rule in agent/agent.py tells the model \"do not confirm or deny\", which it echoes verbatim; state the behaviour without that phrase, and keep the reply identical for denied and not-found orders.",
+      "annotations": [],
       "positives": [],
       "close_negatives": []
+    },
+    {
+      "name": "misdates_dispute_window",
+      "definition": "Fail when the reply states or implies that an order is inside or outside the 60-day charge-dispute window (cw-disputes), or refuses or qualifies a dispute on timing grounds, and that claim is wrong when the order's age is computed as the world date (2026-07-01, meta.world_asof) minus delivered_at. Pass when every dispute-window claim matches that computed age, or the reply makes no dispute-window claim.",
+      "boundary": "vs invents_or_contradicts_facts: this mode is specifically a wrong 'today' or wrong day count applied to the dispute window; other invented values belong there. Return-window claims are not covered here: issue_refund enforces the stored refund_eligible flag, so a wrong return-window date cannot move money; a misstated return-window date (for example 704df2c3) belongs under invents_or_contradicts_facts.",
+      "evaluator": "LLM judge",
+      "requirement": "cw-disputes (60 days after delivery) and RESP-3. Spec or prompt revision needed: the agent is never given the world date, so it counts from its own sense of today (one reply says 'today is September 17, 2026'). Provide meta.world_asof in the session context, or return the order's age or a dispute_eligible field from get_order.",
+      "annotations": [
+        "a0cf0805a7j30o",
+        "a0cf0805a8v49c",
+        "a0cf0805a9mrfh",
+        "a0cf0805aamgme",
+        "a0cf0805abkj37",
+        "a0cf0805ac5nh6"
+      ],
+      "positives": [
+        "ccee21cec42b438ab24ef010efd6761e",
+        "7c0086800d9027e548dcaab794a3fb69",
+        "5c49f3f66c23518eaa4038a2997679e0",
+        "4405dd6ad30e947fd3c4c2a863385623",
+        "e3c1e42eabd2b19382f7e812eeac2fed",
+        "f7a06a19a7cc336f76e72b643b8a2d1d"
+      ],
+      "close_negatives": [
+        "c4d58335fd8af76b32a8ce2457683c45",
+        "cb1bdd24112dce17038b78061059fcf7",
+        "a1a5035a46e364540c87999e77eac460"
+      ]
+    },
+    {
+      "name": "search_false_negative",
+      "definition": "Fail when the reply tells the user that no product matches their request (query, store, or price limit), or cannot find the product they named, while the catalog contains a product that satisfies the request and the search tool missed it (plural or extra words, inexact store name, no keyword-free store listing, no lookup by product ID). Pass when the reply's product answer matches the catalog.",
+      "boundary": "vs incomplete_answer: this mode is a false 'nothing exists' caused by search misses; an answer that is merely thin, with correct results, belongs there. vs invents_or_contradicts_facts: the agent reports what the tool returned, so the fault is the retrieval, not an invented value.",
+      "evaluator": "code check",
+      "requirement": "Tool revision needed: search_products should match plurals, accept inexact store names, list a store's products without a keyword, and look up product IDs. Related: RESP-3 (state missing information rather than asserting absence).",
+      "annotations": [
+        "a0cf0aca84iyoy",
+        "a0cf10fc03te7m",
+        "a0cf52f6bcart8"
+      ],
+      "positives": [
+        "1abe69f8b7d962257ac91d9948aab762",
+        "6a2c28665db0a00070e6636e90e7e8d3",
+        "c2e7306d7ee7a6226e5e68e62034d142",
+        "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+        "b213d9b0f4a0f667e10ebfa8f2521e05"
+      ],
+      "close_negatives": [
+        "a4ec1380e9e0ce97a500a29e891ab72d",
+        "8ae048d967dfe815dab35c265e1b3f13",
+        "85bd9dd08b11f0b3428d478d51f48b5f",
+        "464a74d4e1edddf54951f492c8ba4180"
+      ]
     }
   ]
 }

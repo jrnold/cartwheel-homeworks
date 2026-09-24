@@ -32,3 +32,6 @@ analysis/state/spec_relevance/
 # HW4 trace clustering: per-trace summary/embedding cache and the latest run.
 # Rebuilt on demand; the summaries and embeddings are derived, not student work.
 analysis/state/trace_clusters/
+
+# Playwright MCP browser logs and screenshots.
+.playwright-mcp/

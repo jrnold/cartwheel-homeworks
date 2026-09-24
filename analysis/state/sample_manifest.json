@@ -372,6 +372,269 @@
         "2efce56687fc498edeaa8f2257d6e219": "cmuc1a6g300f3o207qjf8mdf9",
         "6d77abadb76231334e3bc85612b3b8ff": "cmuc1a6gv00f6o207xkui93xb"
       }
+    },
+    {
+      "name": "4-umap-depth-and-fill",
+      "method": "25 nearest unsampled traces to seed positives in the 15-d UMAP space of the trace-clustering run (round-robin across four seed groups) + selection.select(strategy='random') for 15 uniform",
+      "seed": 7,
+      "selected_at": "2026-09-23T15:48:46+00:00",
+      "size": 40,
+      "picks": [
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed da8dd524",
+          "mode": "reveals_unauthorized_records",
+          "seed": "da8dd524da19547d722cb66a9252affb",
+          "umap_distance": 0.0983
+        },
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.1731
+        },
+        {
+          "trace_id": "8f616c8ead8dd282a636eb3bf5ce79b0",
+          "reason": "UMAP neighbour of misapplied_escalation seed 3a399b6c",
+          "mode": "misapplied_escalation",
+          "seed": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "umap_distance": 0.1095
+        },
+        {
+          "trace_id": "1abe69f8b7d962257ac91d9948aab762",
+          "reason": "UMAP neighbour of search_false_negative seed c2e7306d",
+          "mode": "search_false_negative",
+          "seed": "c2e7306d7ee7a6226e5e68e62034d142",
+          "umap_distance": 0.1047
+        },
+        {
+          "trace_id": "3adc095a8c545ec4c36ab10b78c94300",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed cb3c7eaf",
+          "mode": "reveals_unauthorized_records",
+          "seed": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "umap_distance": 0.1115
+        },
+        {
+          "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.317
+        },
+        {
+          "trace_id": "cdd173cd61973b71cf41a21def903325",
+          "reason": "UMAP neighbour of misapplied_escalation seed 6d77abad",
+          "mode": "misapplied_escalation",
+          "seed": "6d77abadb76231334e3bc85612b3b8ff",
+          "umap_distance": 0.5265
+        },
+        {
+          "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
+          "reason": "UMAP neighbour of search_false_negative seed c2e7306d",
+          "mode": "search_false_negative",
+          "seed": "c2e7306d7ee7a6226e5e68e62034d142",
+          "umap_distance": 0.1087
+        },
+        {
+          "trace_id": "791ad08e6b55b2e883e06e4627ab24ce",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed cb3c7eaf",
+          "mode": "reveals_unauthorized_records",
+          "seed": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "umap_distance": 0.1285
+        },
+        {
+          "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.3417
+        },
+        {
+          "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+          "reason": "UMAP neighbour of misapplied_escalation seed 6d77abad",
+          "mode": "misapplied_escalation",
+          "seed": "6d77abadb76231334e3bc85612b3b8ff",
+          "umap_distance": 0.6033
+        },
+        {
+          "trace_id": "8ae048d967dfe815dab35c265e1b3f13",
+          "reason": "UMAP neighbour of search_false_negative seed 6a2c2866",
+          "mode": "search_false_negative",
+          "seed": "6a2c28665db0a00070e6636e90e7e8d3",
+          "umap_distance": 0.112
+        },
+        {
+          "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed da8dd524",
+          "mode": "reveals_unauthorized_records",
+          "seed": "da8dd524da19547d722cb66a9252affb",
+          "umap_distance": 0.1765
+        },
+        {
+          "trace_id": "235c05b73259b48aebaf503c6586ec28",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.4713
+        },
+        {
+          "trace_id": "cb1bdd24112dce17038b78061059fcf7",
+          "reason": "UMAP neighbour of misapplied_escalation seed 6d77abad",
+          "mode": "misapplied_escalation",
+          "seed": "6d77abadb76231334e3bc85612b3b8ff",
+          "umap_distance": 0.6366
+        },
+        {
+          "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
+          "reason": "UMAP neighbour of search_false_negative seed c2e7306d",
+          "mode": "search_false_negative",
+          "seed": "c2e7306d7ee7a6226e5e68e62034d142",
+          "umap_distance": 0.1297
+        },
+        {
+          "trace_id": "8cd95b4b36b1816a0de20b759a22ff34",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed cb3c7eaf",
+          "mode": "reveals_unauthorized_records",
+          "seed": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "umap_distance": 0.2177
+        },
+        {
+          "trace_id": "693eb38472114b801d56bdf5380bc511",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.4855
+        },
+        {
+          "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
+          "reason": "UMAP neighbour of misapplied_escalation seed 3a399b6c",
+          "mode": "misapplied_escalation",
+          "seed": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "umap_distance": 0.6411
+        },
+        {
+          "trace_id": "464a74d4e1edddf54951f492c8ba4180",
+          "reason": "UMAP neighbour of search_false_negative seed 6a2c2866",
+          "mode": "search_false_negative",
+          "seed": "6a2c28665db0a00070e6636e90e7e8d3",
+          "umap_distance": 0.1447
+        },
+        {
+          "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed da8dd524",
+          "mode": "reveals_unauthorized_records",
+          "seed": "da8dd524da19547d722cb66a9252affb",
+          "umap_distance": 0.2278
+        },
+        {
+          "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+          "reason": "UMAP neighbour of false_success_claim seed 0474e295",
+          "mode": "false_success_claim",
+          "seed": "0474e2952bad8c976f4dcfb09e89a246",
+          "umap_distance": 0.4921
+        },
+        {
+          "trace_id": "c4d58335fd8af76b32a8ce2457683c45",
+          "reason": "UMAP neighbour of misapplied_escalation seed 6d77abad",
+          "mode": "misapplied_escalation",
+          "seed": "6d77abadb76231334e3bc85612b3b8ff",
+          "umap_distance": 0.6412
+        },
+        {
+          "trace_id": "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+          "reason": "UMAP neighbour of search_false_negative seed 6a2c2866",
+          "mode": "search_false_negative",
+          "seed": "6a2c28665db0a00070e6636e90e7e8d3",
+          "umap_distance": 0.1548
+        },
+        {
+          "trace_id": "e91af0c017ce2a61c16afc4c4b79fbec",
+          "reason": "UMAP neighbour of reveals_unauthorized_records seed cb3c7eaf",
+          "mode": "reveals_unauthorized_records",
+          "seed": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "umap_distance": 0.2281
+        },
+        {
+          "trace_id": "b213d9b0f4a0f667e10ebfa8f2521e05",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "d762db41f33414ca3c8e2b8b2b0886be",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "f909cb7b19cfa6faeb74ec7f6c59b29f",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "41ccd16520547208ba62760545e66e90",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "fc301510846d2936512cf3162415b19a",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "e167a37c2561dfc26505eb05f25bc880",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "41e68abb1ace115b1d0f88a61213bcc5",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "415174a77da5b1068b5654b5d75d463f",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "9ad0d23ac84fad177ca95c455f3af265",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "92802071872450ec2f70b09c5024a015",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "7ee692cee8e45fa25ba2e856bdca1936",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "704df2c3cba566b2de3d791d3e752086",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "4fe2b813cacdffc0072fd5f7e1048945",
+          "reason": "uniform fill"
+        },
+        {
+          "trace_id": "a42bdc5d049a3f1b7c48aa7b879315ae",
+          "reason": "uniform fill"
+        }
+      ],
+      "seeds": {
+        "reveals_unauthorized_records": [
+          "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "da8dd524da19547d722cb66a9252affb"
+        ],
+        "false_success_claim": [
+          "0474e2952bad8c976f4dcfb09e89a246"
+        ],
+        "misapplied_escalation": [
+          "6d77abadb76231334e3bc85612b3b8ff",
+          "3a399b6c6f1ad7a4bb9fec0b5a18608c"
+        ],
+        "search_false_negative": [
+          "6a2c28665db0a00070e6636e90e7e8d3",
+          "c2e7306d7ee7a6226e5e68e62034d142"
+        ]
+      },
+      "distance": "Euclidean distance to the nearest seed in UMAP(n_components=15, metric=cosine, seed=0) of the LLM-summary embeddings, rebuilt from the cache; re-clustering it reproduces all 267 labels in latest.json",
+      "deviation": "Replaces the handout's batch 4 (25 depth searches) and batch 5 (15 final uniform) with one 40-trace batch, by the reviewer's choice. There is no separate final uniform batch for the stability check."
     }
   ],
   "pool": "review_pool.json",
