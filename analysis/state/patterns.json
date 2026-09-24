@@ -5,7 +5,7 @@
       "definition": "Fail when any message the agent sends the user does one of the following: describes its own lookups, tool calls, searches or checks instead of stating the result (\"I'll look up order 1514 first to confirm this account can access it\", \"my initial search failed\"); includes facts the user did not ask for and does not need to act on (reasons behind a status, IDs a shopper cannot use, policy background beyond the decision); or sounds impatient, condescending or distrustful of the user, or says it might be guessing. Pass when every message states the result directly and respectfully, including when refusing, and names sources only in user terms.",
       "boundary": "vs exposes_internal_identifiers: a cw- policy ID shown to a shopper belongs there, not here. vs incomplete_answer: this mode is too much or badly framed; incomplete_answer is too little to understand or act on. An ID shown in addition to the name belongs here; an ID shown instead of the name belongs there. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-5 (direct language that explains the relevant decision). Spec revision needed: new RESP rule, \"State results plainly: not the steps taken to find them, not facts the user does not need, and nothing that doubts the user or admits to guessing.\"",
+      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule.",
       "merged_from": [
         "narrates_internal_process",
         "unnecessary_detail",
@@ -58,7 +58,7 @@
       "definition": "Fail when the user is a shopper and the final reply contains a Cartwheel policy identifier (cw-*) or a refund ID (for example \"Refund ID: 604\", \"Refund request ID: 582\"). Pass for shoppers when neither appears, and always pass for merchant and support users, who should see policy identifiers and can use refund IDs in the approval queue.",
       "boundary": "vs narrates_or_overexplains: store, product and ticket IDs are not covered here; whether they help depends on the question and audience, so judge them under narrates_or_overexplains.",
       "evaluator": "code check",
-      "requirement": "Spec revision to RESP-1: cite policy identifiers for merchant and support users; for shoppers, state the policy in plain language without the cw- identifier. The same revision should cover refund IDs: shoppers have no tool or page that uses them.",
+      "requirement": "RESP-1 (revised: shoppers get plain-language policy without cw- identifiers or refund IDs; merchant and support users get identifiers).",
       "annotations": [
         "amuc2wivc2cf7",
         "amuc3smtmr70o",
@@ -80,7 +80,7 @@
       "definition": "Fail when the agent takes an immediate action on an order (cancel_order, issue_refund, or escalate_to_human opening a ticket about it) without the user first confirming that order: either the order was inferred from a description, or the ID was taken as typed without reading back its details. Pass when the agent confirms the order before acting, or takes no action.",
       "boundary": "vs invents_or_contradicts_facts: this mode is about acting before confirming WHICH order; that mode is about stating values no tool returned. Asking the user to choose between orders (44b9269f) is a close negative. vs misapplied_escalation: a warranted escalation opened before the user confirmed the order fails here; an escalation the policy does not call for fails there.",
       "evaluator": "LLM judge",
-      "requirement": "ESC-1 (confirm the order before queuing an above-threshold refund and opening its ticket). Spec revision still needed for cancellations, refunds at or below the threshold, and other tickets: \"Confirm the order with the user before cancelling, refunding, or opening a ticket about it.\"",
+      "requirement": "ACT-1 (confirm the order before cancelling, refunding or opening a ticket about it; ask when several match; read back typed IDs) and ESC-1 for refunds above the threshold.",
       "annotations": [
         "amuc2mu6gk53v",
         "amuc3tv6suyrx",
@@ -95,7 +95,7 @@
       "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), claims an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports, or contradicts what a tool or an earlier turn reported. Pass when every stated fact and every claimed outcome traces to a tool result, and missing or inconsistent information is stated as such.",
       "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements. vs misdates_dispute_window: a wrong 'today' or day count applied to a dispute, return or refund window belongs there. vs narrates_or_overexplains: a correct fact that is unnecessary or badly framed belongs there. vs misapplied_escalation: stating a value a bad record cannot support fails here; not opening the ESC-5 investigation ticket fails there. One trace can fail both.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-3; RESP-2 for a claimed action success.",
+      "requirement": "RESP-3 (state missing or inconsistent information), RESP-2 (revised: no claimed success, including for actions no tool supports), and ESC-5 (no value a bad record cannot support).",
       "annotations": [
         "amuc2t6gb3sxd",
         "amuc3j9gdvkap",
@@ -130,7 +130,7 @@
       "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered; the results cannot be told apart or understood (products or orders listed by store number instead of store name, without prices, or by ID without a name, especially in search results); the order referred to cannot be identified; the reason for a refusal is missing; or no alternative or next step is offered when the direct request cannot be met. Pass when the user could understand and act on the reply without asking again.",
       "boundary": "vs narrates_or_overexplains: too little vs too much. A store number shown INSTEAD of the store name fails here; a store or product ID shown IN ADDITION to the name belongs under narrates_or_overexplains. vs search_false_negative: a false 'nothing matches' caused by the search tool belongs there; correct results presented without enough to understand them belong here. vs missing tool capability: an honest \"cannot do that\" with a next step passes.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-5 (explains the relevant decision); spec revision recommended for identifying details and next steps. Tool revision likely: search_products returns only store_id, so the agent must call get_store_info to name the store.",
+      "requirement": "RESP-7 (identify products, stores and orders in usable terms; give a reason and a next step) and RESP-5. Implementation: TOOL-3 now returns the store name.",
       "annotations": [
         "amudflqbsb4je",
         "amudfkkvah6i3",
@@ -150,10 +150,10 @@
     },
     {
       "name": "misapplied_escalation",
-      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or offering a support user escalation to a human when they are that human); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund queued without its ticket (ESC-1), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
+      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund queued without its ticket (ESC-1), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
       "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly. vs acts_on_unconfirmed_order: an escalation (including the ESC-1 refund ticket) opened before the user confirmed which order it concerns belongs there; this mode is about whether the escalation was called for at all.",
       "evaluator": "LLM judge",
-      "requirement": "ESC-1 to ESC-4 (ESC-1 revised: confirm, queue, then one ticket), ESC-5 (open a ticket to investigate bad or conflicting data), AUTH-1; proposed ESC-5 (no escalation on behalf of support users) and ESC-6 (no additional tickets for orders that have one).",
+      "requirement": "ESC-1 to ESC-5 (required escalations, including the ESC-5 investigation ticket for bad data), ESC-6 (not on behalf of support users), ESC-7 (no additional tickets for an order that has one), AUTH-1.",
       "annotations": [
         "amudig94js9re",
         "amudhnrh6k4do",
@@ -178,7 +178,7 @@
       "definition": "Fail when a reply states or implies that an order is inside or outside its dispute window (60 days, cw-disputes) or its return/refund window (30 days, cw-returns, or the store's override), or refuses or qualifies a dispute, return or refund on timing grounds, and that claim is wrong when the order's age is computed as the world date (2026-07-01, meta.world_asof) minus delivered_at. Pass when every window claim matches that computed age, or the reply makes no window claim.",
       "boundary": "vs invents_or_contradicts_facts: a wrong 'today' or wrong day count applied to a dispute, return or refund window belongs here; other invented values belong there. A correct window claim that the order record contradicts (for example the refund_eligible flag) belongs there.",
       "evaluator": "LLM judge",
-      "requirement": "cw-disputes (60 days after delivery), cw-returns (30 days, store overrides) and RESP-3. Spec or prompt revision needed: the agent is never given the world date, so it counts from its own sense of today (one reply says 'today is September 17, 2026'). Provide meta.world_asof in the session context, or return the order's age or a dispute_eligible field from get_order.",
+      "requirement": "DATE-1 (compute windows from delivered_at and meta.world_asof), cw-disputes, cw-returns and RESP-3. Implementation: give the agent the world date or have get_order return the order's age.",
       "annotations": [
         "a0cf0805a7j30o",
         "a0cf0805a8v49c",
@@ -202,7 +202,7 @@
       "definition": "Fail when the reply tells the user that no product matches their request (query, store, or price limit), or cannot find the product they named, while the catalog contains a product that satisfies the request and the search tool missed it (plural or extra words, inexact store name, no keyword-free store listing, no lookup by product ID). Pass when the reply's product answer matches the catalog.",
       "boundary": "vs incomplete_answer: this mode is a false 'nothing exists' caused by search misses; an answer that is merely thin, with correct results, belongs there. vs invents_or_contradicts_facts: the agent reports what the tool returned, so the fault is the retrieval, not an invented value.",
       "evaluator": "code check",
-      "requirement": "Tool revision needed: search_products should match plurals, accept inexact store names, list a store's products without a keyword, and look up product IDs. Related: RESP-3 (state missing information rather than asserting absence).",
+      "requirement": "TOOL-3 (revised: plurals, approximate store names, keyword-free store listing, product-ID lookup) and RESP-3.",
       "annotations": [
         "a0cf0aca84iyoy",
         "a0cf10fc03te7m",
