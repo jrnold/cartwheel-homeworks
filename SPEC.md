@@ -106,6 +106,12 @@ The following cases always go to a human:
 - **ESC-3.** Disputes and requests the agent cannot resolve from the help center and the
   order record.
 - **ESC-4.** Any case where the agent is unsure whether policy allows an action.
+- **ESC-5.** Bad or conflicting data. When a record the agent relies on has a missing,
+  invalid, or contradictory value (for example a delivered order with no delivery date, a
+  shipment date after the delivery date, an order whose store differs from the product's
+  store, a blank product title, or a negative price), the agent opens a ticket to
+  investigate the record. It tells the user about the problem when it affects their
+  request, and does not state a value the record cannot support.
 
 ## 6. Other response requirements
 

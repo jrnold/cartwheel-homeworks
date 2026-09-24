@@ -93,7 +93,7 @@
     {
       "name": "invents_or_contradicts_facts",
       "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), claims an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports, or contradicts what a tool or an earlier turn reported. Pass when every stated fact and every claimed outcome traces to a tool result, and missing or inconsistent information is stated as such.",
-      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements. vs misdates_dispute_window: a wrong 'today' or day count applied to a dispute, return or refund window belongs there. vs narrates_or_overexplains: a correct fact that is unnecessary or badly framed belongs there.",
+      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements. vs misdates_dispute_window: a wrong 'today' or day count applied to a dispute, return or refund window belongs there. vs narrates_or_overexplains: a correct fact that is unnecessary or badly framed belongs there. vs misapplied_escalation: stating a value a bad record cannot support fails here; not opening the ESC-5 investigation ticket fails there. One trace can fail both.",
       "evaluator": "LLM judge",
       "requirement": "RESP-3; RESP-2 for a claimed action success.",
       "annotations": [
@@ -150,10 +150,10 @@
     },
     {
       "name": "misapplied_escalation",
-      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or offering a support user escalation to a human when they are that human); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), or an above-threshold refund queued without its ticket (ESC-1). Pass when every escalation is called for and every required one is made.",
+      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or offering a support user escalation to a human when they are that human); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund queued without its ticket (ESC-1), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
       "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly. vs acts_on_unconfirmed_order: an escalation (including the ESC-1 refund ticket) opened before the user confirmed which order it concerns belongs there; this mode is about whether the escalation was called for at all.",
       "evaluator": "LLM judge",
-      "requirement": "ESC-1 to ESC-4 (ESC-1 revised: confirm, queue, then one ticket), AUTH-1; proposed ESC-5 (no escalation on behalf of support users) and ESC-6 (no additional tickets for orders that have one).",
+      "requirement": "ESC-1 to ESC-4 (ESC-1 revised: confirm, queue, then one ticket), ESC-5 (open a ticket to investigate bad or conflicting data), AUTH-1; proposed ESC-5 (no escalation on behalf of support users) and ESC-6 (no additional tickets for orders that have one).",
       "annotations": [
         "amudig94js9re",
         "amudhnrh6k4do",
