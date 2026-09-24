@@ -103,54 +103,49 @@ def _mode_names() -> list[str]:
     return sorted(path.stem for path in root.glob("*.jsonl"))
 
 
-GRAPH_FILE = ("trace_clusters", "latest.json")
+# The Map tab draws the static trace map's build when there is one, since that
+# run carries written cluster summaries and reference items; otherwise the last
+# plain clustering run, which has neither.
+GRAPH_FILES = (
+    ("trace_map", ("trace_clusters", "map.json")),
+    ("trace_clusters", ("trace_clusters", "latest.json")),
+)
+TRACE_FIELDS = ("x", "y", "cluster", "summary", "summary_source", "nearest_refs")
 
 
 def graph_payload() -> dict[str, Any]:
-    """The 2D projection from the last clustering run, trimmed for the map view.
+    """The 2D layout and clusters for the Map tab, in the trace map's own format.
 
-    ``latest.json`` carries a full LLM summary per trace (~400 KB). The map
-    needs only position, cluster, and a one-line title for the hover, so the
-    rest stays on disk. An absent run returns empty lists rather than an error,
-    so the map can say what to run instead of failing.
+    Reads ``map.json`` (written by ``python -m analysis.trace_map``) when it
+    exists and falls back to ``latest.json``. Either way the page gets the same
+    shape: traces keyed by id with position, cluster and summary, the full
+    cluster records, and possibly-empty ``references`` and
+    ``cluster_summaries``. A trace without coordinates cannot be plotted and is
+    left out. With no run at all the lists come back empty rather than an
+    error, so the map can say what to run instead of failing.
     """
-    run = _state.read_json(_state.state_path(*GRAPH_FILE), default=None)
-    if not run:
-        return {"nodes": [], "clusters": [], **_graph_method({})}
-    nodes = []
-    for trace_id, rec in (run.get("traces") or {}).items():
-        if rec.get("x") is None or rec.get("y") is None:
-            continue
-        summary = rec.get("summary") or {}
-        nodes.append(
-            {
-                "trace_id": trace_id,
-                "x": rec["x"],
-                "y": rec["y"],
-                "cluster": rec.get("cluster", -1),
-                "title": summary.get("title") if isinstance(summary, dict) else None,
-            }
-        )
-    clusters = [
-        {
-            "cluster": c.get("cluster"),
-            "label": c.get("label", ""),
-            "size": c.get("size", 0),
-            "representatives": c.get("representatives", []),
-        }
-        for c in run.get("clusters") or []
-    ]
-    return {"nodes": nodes, "clusters": clusters, **_graph_method(run)}
-
-
-def _graph_method(run: dict[str, Any]) -> dict[str, Any]:
-    """How the map was made, for its caption and footer."""
-    backends = run.get("backends") or {}
+    for origin, parts in GRAPH_FILES:
+        run = _state.read_json(_state.state_path(*parts), default=None)
+        if run:
+            break
+    else:
+        origin, run = None, {}
+    traces = {
+        trace_id: {k: rec[k] for k in TRACE_FIELDS if k in rec}
+        for trace_id, rec in (run.get("traces") or {}).items()
+        if rec.get("x") is not None and rec.get("y") is not None
+    }
     return {
-        "reducer": backends.get("reducer"),
-        "summarizer": backends.get("summarizer"),
-        "embedder": backends.get("embedder"),
-        "min_cluster_size": (run.get("params") or {}).get("min_cluster_size"),
+        "origin": origin,
+        "source": run.get("source"),
+        "n_traces": len(traces),
+        "backends": run.get("backends") or {},
+        "params": run.get("params") or {},
+        "clusters": run.get("clusters") or [],
+        "unclustered": [t for t in run.get("unclustered") or [] if t in traces],
+        "traces": traces,
+        "references": run.get("references") or [],
+        "cluster_summaries": run.get("cluster_summaries") or {},
     }
 
 

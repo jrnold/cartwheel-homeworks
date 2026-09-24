@@ -344,84 +344,145 @@ td.dim { color: var(--dim); }
 .refcols tr[data-store]:hover td, .refcols tr[data-trace]:hover td { background: #232a3a; }
 
 /* ---- map ----
-   Colour carries review coverage (reviewed / sampled / rest of pool), not
-   cluster identity: fifteen hues cannot be told apart, so clusters are named
-   by an #id at their centroid instead. */
-:root { --m-reviewed: #3987e5; --m-sampled: #d95926; --m-pool: #545a68; }
-.mapwrap {
-  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px;
-  align-items: start;
+   A port of the static trace map (analysis/trace_map/ui), scoped under #tm so
+   its class names cannot collide with the review view's. Highlight slots are
+   the dataviz reference's first three dark categorical steps: a scatter
+   cannot give 15 clusters 15 hues, so clusters carry a number above them and
+   only the (at most three) clusters you pick get a color. "Color: review"
+   swaps that for review coverage, the question Part B asks of this view. */
+#tm {
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --point: #7d8598; --m-reviewed: #3987e5; --m-sampled: #d95926;
+  padding: 0; overflow: hidden; height: 100%;
 }
-.mappanel {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
-  padding: 12px 12px 8px; display: grid; gap: 7px;
+#tm.active { display: grid; grid-template-columns: 290px 1fr 420px; min-height: 0; }
+#tm .tmcol { overflow-y: auto; padding: 10px 12px; min-height: 0; background: var(--panel); }
+#tm .tmleft { border-right: 1px solid var(--line); }
+#tm .tmright { border-left: 1px solid var(--line); }
+#tm .muted { color: var(--dim); }
+#tm .faint { color: var(--faint); }
+#tm .small { font-size: 11px; }
+#tm h4 .aside { text-transform: none; letter-spacing: 0; color: var(--faint); font-weight: 400; }
+#tm .runmeta { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+#tm .pill.live { color: var(--tool); border-color: #6b5a30; }
+#tm #tm-search {
+  width: 100%; margin-bottom: 10px; font: inherit; color: var(--ink); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px;
 }
-.mapfigs {
-  display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--dim);
-  font-variant-numeric: tabular-nums;
+#tm #tm-search::placeholder { color: var(--faint); }
+/* cluster list */
+#tm .cl {
+  display: grid; grid-template-columns: 14px 26px 1fr auto; gap: 6px; align-items: start;
+  padding: 5px 6px; border-radius: 5px; cursor: pointer; border: 1px solid transparent;
 }
-.mapfigs b { color: var(--ink); font-weight: 600; font-size: 14px; }
-.maphead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; }
-.maplegend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.maplegend span { display: inline-flex; align-items: center; gap: 6px; }
-.sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-.sw.reviewed { background: var(--m-reviewed); }
-.sw.sampled { background: var(--m-sampled); }
-.sw.pool { background: var(--m-pool); width: 7px; height: 7px; }
-.sw.current { border: 1.5px solid #fff; background: transparent; }
-#map-clear { border-radius: 999px; padding: 2px 11px; font-size: 12px; color: var(--dim); }
-.mapbox { position: relative; }
-#map { display: block; width: 100%; height: calc(100vh - 230px); min-height: 400px; }
-#map .frame { fill: none; stroke: var(--line); }
-#map .pt { transition: opacity .15s; }
-#map .pt.pool { fill: var(--m-pool); }
-#map .pt.sampled { fill: var(--m-sampled); stroke: var(--panel); stroke-width: 2; }
-#map .pt.reviewed { fill: var(--m-reviewed); stroke: var(--panel); stroke-width: 2; }
-#map .dim { opacity: .12; }
-#map .clab {
-  font: 500 11px var(--mono); fill: var(--faint); pointer-events: none;
-  paint-order: stroke; stroke: var(--panel); stroke-width: 3.5px; stroke-linejoin: round;
+#tm .cl:hover { background: var(--panel2); }
+#tm .cl.on { border-color: var(--line); background: var(--panel2); }
+#tm .cl .sw { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: var(--point); }
+#tm .cl .sw.ring { background: transparent; border: 1.5px solid var(--point); }
+#tm .cl .num { font-family: var(--mono); color: var(--dim); font-size: 12px; }
+#tm .cl .lab { font-size: 12px; overflow-wrap: anywhere; }
+#tm .cl .cov { display: block; color: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums; margin-top: 1px; }
+#tm .cl .n { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* map */
+#tm .mapwrap { position: relative; min-width: 0; min-height: 0; }
+#tm canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+#tm canvas.drag { cursor: grabbing; }
+#tm .maptools { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+#tm .maptools label { display: inline-flex; align-items: center; gap: 4px; }
+#tm .maptools .kinds { display: flex; gap: 8px; margin-left: 6px; padding-left: 8px; border-left: 1px solid var(--line); flex-wrap: wrap; }
+#tm .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+#tm .seg button { border: 0; border-radius: 0; padding: 3px 9px; }
+#tm .seg button.on { background: #35507d; }
+#tm #tm-mode { font: inherit; font-size: 12px; color: var(--ink); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; max-width: 260px; }
+#tm .cl .cov .f { color: var(--fail); }
+#tm .pill.fail { color: var(--fail); border-color: #6b3a40; }
+#tm .legend {
+  position: absolute; bottom: 8px; left: 8px; display: flex; gap: 12px; flex-wrap: wrap;
+  background: rgba(25,28,36,.9); border: 1px solid var(--line); border-radius: 6px;
+  padding: 4px 9px; font-size: 11px; color: var(--dim); max-width: calc(100% - 16px);
 }
-#map .clab.on { fill: var(--ink); font-weight: 600; }
-#map .ring { fill: none; stroke: var(--ink); stroke-width: 1.5; pointer-events: none; }
-#map .cur { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
-.mapcap { margin: 0; font-size: 11.5px; color: var(--faint); max-width: 90ch; }
-#map-tip {
-  position: absolute; display: none; pointer-events: none; z-index: 5;
-  max-width: 300px; background: var(--ink); color: var(--bg);
-  border-radius: 7px; padding: 7px 10px; font-size: 12px; line-height: 1.4;
-  box-shadow: 0 6px 20px rgba(0,0,0,.45);
+#tm .legend span { display: inline-flex; align-items: center; gap: 5px; }
+#tm .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+#tm .legend i.ring { border: 1.5px solid var(--point); }
+#tm .legend i.cur { border: 1.2px dashed #fff; }
+#tm #tm-tip {
+  position: absolute; pointer-events: none; display: none; max-width: 320px;
+  background: #0d0f14; border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.45); z-index: 3;
 }
-#map-tip .t { font-weight: 600; margin-bottom: 3px; }
-#map-tip .m { font: 10.5px/1.5 var(--mono); opacity: .75; }
-#map-tip .s { display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; }
-#map-tip .s i { width: 12px; height: 2px; display: inline-block; }
-.mapside {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
-  padding: 12px 8px 8px; max-height: calc(100vh - 110px); overflow-y: auto;
+#tm #tm-tip .t { font-weight: 600; margin-bottom: 2px; }
+#tm .empty {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--dim); text-align: center; padding: 30px;
 }
-.mapside h4 { margin: 0 6px 4px; }
-.mapside .hint { margin: 0 6px 6px; }
-.clist { display: grid; gap: 2px; }
-.crow {
-  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 2px 8px;
-  width: 100%; text-align: left; background: none; border: 1px solid transparent;
-  border-radius: 7px; padding: 6px 7px; cursor: pointer;
+/* display:flex above would otherwise beat [hidden] and leave an invisible
+   layer over the canvas that swallows every click and hover. */
+#tm .empty[hidden] { display: none; }
+/* reference items */
+#tm .shape { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; }
+#tm .reftext { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; color: var(--ink);
+  background: var(--panel2); border-radius: 6px; padding: 8px 10px; max-height: 320px; overflow-y: auto; }
+#tm .reflist a { display: grid; grid-template-columns: 28px 1fr auto; gap: 6px; align-items: baseline;
+  color: var(--ink); text-decoration: none; font-size: 12px; padding: 3px 5px; border-radius: 4px; }
+#tm .reflist a:hover { background: var(--panel2); }
+#tm .reflist .score { color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+/* cluster pane */
+#tm .pills { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+#tm .pill.link { cursor: pointer; color: var(--ink); }
+#tm .pill.link:hover { border-color: var(--dim); }
+#tm .bars { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px; gap: 3px 8px; align-items: center; margin: 2px 0 8px; }
+#tm .bars .k { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+#tm .bars .track { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+#tm .bars .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--point); }
+#tm .bars .v { font-size: 11px; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+/* Cluster share as a bar, all-trace share as a tick on the same track. */
+#tm .cmp { display: grid; grid-template-columns: minmax(0, 1fr) 110px 36px 36px; gap: 3px 8px; align-items: center; margin: 2px 0 8px; }
+#tm .cmp .hd { font-size: 10px; color: var(--faint); text-align: right; }
+#tm .cmp .k { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+#tm .cmp .k .dir { display: inline-block; width: 12px; color: var(--dim); font-family: system-ui, sans-serif; }
+#tm .cmp .track { position: relative; height: 10px; background: var(--panel2); border-radius: 4px; }
+#tm .cmp .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--point); }
+#tm .cmp .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+#tm .cmp .v { font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+#tm .cmp .v.all { color: var(--dim); }
+#tm .cmpkey { display: flex; gap: 12px; font-size: 11px; color: var(--dim); margin: 0 0 4px; }
+#tm .cmpkey i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: var(--point); vertical-align: 0; margin-right: 4px; }
+#tm .cmpkey b { display: inline-block; width: 2px; height: 12px; background: var(--ink); vertical-align: -2px; margin-right: 5px; }
+#tm .memberlist a { display: block; color: var(--ink); text-decoration: none; font-size: 12px; padding: 3px 5px; border-radius: 4px; }
+#tm .memberlist a:hover { background: var(--panel2); }
+#tm .memberlist a .rep { color: var(--tool); font-size: 10px; margin-right: 5px; }
+#tm .memberlist a .st { font-size: 10px; margin-right: 5px; }
+#tm .memberlist a .g { display: block; color: var(--dim); font-size: 11px; }
+/* detail */
+#tm .title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+#tm .kv { margin: 0 0 6px; }
+#tm ul.tight { margin: 2px 0 6px; padding-left: 18px; }
+#tm ul.tight li { margin: 1px 0; }
+#tm .tool { font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+#tm .tool .arrow { color: var(--faint); }
+#tm .turnsep { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px;
+  color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+#tm .turnsep::before, #tm .turnsep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+#tm .tstep { margin: 0 0 6px; padding: 6px 9px 6px 11px; background: var(--panel2);
+  border-radius: 6px; border-left: 3px solid var(--line); }
+#tm .tstep.prior { opacity: .55; }
+#tm .tstep.user { border-left-color: var(--user); }
+#tm .tstep.assistant { border-left-color: var(--asst); }
+#tm .tstep.tool_call, #tm .tstep.tool_result { border-left-color: var(--tool); }
+#tm .tstep.bad { border-left-color: var(--err); }
+#tm .tstep .who { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+#tm .tstep .txt { white-space: pre-wrap; overflow-wrap: anywhere; }
+#tm .tstep pre { margin: 3px 0 0; font-family: var(--mono); font-size: 11px; white-space: pre-wrap;
+  overflow-wrap: anywhere; color: var(--dim); max-height: 260px; overflow-y: auto; }
+#tm .tstep details summary { cursor: pointer; color: var(--dim); font-size: 12px; }
+#tm .note { font-size: 11px; color: var(--faint); border-top: 1px solid var(--line); margin-top: 16px; padding-top: 8px; }
+#tm .openrev { margin: 2px 0 10px; }
+@media (max-width: 1100px) {
+  #tm.active { grid-template-columns: 240px 1fr; overflow: auto; }
+  #tm .tmright { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); max-height: 45vh; }
+  #tm .mapwrap { height: 60vh; }
 }
-.crow:hover { background: var(--panel2); }
-.crow[aria-pressed="true"] { border-color: #4a6ba8; background: #1f2636; }
-.crow .cid { font: 500 11.5px/1.4 var(--mono); color: var(--dim); grid-row: span 2; }
-.crow .lab { font-size: 12px; line-height: 1.35; color: var(--dim); overflow: hidden;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.crow .meta { display: flex; align-items: center; gap: 8px; font: 10.5px var(--mono);
-  color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.crow .bar { flex: 1; display: flex; gap: 2px; height: 4px; min-width: 40px; }
-.crow .bar i { display: block; height: 100%; border-radius: 2px; }
-.crow .bar .r { background: var(--m-reviewed); }
-.crow .bar .s { background: var(--m-sampled); }
-.crow .bar .p { background: var(--line); }
-.mapfoot { margin: 8px 6px 0; font-size: 11px; color: var(--faint); }
-@media (prefers-reduced-motion: reduce) { #map .pt { transition: none; } }
 
 /* ---- shortcut help ---- */
 #help {
@@ -576,27 +637,44 @@ kbd {
   </div>
 
   <!-- ============ MAP ============ -->
-  <div class="col view" data-view="map" style="grid-column:1/-1">
-    <div class="mapwrap">
-      <section class="mappanel" aria-label="Trace map">
-        <div class="mapfigs" id="map-figs"></div>
-        <div class="maphead">
-          <div class="maplegend" id="map-legend"></div>
-          <button id="map-clear" hidden>Show all clusters</button>
-        </div>
-        <div class="mapbox">
-          <svg id="map" role="img" aria-label="Scatter plot of review-pool traces, coloured by review coverage"></svg>
-          <div id="map-tip" role="status"></div>
-        </div>
-        <p class="mapcap" id="map-cap"></p>
-      </section>
-      <aside class="mapside" aria-label="Clusters">
-        <h4>Clusters</h4>
-        <div class="hint">Coverage, not failure: a cluster says which traces resemble each other. Click a cluster to isolate it, a point to open its trace. Bars: reviewed, sampled but unread, rest of the cluster.</div>
-        <div class="clist" id="map-clusters"></div>
-        <div class="mapfoot" id="map-foot"></div>
-      </aside>
-    </div>
+  <div class="view" data-view="map" id="tm" style="grid-column:1/-1">
+    <section class="tmcol tmleft">
+      <div class="runmeta" id="tm-runmeta"></div>
+      <input id="tm-search" type="search" placeholder="Search titles, goals, tools">
+      <h4>Clusters <span class="aside">· click to select, up to 3 colored</span></h4>
+      <div id="tm-clusters"></div>
+    </section>
+    <section class="mapwrap" id="tm-wrap">
+      <canvas id="tm-map" aria-label="Scatter plot of traces by embedded summary"></canvas>
+      <div class="maptools">
+        <button id="tm-reset" title="Reset zoom (0)">Reset view</button>
+        <button id="tm-clear" title="Clear highlights (Esc)">Clear</button>
+        <span class="seg" title="What point color shows">
+          <button id="tm-by-cluster" class="on">Color: clusters</button><button id="tm-by-review">review</button><button id="tm-by-mode">mode</button>
+        </span>
+        <select id="tm-mode" title="Failure mode to color by" hidden></select>
+        <label class="small muted"><input type="checkbox" id="tm-numbers"> all numbers</label>
+        <span class="kinds small muted" id="tm-kinds"></span>
+      </div>
+      <div class="legend" id="tm-legend"></div>
+      <div id="tm-tip"></div>
+      <div class="empty" id="tm-empty" hidden></div>
+    </section>
+    <section class="tmcol tmright" id="tm-detail">
+      <p class="muted">Click a point to read the trace, double-click to open it in Review.
+        Nearby points had similar summaries.</p>
+      <p class="muted">Click a cluster's number on the map, or its row on the left, to
+        read what the cluster shares. Shift-click a point to select its cluster.
+        Up to three clusters are colored at once.</p>
+      <p class="muted">“Reference items” adds policies, stores, tools and spec items as
+        hollow shapes, embedded the same way but not clustered. Click one to see the
+        traces nearest to it.</p>
+      <p class="muted">“Color: review” colors points by review coverage: coded, sampled
+        but not yet coded, and the rest of the pool. “Color: mode” marks one failure
+        mode's Fail labels.</p>
+      <p class="faint small">Drag to pan, scroll to zoom. <kbd>0</kbd> resets,
+        <kbd>esc</kbd> clears.</p>
+    </section>
   </div>
 
   <!-- ============ REFERENCE ============ -->
@@ -651,9 +729,9 @@ const S = {
   tools: "compact",
   // Annotation id of the open code currently being reworded, or null.
   editing: null,
-  // The clustering projection, fetched when the Map tab first opens. It only
-  // changes when trace_clusters is rerun, so it is not polled.
-  graph: null, mapFocus: null,
+  // The map data (the trace map build, else the clustering run), fetched when
+  // the Map tab first opens. It only changes on a rebuild, so it is not polled.
+  graph: null,
   // Live polling. `writes` counts POSTs this tab has started; a poll whose
   // responses arrive after a write began is discarded, because it may carry
   // the file as it was before that write and would roll the local edit back.
@@ -902,7 +980,9 @@ function applyLive(d) {
     S.manifest = m && Array.isArray(m.batches) ? m : { batches: [] };
     S.batchOf = {};
     S.manifest.batches.forEach((b) => {
-      (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] = b.name; });
+      // Worklist batches may repeat traces from earlier batches. The first
+      // batch to list a trace keeps it, so no trace counts toward two batches.
+      (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] ??= b.name; });
     });
     fillScopeFilter();
   }
@@ -992,7 +1072,10 @@ function visible() {
   if (f === "offsample") return S.pool.filter((t) => !inSample(t));
   if (f.startsWith("batch:")) {
     const name = f.slice(6);
-    return S.pool.filter((t) => S.batchOf[t.trace_id] === name);
+    // Every trace the batch lists, including ones counted in an earlier batch.
+    const b = S.manifest.batches.find((x) => x.name === name);
+    const ids = new Set(((b && b.picks) || []).map((p) => p.trace_id));
+    return S.pool.filter((t) => ids.has(t.trace_id));
   }
   return S.pool.filter((t) => {
     const d = t.derived, sc = t.scenario || {};
@@ -1842,192 +1925,775 @@ function renderProg() {
 }
 
 // ---------------------------------------------------------------- map
-// A scatter of the whole pool in the clustering run's 2D projection. It
-// answers the Part B coverage question: which regions of the trace store the
-// drawn sample reaches, and which of those have actually been read. Colour is
-// review status; clusters are named by an #id at their centroid, because
-// fifteen hues cannot be told apart.
-const SVGNS = "http://www.w3.org/2000/svg";
-function svgEl(tag, attrs, parent) {
-  const e = document.createElementNS(SVGNS, tag);
-  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
-  if (parent) parent.appendChild(e);
-  return e;
-}
-const MAP_STATUS = {
-  reviewed: "Reviewed",
-  sampled: "In sample, not yet reviewed",
-  pool: "Not in the review sample",
-};
-// Draw order puts the traces that count on top.
-const MAP_RANK = { pool: 0, sampled: 1, reviewed: 2 };
-
+// A port of the static trace map (analysis/trace_map/ui/index.html): the same
+// three panes, canvas, pan and zoom, numbered cluster badges, up-to-three
+// cluster highlights, reference shapes and cluster profiles. What the app adds:
+// "Color: review" for Part B coverage, sample and review counts per cluster,
+// the current trace ringed, and double-click (or the button) opens the trace in
+// Review. Data comes from /api/graph: the trace map's build when there is one,
+// else the plain clustering run.
 async function loadGraph() {
   if (!S.graph) S.graph = await api("/api/graph");
   return S.graph;
 }
 
 function renderMap() {
-  const G = S.graph;
-  if (!G) {
-    $("#map-legend").textContent = "loading…";
-    loadGraph().then(() => { if (S.view === "map") renderMap(); })
-      .catch((e) => { $("#map-legend").textContent = "map failed: " + e.message; });
+  if (!S.graph) {
+    TM.empty("loading…");
+    loadGraph().then(() => { TM.load(S.graph); if (S.view === "map") TM.show(); })
+      .catch((e) => TM.empty("map failed: " + esc(e.message)));
     return;
   }
-  const svg = $("#map");
-  svg.replaceChildren();
-  S._pts = [];
-  const nodes = G.nodes || [];
-  if (!nodes.length) {
-    $("#map-legend").innerHTML = 'No projection yet. Run <code>uv run python -m analysis.trace_clusters</code>, then reload.';
-    ["#map-figs", "#map-clusters", "#map-cap", "#map-foot"].forEach((s) => { $(s).innerHTML = ""; });
-    return;
-  }
-
-  const coded = new Set(S.ann.map((a) => a.trace_id));
-  const status = (id) => coded.has(id) ? "reviewed" : S.batchOf[id] ? "sampled" : "pool";
-  const count = { reviewed: 0, sampled: 0, pool: 0 };
-  nodes.forEach((n) => count[status(n.trace_id)]++);
-  const focus = S.mapFocus;
-
-  // ---- figures, legend, caption
-  $("#map-figs").innerHTML = [
-    [nodes.length, "traces"],
-    [(G.clusters || []).length, "clusters"],
-    [nodes.filter((n) => n.cluster < 0).length, "unclustered"],
-    [count.reviewed + count.sampled, "in the review sample"],
-    [count.reviewed, "reviewed"],
-  ].map(([v, k]) => `<span><b>${v}</b> ${k}</span>`).join("");
-  $("#map-legend").innerHTML = ["reviewed", "sampled", "pool"].map((k) =>
-    `<span><i class="sw ${k}"></i>${MAP_STATUS[k]} (${count[k]})</span>`).join("") +
-    `<span><i class="sw current"></i>current trace</span>`;
-  $("#map-clear").hidden = focus === null;
-  $("#map-cap").textContent =
-    `Each dot is one trace, placed by a ${String(G.reducer || "?").toUpperCase()} projection of the embedding of its LLM-written summary. ` +
-    `Nearby dots describe similar conversations; the axes have no units. Clusters come from HDBSCAN` +
-    `${G.min_cluster_size ? ` (minimum size ${G.min_cluster_size})` : ""} and are labelled by their common tools and results.`;
-  $("#map-foot").textContent =
-    `Summaries: ${G.summarizer || "?"}. Embeddings: ${G.embedder || "?"}. Projection: ${G.reducer || "?"}.`;
-
-  // ---- scatter, in pixel units so dots and labels stay a fixed size
-  const w = svg.clientWidth, h = svg.clientHeight, pad = 26;
-  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-  const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const sx = (v) => pad + ((v - minX) / (maxX - minX || 1)) * (w - 2 * pad);
-  const sy = (v) => pad + ((maxY - v) / (maxY - minY || 1)) * (h - 2 * pad);
-
-  svgEl("rect", { class: "frame", x: 0.5, y: 0.5, width: w - 1, height: h - 1, rx: 6 }, svg);
-  const gPts = svgEl("g", {}, svg), gLab = svgEl("g", {}, svg);
-  S._pts = nodes.map((n) => ({ ...n, px: sx(n.x), py: sy(n.y), st: status(n.trace_id) }));
-  [...S._pts].sort((a, b) => MAP_RANK[a.st] - MAP_RANK[b.st]).forEach((p) => {
-    svgEl("circle", {
-      class: `pt ${p.st}${focus !== null && p.cluster !== focus ? " dim" : ""}`,
-      cx: p.px.toFixed(1), cy: p.py.toFixed(1), r: p.st === "pool" ? 3.2 : 5.5,
-    }, gPts);
-  });
-
-  const byCluster = {};
-  S._pts.forEach((p) => (byCluster[p.cluster] ||= []).push(p));
-  (G.clusters || []).forEach((c) => {
-    const m = byCluster[c.cluster] || [];
-    if (!m.length) return;
-    const cx = m.reduce((a, p) => a + p.px, 0) / m.length;
-    const cy = m.reduce((a, p) => a + p.py, 0) / m.length;
-    const on = focus === c.cluster, off = focus !== null && !on;
-    svgEl("text", {
-      class: `clab${on ? " on" : ""}${off ? " dim" : ""}`,
-      x: cx.toFixed(1), y: (cy - 9).toFixed(1), "text-anchor": "middle",
-    }, gLab).textContent = "#" + c.cluster;
-  });
-
-  const current = S._pts.find((p) => p.trace_id === (cur() || {}).trace_id);
-  if (current) svgEl("circle", { class: "cur", cx: current.px, cy: current.py, r: 11 }, svg);
-  S._ring = svgEl("circle", { class: "ring", r: 10, visibility: "hidden" }, svg);
-
-  // ---- cluster list: largest first, unclustered last. A row with nothing
-  // sampled is a gap worth drawing from.
-  const rows = [...(G.clusters || [])].sort((a, b) => b.size - a.size)
-    .map((c) => ({ id: c.cluster, label: c.label }));
-  if (byCluster[-1]) rows.push({ id: -1, label: "Traces no cluster explains. Outliers are worth reading on their own." });
-  $("#map-clusters").innerHTML = rows.map((r) => {
-    const m = byCluster[r.id] || [];
-    const rv = m.filter((p) => p.st === "reviewed").length;
-    const sm = m.filter((p) => p.st === "sampled").length;
-    const bar = [["r", rv], ["s", sm], ["p", m.length - rv - sm]]
-      .filter(([, v]) => v).map(([k, v]) => `<i class="${k}" style="flex:${v}"></i>`).join("");
-    return `<button type="button" class="crow" data-c="${r.id}" aria-pressed="${focus === r.id}" title="${esc(r.label)}">
-      <span class="cid">${r.id < 0 ? "—" : "#" + r.id}</span>
-      <span class="lab">${r.id < 0 ? "Unclustered · " : ""}${esc(r.label)}</span>
-      <span class="meta">${m.length} · ${rv + sm} sampled · ${rv} read<span class="bar">${bar}</span></span>
-    </button>`;
-  }).join("");
-  $("#map-clusters").querySelectorAll(".crow").forEach((el) => {
-    el.onclick = () => setMapFocus(+el.dataset.c);
-  });
+  if (!TM.loaded()) TM.load(S.graph);
+  TM.show();
 }
 
-function setMapFocus(c) {
-  S.mapFocus = S.mapFocus === c ? null : c;
-  renderMap();
-}
-$("#map-clear").addEventListener("click", () => setMapFocus(S.mapFocus));
-
-// Nearest point within 18px, not pixel-perfect aim.
-function mapHit(e) {
-  const r = $("#map").getBoundingClientRect();
-  const mx = e.clientX - r.left, my = e.clientY - r.top;
-  let best = null, bestD = 18 * 18;
-  (S._pts || []).forEach((p) => {
-    if (S.mapFocus !== null && p.cluster !== S.mapFocus) return;
-    const d = (p.px - mx) ** 2 + (p.py - my) ** 2;
-    if (d < bestD) { bestD = d; best = p; }
-  });
-  return best;
-}
-
-function showMapTip(p) {
-  const tip = $("#map-tip"), ring = S._ring;
-  $("#map").style.cursor = p ? "pointer" : "default";
-  if (!p) { tip.style.display = "none"; if (ring) ring.setAttribute("visibility", "hidden"); return; }
-  ring.setAttribute("cx", p.px); ring.setAttribute("cy", p.py);
-  ring.setAttribute("visibility", "visible");
-  const t = S.byId[p.trace_id];
-  const batch = S.batchOf[p.trace_id];
-  const n = notesFor(p.trace_id).length;
-  const who = t ? [t.langfuse.scenario_id, t.langfuse.user_role,
-    ((t.scenario || {}).tuple || {}).intent] : [p.trace_id.slice(0, 10)];
-  tip.innerHTML = `<div class="t">${esc(p.title || "(no summary)")}</div>
-    <div class="m">${esc(who.filter(Boolean).join(" · "))}</div>
-    <div class="m">${p.cluster < 0 ? "unclustered" : "cluster " + p.cluster}${
-      batch ? " · batch " + esc(batch) : ""}${n ? ` · ${n} note${n > 1 ? "s" : ""}` : ""}</div>
-    <div class="s"><i style="background:var(--m-${p.st})"></i>${MAP_STATUS[p.st]}</div>`;
-  tip.style.display = "block";
-  const box = $(".mapbox").getBoundingClientRect();
-  const left = Math.min(Math.max(8, p.px + 14), box.width - tip.offsetWidth - 8);
-  const top = p.py + 14 + tip.offsetHeight > box.height ? p.py - tip.offsetHeight - 14 : p.py + 14;
-  tip.style.left = left + "px"; tip.style.top = Math.max(4, top) + "px";
-}
-
-$("#map").addEventListener("mousemove", (e) => showMapTip(mapHit(e)));
-$("#map").addEventListener("mouseleave", () => showMapTip(null));
-$("#map").addEventListener("click", (e) => {
-  const p = mapHit(e);
-  if (!p || !S.byId[p.trace_id]) return;
+function openInReview(id) {
+  if (!S.byId[id]) return;
   // Open it under a scope that contains it. An off-manifest trace switches the
   // scope to all traces, and says so: reading it does not count toward the 100.
-  if (!visible().some((t) => t.trace_id === p.trace_id)) {
-    S.filter = S.batchOf[p.trace_id] ? "sample" : "all";
+  if (!visible().some((t) => t.trace_id === id)) {
+    S.filter = S.batchOf[id] ? "sample" : "all";
     $("#filter").value = S.filter;
     if (S.filter === "all") toast("off-manifest trace — does not count toward the 100");
   }
-  S.idx = visible().findIndex((t) => t.trace_id === p.trace_id);
-  showMapTip(null);
+  S.idx = visible().findIndex((t) => t.trace_id === id);
   S.view = "review"; render();
-});
-window.addEventListener("resize", () => { if (S.view === "map") renderMap(); });
+}
+
+const TM = (() => {
+  const el = (id) => document.getElementById("tm-" + id);
+  const root = document.getElementById("tm");
+  const cssv = (v) => getComputedStyle(root).getPropertyValue(v).trim();
+  const SLOT_VARS = ["--s1", "--s2", "--s3"];
+  const KIND_LABEL = { policy: "policies", store: "stores", tool: "tools", spec: "spec items" };
+  const M = {
+    run: null, points: [], byId: new Map(), clusterById: new Map(),
+    highlight: [], open: null, selected: null, pane: "intro", paneCluster: null,
+    badges: [], refs: [], refById: new Map(),
+    refKinds: new Set(),  // reference kinds drawn; off until asked for
+    selectedRef: null, hoverRef: null, hover: null, query: "",
+    view: { k: 1, tx: 0, ty: 0 }, colorBy: "cluster", mode: null,
+  };
+  const INTRO = el("detail").innerHTML;
+  const canvas = el("map");
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0, base = { sx: 1, ox: 0, oy: 0 };
+
+  const slotOf = (c) => { const i = M.highlight.indexOf(c); return i < 0 ? null : cssv(SLOT_VARS[i]); };
+  const coded = () => new Set(S.ann.map((a) => a.trace_id));
+  const statusOf = (id, cd) => (cd.has(id) ? "reviewed" : S.batchOf[id] ? "sampled" : "pool");
+  // Live label for the selected mode: 1 = fail, 0 = pass, null = not labeled.
+  const labelOf = (id) => {
+    const rec = M.mode && (S.labels[M.mode] || {})[id];
+    return rec ? rec.label : null;
+  };
+  const describedOf = (c) => (M.run.cluster_summaries || {})[String(c)] || null;
+  const matches = (p) => !M.query || p.hay.includes(M.query);
+  const refMatches = (r) => !M.query || r.hay.includes(M.query);
+  const pct = (x) => `${Math.round(100 * x)}%`;
+
+  function empty(html) { const e = el("empty"); e.innerHTML = html ? `<div>${html}</div>` : ""; e.hidden = !html; }
+
+  function load(run) {
+    M.run = run;
+    M.clusterById = new Map((run.clusters || []).map((c) => [c.cluster, c]));
+    M.points = Object.entries(run.traces || {}).map(([tid, t]) => {
+      const s = t.summary && typeof t.summary === "object" ? t.summary : {};
+      const tools = (s.tool_activity || []).map((a) => `${a.name} ${a.result}`).join(" ");
+      return { id: tid, x: t.x, y: t.y, cluster: t.cluster, summary: s, source: t.summary_source,
+        hay: `${tid} ${s.title} ${s.user_goal} ${s.outcome} ${tools}`.toLowerCase() };
+    });
+    M.byId = new Map(M.points.map((p) => [p.id, p]));
+    M.refs = (run.references || []).map((r) => ({ ...r, hay: `${r.id} ${r.name} ${r.text}`.toLowerCase() }));
+    M.refById = new Map(M.refs.map((r) => [r.id, r]));
+    renderKinds();
+    renderMeta();
+    // A server started before the map moved to the trace map's format still
+    // answers /api/graph with {nodes, clusters}; say so instead of an empty map.
+    const stale = !M.points.length && Array.isArray(run.nodes) && run.nodes.length;
+    empty(M.points.length ? "" : stale
+      ? 'The review server is running older code. Restart it (<code>uv run python -m analysis.review_app.server</code>), then reload.'
+      : 'No map data yet. Build it with <code>uv run python -m analysis.trace_map</code>, then reload.');
+    fitView();
+  }
+
+  function show() {
+    // The canvas has no size until the view is on screen.
+    requestAnimationFrame(() => {
+      if (M.colorBy === "mode") { renderModes(); el("mode").value = M.mode || ""; }
+      resize(); renderClusters(); renderDetail();
+    });
+  }
+
+  function renderMeta() {
+    const b = M.run.backends || {};
+    const short = (v) => String(v || "").replace(/ \(.*\)$/, "").replace(/^(llm|ollama|litellm):/, "");
+    // One quiet line; the full provenance is in its hover text.
+    const full = [
+      M.run.origin === "trace_map" ? "trace map build (python -m analysis.trace_map)" : "clustering run (python -m analysis.trace_clusters)",
+      `trace summaries: ${b.summarizer}`,
+      b.cluster_summaries ? `cluster summaries: ${b.cluster_summaries}` : "",
+      `embeddings: ${b.embedder}`,
+      `clusters: HDBSCAN on a ${b.reducer} reduction; layout: ${b.projection || b.reducer}`,
+    ].filter(Boolean).join("\n");
+    el("runmeta").innerHTML = !M.points.length ? "" :
+      `<span class="faint small" title="${esc(full)}">${M.run.n_traces} traces · ${(M.run.clusters || []).length} clusters · ${esc(short(b.embedder))} · ${esc(b.reducer)}</span>`;
+  }
+
+  // ------------------------------------------------------------ cluster list
+  function toggleHighlight(c) {
+    const i = M.highlight.indexOf(c);
+    if (i >= 0) M.highlight.splice(i, 1);
+    else { if (M.highlight.length === 3) M.highlight.shift(); M.highlight.push(c); }
+  }
+
+  function renderClusters() {
+    if (!M.run) return;
+    const cd = coded();
+    const rows = (M.run.clusters || []).map((c) => ({ ...c }));
+    rows.push({ cluster: -1, label: "Unclustered: no group explains these", size: (M.run.unclustered || []).length,
+      representatives: [], members: M.run.unclustered || [] });
+    el("clusters").innerHTML = rows.filter((c) => c.size).map((c) => {
+      const color = slotOf(c.cluster);
+      const sw = c.cluster === -1 ? `<span class="sw ring"></span>`
+        : `<span class="sw" style="${color ? `background:${color}` : ""}"></span>`;
+      const hits = M.query ? c.members.filter((m) => M.byId.get(m)?.hay.includes(M.query)).length : null;
+      const d = describedOf(c.cluster);
+      const name = c.cluster === -1 ? "Unclustered" : (d?.title || c.label);
+      const smp = c.members.filter((m) => S.batchOf[m]).length;
+      const rev = c.members.filter((m) => cd.has(m)).length;
+      const fails = M.colorBy === "mode" && M.mode ? c.members.filter((m) => labelOf(m) === 1).length : null;
+      return `<div class="cl${M.open === c.cluster ? " on" : ""}" data-c="${c.cluster}" title="${esc(c.label)}">
+        ${sw}<span class="num">${c.cluster === -1 ? "–" : "#" + c.cluster}</span>
+        <span class="lab">${esc(name)}<span class="cov">${smp} sampled · ${rev} coded${fails !== null ? ` · <span class="f">${fails} fail</span>` : ""}</span></span>
+        <span class="n">${hits !== null ? `${hits}/` : ""}${c.size}</span></div>`;
+    }).join("");
+  }
+  el("clusters").addEventListener("click", (e) => {
+    const row = e.target.closest(".cl");
+    if (row) selectCluster(Number(row.dataset.c), { toggle: true });
+  });
+
+  function selectCluster(c, { toggle = false } = {}) {
+    const showing = M.pane === "cluster" && M.paneCluster === c;
+    if (toggle && showing) {
+      const i = M.highlight.indexOf(c);
+      if (i >= 0) M.highlight.splice(i, 1);
+      M.open = null;
+      M.pane = M.selected ? "trace" : "intro";
+    } else {
+      if (c !== -1 && !M.highlight.includes(c)) toggleHighlight(c);
+      M.open = c; M.pane = "cluster"; M.paneCluster = c;
+    }
+    renderClusters(); renderDetail(); draw();
+    root.querySelector(".cl.on")?.scrollIntoView({ block: "nearest" });
+  }
+
+  // ------------------------------------------------------------ canvas
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const dpr = window.devicePixelRatio || 1;
+    W = r.width; H = r.height;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    computeBase(); draw();
+  }
+  function computeBase() {
+    if (!M.points.length || !W) return;
+    // Fit what is drawn: hidden reference items would otherwise shrink the map.
+    const all = [...M.points, ...M.refs.filter((r) => M.refKinds.has(r.kind))];
+    const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    const pad = 40;
+    const sx = Math.min((W - 2 * pad) / (x1 - x0 || 1), (H - 2 * pad) / (y1 - y0 || 1));
+    base = { sx, ox: W / 2 - sx * (x0 + x1) / 2, oy: H / 2 + sx * (y0 + y1) / 2 };
+  }
+  function fitView() { M.view = { k: 1, tx: 0, ty: 0 }; computeBase(); }
+  function toScreen(p) {
+    const { k, tx, ty } = M.view;
+    return [k * (base.sx * p.x + base.ox) + tx, k * (-base.sx * p.y + base.oy) + ty];
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    if (!M.points.length || !W) return;
+    const surface = cssv("--panel"), faint = cssv("--point"), ink = cssv("--ink");
+    ctx.fillStyle = surface; ctx.fillRect(0, 0, W, H);
+    const focus = M.highlight.length > 0 || !!M.query;
+    const cd = coded();
+    const byReview = M.colorBy === "review";
+    const byMode = M.colorBy === "mode" && !!M.mode;
+    const failColor = cssv("--fail");
+    const lrank = (p) => (labelOf(p.id) === 1 ? 1 : 0);
+    const REV = { reviewed: cssv("--m-reviewed"), sampled: cssv("--m-sampled"), pool: faint };
+    const RANK = { pool: 0, sampled: 1, reviewed: 2 };
+
+    const layers = [[], []];
+    for (const p of M.points) {
+      const on = matches(p) && (!M.highlight.length || M.highlight.includes(p.cluster));
+      layers[focus && !on ? 0 : 1].push(p);
+    }
+    layers.forEach((pts, li) => {
+      ctx.globalAlpha = li === 0 ? 0.22 : 1;
+      // In review coloring the traces that count are drawn last, on top.
+      const order = byReview ? [...pts].sort((a, b) => RANK[statusOf(a.id, cd)] - RANK[statusOf(b.id, cd)])
+        : byMode ? [...pts].sort((a, b) => lrank(a) - lrank(b)) : pts;
+      for (const p of order) {
+        const [x, y] = toScreen(p);
+        if (x < -10 || y < -10 || x > W + 10 || y > H + 10) continue;
+        const st = statusOf(p.id, cd);
+        const lab = byMode ? labelOf(p.id) : null;
+        // Mode coloring shows failures only: a fail is colored and larger,
+        // and a pass looks the same as an unlabeled trace.
+        const color = byReview ? REV[st] : byMode ? (lab === 1 ? failColor : faint) : (slotOf(p.cluster) || faint);
+        const r = byReview ? (st === "pool" ? 3.5 : 4.5) : byMode ? (lab === 1 ? 5.5 : 3.5) : 4.5;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        if (p.cluster === -1 && !byReview && !byMode) {
+          ctx.lineWidth = 1.5; ctx.strokeStyle = faint; ctx.stroke();
+        } else {
+          ctx.fillStyle = color; ctx.fill();
+          ctx.lineWidth = 1.5; ctx.strokeStyle = surface; ctx.stroke();
+        }
+      }
+    });
+    ctx.globalAlpha = 1;
+    drawRefs(focus);
+    drawNumbers(focus);
+
+    const current = (cur() || {}).trace_id;
+    const cp = current && M.byId.get(current);
+    if (cp) {
+      const [x, y] = toScreen(cp);
+      ctx.save(); ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.lineWidth = 1.2; ctx.strokeStyle = "#fff"; ctx.stroke(); ctx.restore();
+    }
+    for (const [id, r, w] of [[M.hover, 7, 1.5], [M.selected, 8, 2.5]]) {
+      const p = id && M.byId.get(id);
+      if (!p) continue;
+      const [x, y] = toScreen(p);
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.lineWidth = w; ctx.strokeStyle = ink; ctx.stroke();
+    }
+    for (const [id, w] of [[M.hoverRef, 1.5], [M.selectedRef, 2.5]]) {
+      const r = id && M.refById.get(id);
+      if (!r || !M.refKinds.has(r.kind)) continue;
+      const [x, y] = toScreen(r);
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2);
+      ctx.lineWidth = w; ctx.strokeStyle = ink; ctx.stroke();
+    }
+    renderLegend(cd);
+  }
+
+  // One hollow shape per kind, so kind never rests on color: policies are
+  // squares, stores diamonds, tools triangles, spec items crosses.
+  function shapePath(kind, x, y, r) {
+    ctx.beginPath();
+    if (kind === "policy") ctx.rect(x - r, y - r, 2 * r, 2 * r);
+    else if (kind === "store") { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.3, y); ctx.lineTo(x, y + r * 1.3); ctx.lineTo(x - r * 1.3, y); ctx.closePath(); }
+    else if (kind === "tool") { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.2, y + r); ctx.lineTo(x - r * 1.2, y + r); ctx.closePath(); }
+    else { ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); }
+  }
+  function drawRefs(focus) {
+    const ink = cssv("--ink"), surface = cssv("--panel");
+    for (const r of M.refs) {
+      if (!M.refKinds.has(r.kind)) continue;
+      const [x, y] = toScreen(r);
+      if (x < -10 || y < -10 || x > W + 10 || y > H + 10) continue;
+      ctx.globalAlpha = (M.query && !refMatches(r)) || (focus && !M.query) ? 0.35 : 0.95;
+      shapePath(r.kind, x, y, 4.5);
+      ctx.fillStyle = surface; if (r.kind !== "spec") ctx.fill();
+      ctx.lineWidth = r.kind === "spec" ? 2 : 1.5; ctx.strokeStyle = ink; ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function shapeSVG(kind) {
+    const d = {
+      policy: '<rect x="1.5" y="1.5" width="7" height="7"/>',
+      store: '<path d="M5 0.5 L9.5 5 L5 9.5 L0.5 5 Z"/>',
+      tool: '<path d="M5 0.8 L9.3 8.7 L0.7 8.7 Z"/>',
+      spec: '<path d="M1 5 H9 M5 1 V9" stroke-width="1.8"/>',
+    }[kind];
+    return `<svg class="shape" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.3">${d}</svg>`;
+  }
+  // One switch for all reference items: policies, stores, tools and spec items
+  // are drawn as hollow shapes, which crowd the map when always on.
+  function renderKinds() {
+    el("kinds").innerHTML = M.refs.length
+      ? `<label title="Policies, stores, tools and spec items, embedded but not clustered"><input type="checkbox" id="tm-refs"
+          ${M.refKinds.size ? "checked" : ""}> reference items</label>` : "";
+  }
+  el("kinds").addEventListener("change", (e) => {
+    if (e.target.id !== "tm-refs") return;
+    M.refKinds = e.target.checked ? new Set(Object.keys(KIND_LABEL)) : new Set();
+    fitView(); draw();
+  });
+
+  function drawNumbers(focus) {
+    M.badges = [];
+    ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    // By default only the clusters in play get a badge: the highlighted ones,
+    // the one on show in the pane, and the one under the pointer. Fifteen
+    // boxed numbers pile up in the dense middle of the map.
+    const hoverC = M.hover && M.byId.get(M.hover)?.cluster;
+    const want = el("numbers").checked ? null
+      : new Set([...M.highlight, M.pane === "cluster" ? M.paneCluster : null, hoverC].filter((c) => c != null && c !== -1));
+    for (const c of M.run.clusters || []) {
+      if (want && !want.has(c.cluster)) continue;
+      const members = c.members.map((m) => M.byId.get(m)).filter(Boolean);
+      if (!members.length) continue;
+      // Sit the badge just above the cluster: a tight UMAP cluster can be
+      // smaller than the badge and would vanish under it.
+      const screen = members.map(toScreen);
+      const x = screen.reduce((s, [px]) => s + px, 0) / screen.length;
+      const y = Math.min(...screen.map(([, py]) => py)) - 15;
+      const text = "#" + c.cluster;
+      const w = ctx.measureText(text).width + 8;
+      M.badges.push({ c: c.cluster, x: x - w / 2, y: y - 8, w, h: 16 });
+      ctx.globalAlpha = focus && !M.highlight.includes(c.cluster) ? 0.35 : 0.95;
+      ctx.fillStyle = "#0d0f14"; ctx.strokeStyle = cssv("--line"); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(x - w / 2, y - 8, w, 16, 4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = cssv("--ink"); ctx.fillText(text, x, y + 0.5);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function renderLegend(cd) {
+    const items = [];
+    if (M.colorBy === "review") {
+      const n = { reviewed: 0, sampled: 0, pool: 0 };
+      M.points.forEach((p) => n[statusOf(p.id, cd)]++);
+      items.push(`<span><i style="background:${cssv("--m-reviewed")}"></i>coded (${n.reviewed})</span>`);
+      items.push(`<span><i style="background:${cssv("--m-sampled")}"></i>sampled, not coded (${n.sampled})</span>`);
+      items.push(`<span><i style="background:${cssv("--point")};width:7px;height:7px"></i>rest of pool (${n.pool})</span>`);
+    } else if (M.colorBy === "mode" && M.mode) {
+      const f = M.points.filter((p) => labelOf(p.id) === 1).length;
+      items.push(`<span class="mono">${esc(M.mode)}</span>`);
+      items.push(`<span><i style="background:${cssv("--fail")};width:11px;height:11px"></i>fail (${f})</span>`);
+      items.push(`<span><i style="background:${cssv("--point")};width:7px;height:7px"></i>pass or not labeled (${M.points.length - f})</span>`);
+    } else {
+      M.highlight.forEach((c, i) => items.push(
+        `<span><i style="background:${cssv(SLOT_VARS[i])}"></i>#${c} (${M.clusterById.get(c)?.size ?? 0})</span>`));
+      items.push(`<span><i style="background:${cssv("--point")}"></i>${M.highlight.length ? "other clusters" : "clustered"}</span>`);
+      items.push(`<span><i class="ring"></i>unclustered</span>`);
+    }
+    if (M.byId.has((cur() || {}).trace_id)) items.push(`<span><i class="cur"></i>current trace</span>`);
+    for (const k of Object.keys(KIND_LABEL)) {
+      if (M.refKinds.has(k) && M.refs.some((r) => r.kind === k)) items.push(`<span>${shapeSVG(k)}${KIND_LABEL[k]}</span>`);
+    }
+    if (M.query) {
+      const n = M.points.filter(matches).length;
+      items.push(`<span>“${esc(M.query)}”: ${n} match${n === 1 ? "" : "es"}</span>`);
+    }
+    el("legend").innerHTML = items.join("");
+  }
+
+  // ------------------------------------------------------------ hit testing
+  function badgeAt(mx, my) {
+    for (let i = M.badges.length - 1; i >= 0; i--) {
+      const b = M.badges[i];
+      if (mx >= b.x - 3 && mx <= b.x + b.w + 3 && my >= b.y - 3 && my <= b.y + b.h + 3) return b.c;
+    }
+    return null;
+  }
+  function nearest(mx, my) {
+    let best = null, bd = 12 * 12;
+    for (const p of M.points) {
+      const [x, y] = toScreen(p);
+      const d = (x - mx) ** 2 + (y - my) ** 2;
+      if (d < bd) { bd = d; best = p; }
+    }
+    return best;
+  }
+  function nearestRef(mx, my) {
+    let best = null, bd = 12 * 12;
+    for (const r of M.refs) {
+      if (!M.refKinds.has(r.kind)) continue;
+      const [x, y] = toScreen(r);
+      const d = (x - mx) ** 2 + (y - my) ** 2;
+      if (d < bd) { bd = d; best = r; }
+    }
+    return best && { ref: best, d: bd };
+  }
+  const distSq = (p, mx, my) => { const [x, y] = toScreen(p); return (x - mx) ** 2 + (y - my) ** 2; };
+  function markAt(mx, my) {
+    const p = nearest(mx, my), r = nearestRef(mx, my);
+    if (r && (!p || r.d <= distSq(p, mx, my))) return { ref: r.ref };
+    return p ? { trace: p } : null;
+  }
+
+  let drag = null;
+  canvas.addEventListener("pointerdown", (e) => {
+    drag = { x: e.clientX, y: e.clientY, tx: M.view.tx, ty: M.view.ty, moved: false };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    const r = canvas.getBoundingClientRect();
+    if (drag) {
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 3) { drag.moved = true; canvas.classList.add("drag"); }
+      if (drag.moved) { M.view.tx = drag.tx + dx; M.view.ty = drag.ty + dy; hideTip(); draw(); return; }
+    }
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const badge = badgeAt(mx, my);
+    const mark = badge === null ? markAt(mx, my) : null;
+    const p = mark?.trace || null, ref = mark?.ref || null;
+    canvas.style.cursor = badge !== null || mark ? "pointer" : "";
+    if ((p && p.id) !== M.hover || (ref && ref.id) !== M.hoverRef) {
+      M.hover = p && p.id; M.hoverRef = ref && ref.id; draw();
+    }
+    if (badge !== null) showClusterTip(badge, mx, my);
+    else if (ref) showRefTip(ref, mx, my);
+    else if (p) showTip(p, mx, my);
+    else hideTip();
+  });
+  canvas.addEventListener("pointerup", (e) => {
+    canvas.classList.remove("drag");
+    const moved = drag && drag.moved;
+    drag = null;
+    if (moved) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const badge = badgeAt(mx, my);
+    if (badge !== null) { selectCluster(badge, { toggle: true }); return; }
+    const mark = markAt(mx, my);
+    if (mark?.ref) { selectRef(mark.ref.id); return; }
+    const p = mark?.trace;
+    if (!p) return;
+    if (e.shiftKey) selectCluster(p.cluster, { toggle: true });
+    else select(p.id);
+  });
+  canvas.addEventListener("dblclick", (e) => {
+    const r = canvas.getBoundingClientRect();
+    const mark = markAt(e.clientX - r.left, e.clientY - r.top);
+    if (mark?.trace) { hideTip(); openInReview(mark.trace.id); }
+  });
+  canvas.addEventListener("pointerleave", () => { if (!drag) { M.hover = null; M.hoverRef = null; hideTip(); draw(); } });
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const k = Math.min(40, Math.max(0.5, M.view.k * Math.exp(-e.deltaY * 0.0015)));
+    const g = k / M.view.k;
+    M.view.tx = mx - g * (mx - M.view.tx);
+    M.view.ty = my - g * (my - M.view.ty);
+    M.view.k = k;
+    draw();
+  }, { passive: false });
+
+  function placeTip(x, y) {
+    const tip = el("tip");
+    tip.style.display = "block";
+    const wrap = el("wrap").getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(6, Math.min(x + 14, wrap.width - tw - 6)) + "px";
+    tip.style.top = (y + 14 + th > wrap.height ? y - th - 10 : y + 14) + "px";
+  }
+  function showTip(p, x, y) {
+    const c = p.cluster === -1 ? "unclustered" : `cluster #${p.cluster}`;
+    const batch = S.batchOf[p.id];
+    const n = notesFor(p.id).length;
+    el("tip").innerHTML = `<div class="t">${esc(p.summary.title || p.id)}</div>
+      <div class="muted">${esc(c)} · ${batch ? esc(batch) : "off-manifest"}${n ? ` · ${n} note${n > 1 ? "s" : ""}` : ""}
+        · <span class="mono">${esc(p.id.slice(0, 8))}</span></div>
+      ${p.summary.user_goal ? `<div>${esc(p.summary.user_goal)}</div>` : ""}`;
+    placeTip(x, y);
+  }
+  function showClusterTip(c, x, y) {
+    const cl = M.clusterById.get(c), d = describedOf(c);
+    el("tip").innerHTML = `<div class="t">#${c} · ${esc(d?.title || cl?.label || "")}</div>
+      <div class="muted">${cl?.size ?? 0} traces · click to select</div>
+      ${d?.summary ? `<div>${esc(d.summary)}</div>` : ""}`;
+    placeTip(x, y);
+  }
+  function showRefTip(r, x, y) {
+    el("tip").innerHTML = `<div class="t">${shapeSVG(r.kind)} ${esc(r.name)}</div>
+      <div class="muted">${esc(r.kind)} · embedded, not clustered · click for nearest traces</div>
+      <div>${esc(r.text.length > 220 ? r.text.slice(0, 219) + "…" : r.text)}</div>`;
+    placeTip(x, y);
+  }
+  function hideTip() { el("tip").style.display = "none"; }
+
+  // ------------------------------------------------------------ detail pane
+  function selectRef(id) {
+    M.selectedRef = id; M.pane = "ref";
+    // Opening one reference item turns them all on, so it is visible in place.
+    if (M.refById.has(id) && !M.refKinds.size) { M.refKinds = new Set(Object.keys(KIND_LABEL)); fitView(); }
+    renderKinds(); renderDetail(); draw();
+  }
+  function select(id) {
+    M.selected = id; M.pane = "trace";
+    const p = M.byId.get(id);
+    if (p) M.open = p.cluster;
+    renderClusters(); renderDetail(); draw();
+    root.querySelector(".cl.on")?.scrollIntoView({ block: "nearest" });
+  }
+
+  function stepHTML(s, prior) {
+    const cls = `tstep ${esc(s.role)}${prior ? " prior" : ""}`;
+    if (s.role === "user" || s.role === "assistant") {
+      return `<div class="${cls}"><div class="who">${esc(s.role)}</div><div class="txt">${esc(s.text)}</div></div>`;
+    }
+    if (s.role === "tool_call") {
+      return `<div class="${cls}"><div class="who">tool call · ${esc(s.name)}</div>
+        <pre>${esc(JSON.stringify(s.arguments ?? {}, null, 1))}</pre></div>`;
+    }
+    if (s.role === "tool_result") {
+      const c = s.content;
+      const bad = c && typeof c === "object" && (c.ok === false || c.error);
+      const json = JSON.stringify(c, null, 1) ?? "";
+      const body = json.length > 400
+        ? `<details><summary>${esc(json.slice(0, 90))}…</summary><pre>${esc(json)}</pre></details>`
+        : `<pre>${esc(json)}</pre>`;
+      return `<div class="${cls}${bad ? " bad" : ""}"><div class="who">tool result · ${esc(s.name)}</div>${body}</div>`;
+    }
+    return `<div class="${cls}"><div class="who">${esc(s.role)}</div><pre>${esc(JSON.stringify(s, null, 1))}</pre></div>`;
+  }
+
+  function toolCounts(ids) {
+    const out = new Map();
+    for (const id of ids) {
+      const p = M.byId.get(id);
+      for (const name of new Set((p?.summary.tool_activity || []).map((t) => t.name))) out.set(name, (out.get(name) || 0) + 1);
+    }
+    return out;
+  }
+  function roleCounts(ids) {
+    const out = new Map();
+    for (const id of ids) {
+      const role = S.byId[id]?.langfuse?.user_role || "unknown";
+      out.set(role, (out.get(role) || 0) + 1);
+    }
+    return out;
+  }
+  // How much a yes/no feature tells you about membership: the KL divergence
+  // between its rate in the cluster (p) and across all traces (q), in bits.
+  function informative(p, q) {
+    const term = (a, b) => (a > 0 ? a * Math.log2(a / b) : 0);
+    if (q <= 0 || q >= 1) return 0;
+    return term(p, q) + term(1 - p, 1 - q);
+  }
+  function compareHTML(mine, n, all, total, color) {
+    const rows = [...all.keys()].map((k) => {
+      const a = (mine.get(k) || 0) / n, b = all.get(k) / total;
+      return { k, a, b, c: mine.get(k) || 0, info: informative(a, b) };
+    }).sort((x, y) => y.info - x.info || y.a - x.a);
+    const fill = color ? `background:${color}` : "";
+    return `<div class="cmp"><span></span><span></span><span class="hd">here</span><span class="hd">all</span>` +
+      rows.map((r) => {
+        const lift = r.b ? (r.a / r.b).toFixed(1) + "×" : "–";
+        const title = `${r.c} of ${n} traces here (${pct(r.a)}) vs ${all.get(r.k)} of ${total} overall (${pct(r.b)}); ${lift}; ${r.info.toFixed(2)} bits`;
+        const dir = r.info < 0.005 ? "" : r.a > r.b ? "↑" : "↓";
+        return `<span class="k" title="${esc(title)}"><span class="dir">${dir}</span>${esc(r.k)}</span>
+          <span class="track" title="${esc(title)}"><span class="fill" style="width:${(100 * r.a).toFixed(1)}%;${fill}"></span>
+            <span class="tick" style="left:${(100 * r.b).toFixed(1)}%"></span></span>
+          <span class="v">${pct(r.a)}</span><span class="v all">${pct(r.b)}</span>`;
+      }).join("") + `</div>`;
+  }
+  function cmpKey(color, total) {
+    return `<div class="cmpkey"><span><i style="${color ? `background:${color}` : ""}"></i>this cluster</span>
+      <span><b></b>all ${total} traces</span><span>↑ ↓ more or less than overall</span></div>`;
+  }
+  function barsHTML(items, size, color) {
+    if (!items?.length) return `<p class="faint small">none</p>`;
+    return `<div class="bars">` + items.map((i) => `
+      <span class="k">${esc(i.value)}</span>
+      <span class="track"><span class="fill" style="width:${(100 * i.count / size).toFixed(1)}%;${color ? `background:${color}` : ""}"></span></span>
+      <span class="v">${i.count}/${size}</span>`).join("") + `</div>`;
+  }
+
+  function renderClusterPane(box) {
+    const c = M.paneCluster;
+    const cl = c === -1
+      ? { cluster: -1, label: "", size: (M.run.unclustered || []).length, representatives: [], members: M.run.unclustered || [] }
+      : M.clusterById.get(c);
+    if (!cl) { box.innerHTML = INTRO; return; }
+    const d = describedOf(c), prof = d?.profile, color = slotOf(c);
+    const cd = coded();
+    const smp = cl.members.filter((m) => S.batchOf[m]).length;
+    const rev = cl.members.filter((m) => cd.has(m)).length;
+    const name = c === -1 ? "Unclustered traces" : (d?.title || cl.label);
+    const pills = [
+      c === -1 ? "" : `<span class="pill">cluster #${c}</span>`,
+      `<span class="pill">${cl.size} traces</span>`,
+      `<span class="pill" title="drawn into the review sample">${smp} sampled</span>`,
+      `<span class="pill" title="with at least one note">${rev} coded</span>`,
+      prof?.multi_turn ? `<span class="pill">${prof.multi_turn} in multi-turn sessions</span>` : "",
+      d?.source ? `<span class="pill" title="who wrote the summary">${esc(d.source)}</span>` : "",
+    ].join("");
+    let html = `<div class="title">${esc(name)}</div><div class="pills">${pills}</div>`;
+    if (c === -1) {
+      html += `<p class="muted">HDBSCAN left these out of every cluster. No group explains them,
+        so each is worth a look on its own.</p>`;
+    } else {
+      if (d?.summary) html += `<p class="kv">${esc(d.summary)}</p>`;
+      const allIds = M.points.map((p) => p.id), total = allIds.length;
+      html += `<h4>Tools that ran <span class="aside">· most distinctive first</span></h4>`;
+      html += cmpKey(color, total) + compareHTML(toolCounts(cl.members), cl.size, toolCounts(allIds), total, color);
+      html += `<h4>User roles <span class="aside">· most distinctive first</span></h4>`;
+      html += compareHTML(roleCounts(cl.members), cl.size, roleCounts(allIds), total, color);
+      if (prof) html += `<h4>Notable results</h4>` + barsHTML(prof.results, prof.size, color);
+      html += `<h4>Keyword label</h4><p class="faint small">${esc(cl.label)}</p>`;
+    }
+    const reps = new Set(cl.representatives);
+    const order = [...cl.representatives, ...cl.members.filter((m) => !reps.has(m))];
+    html += `<h4>Traces${reps.size ? ` <span class="aside">· nearest the centre first</span>` : ""}</h4>`;
+    html += `<div class="memberlist">` + order.map((m) => {
+      const p = M.byId.get(m);
+      if (!p) return "";
+      const st = statusOf(m, cd);
+      const mark = st === "reviewed" ? `<span class="st" style="color:var(--m-reviewed)">●</span>`
+        : st === "sampled" ? `<span class="st" style="color:var(--m-sampled)">●</span>` : "";
+      return `<a href="#" data-t="${esc(m)}">${reps.has(m) ? `<span class="rep">REP</span>` : ""}${mark}${esc(p.summary.title || m)}
+        ${p.summary.user_goal ? `<span class="g">${esc(p.summary.user_goal)}</span>` : ""}</a>`;
+    }).join("") + `</div>`;
+    html += `<div class="note">Cluster summaries describe what the traces share. They do not say
+      which ones failed. Read the conversations before naming a failure.</div>`;
+    box.innerHTML = html; box.scrollTop = 0;
+  }
+
+  function traceLinkHTML(tid, score) {
+    const p = M.byId.get(tid);
+    if (!p) return "";
+    const cl = p.cluster === -1 ? "–" : "#" + p.cluster;
+    return `<a href="#" data-t="${esc(tid)}"><span class="faint mono">${cl}</span>
+      <span>${esc(p.summary.title || tid)}</span><span class="score">${score.toFixed(2)}</span></a>`;
+  }
+  function renderRefPane(box) {
+    const r = M.refById.get(M.selectedRef);
+    if (!r) { box.innerHTML = INTRO; return; }
+    let html = `<div class="title">${shapeSVG(r.kind)} ${esc(r.name)}</div>
+      <div class="pills"><span class="pill">${esc(r.kind)}</span><span class="pill mono">${esc(r.id)}</span>
+      <span class="pill" title="Placed into the layout with UMAP's transform; not part of any cluster">not clustered</span></div>`;
+    html += `<div class="reftext">${esc(r.text)}</div>`;
+    html += `<h4>Nearest traces <span class="aside">· cosine similarity of embeddings</span></h4>`;
+    html += `<div class="reflist">` + (r.nearest || []).map(([tid, sc]) => traceLinkHTML(tid, sc)).join("") + `</div>`;
+    html += `<div class="note">Nearness means similar wording, not that a trace applied or broke this
+      item. Read the conversation before drawing that conclusion.</div>`;
+    box.innerHTML = html; box.scrollTop = 0;
+  }
+
+  function renderDetail() {
+    const box = el("detail");
+    if (!M.run) return;
+    if (M.pane === "cluster") { renderClusterPane(box); return; }
+    if (M.pane === "ref") { renderRefPane(box); return; }
+    const p = M.pane === "trace" && M.selected && M.byId.get(M.selected);
+    if (!p) { box.innerHTML = INTRO; return; }
+    const s = p.summary, rec = S.byId[p.id], sess = rec?.session || {};
+    const cl = p.cluster === -1 ? "unclustered" : `cluster #${p.cluster}`;
+    const batch = S.batchOf[p.id], n = notesFor(p.id).length;
+    const pills = [
+      `<span class="pill link" data-c="${p.cluster}" title="Show this cluster">${esc(cl)} ›</span>`,
+      batch ? `<span class="pill batch">${esc(batch)}</span>` : `<span class="pill off">off-manifest</span>`,
+      n ? `<span class="pill">${n} note${n > 1 ? "s" : ""}</span>` : "",
+      ...S.modes.filter((m) => (S.labels[m.name] || {})[p.id]?.label === 1)
+        .map((m) => `<span class="pill fail" title="labelled Fail">${esc(m.name)}</span>`),
+      `<span class="pill${/llm/.test(p.source || "") ? " live" : ""}">summary: ${esc(p.source || "?")}</span>`,
+      rec?.langfuse?.user_role ? `<span class="pill">${esc(rec.langfuse.user_role)}</span>` : "",
+      sess.turn_count > 1 ? `<span class="pill">turn ${sess.turn_index + 1} of ${sess.turn_count}</span>` : "",
+      `<span class="pill mono" title="trace id">${esc(p.id.slice(0, 12))}</span>`,
+    ].join("");
+    let html = `<div class="title">${esc(s.title || p.id)}</div><div class="pills">${pills}</div>`;
+    if (rec) html += `<button class="openrev" data-open="${esc(p.id)}">Open in Review ›</button>`;
+    html += `<h4>Summary <span class="aside">· what was embedded</span></h4>`;
+    if (s.user_goal) html += `<p class="kv"><span class="muted">Goal.</span> ${esc(s.user_goal)}</p>`;
+    if (s.flow?.length) html += `<ul class="tight">${s.flow.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`;
+    if (s.tool_activity?.length) {
+      html += `<ul class="tight">${s.tool_activity.map((t) =>
+        `<li class="tool">${esc(t.name)}(${esc(t.arguments)})${t.result ? ` <span class="arrow">→</span> ${esc(t.result)}` : ""}</li>`).join("")}</ul>`;
+    }
+    if (s.outcome) html += `<p class="kv"><span class="muted">Outcome.</span> ${esc(s.outcome)}</p>`;
+    if (s.notable?.length) html += `<ul class="tight">${s.notable.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    const near = M.run.traces[p.id]?.nearest_refs || [];
+    if (near.length) {
+      html += `<h4>Nearest reference items <span class="aside">· by wording, not a verdict</span></h4>`;
+      html += `<div class="reflist">` + near.map(([rid, sc]) => {
+        const r = M.refById.get(rid);
+        return r ? `<a href="#" data-r="${esc(rid)}">${shapeSVG(r.kind)}<span>${esc(r.name)}</span><span class="score">${sc.toFixed(2)}</span></a>` : "";
+      }).join("") + `</div>`;
+    }
+    html += `<h4>Conversation</h4>`;
+    if (!rec) {
+      html += `<p class="muted">This trace is not in the review pool, so its steps are not available here.</p>`;
+    } else {
+      const prior = sess.prior_trace_ids || [];
+      prior.forEach((pid, i) => {
+        html += `<div class="turnsep">turn ${i + 1} (earlier)</div>`;
+        const pr = S.byId[pid];
+        html += pr ? pr.steps.map((st) => stepHTML(st, true)).join("")
+          : `<p class="faint small">Earlier turn ${esc(pid.slice(0, 8))} is not in the pool.</p>`;
+      });
+      if (prior.length) html += `<div class="turnsep">turn ${prior.length + 1} (this trace)</div>`;
+      html += rec.steps.map((st) => stepHTML(st, false)).join("");
+    }
+    html += `<div class="note">Clusters are a sampling aid: they say which traces resemble each
+      other, not which ones failed. Read the conversation before naming a failure.</div>`;
+    box.innerHTML = html; box.scrollTop = 0;
+  }
+
+  el("detail").addEventListener("click", (e) => {
+    const open = e.target.closest("button[data-open]");
+    if (open) { openInReview(open.dataset.open); return; }
+    const link = e.target.closest("a[data-t]");
+    if (link) { e.preventDefault(); select(link.dataset.t); return; }
+    const refLink = e.target.closest("a[data-r]");
+    if (refLink) { e.preventDefault(); selectRef(refLink.dataset.r); return; }
+    const pill = e.target.closest(".pill.link[data-c]");
+    if (pill) selectCluster(Number(pill.dataset.c));
+  });
+  el("search").addEventListener("input", (e) => {
+    M.query = e.target.value.trim().toLowerCase();
+    renderClusters(); draw();
+  });
+  el("numbers").addEventListener("change", draw);
+  el("reset").addEventListener("click", () => { fitView(); draw(); });
+  el("clear").addEventListener("click", clearAll);
+  function setColor(by) {
+    M.colorBy = by;
+    ["cluster", "review", "mode"].forEach((k) => el("by-" + k).classList.toggle("on", by === k));
+    el("mode").hidden = by !== "mode";
+    if (by === "mode") { renderModes(); if (!M.mode && S.modes.length) M.mode = S.modes[0].name; el("mode").value = M.mode || ""; }
+    renderClusters(); draw();
+  }
+  // Options follow the live taxonomy, each with its current fail count.
+  function renderModes() {
+    el("mode").innerHTML = S.modes.length ? S.modes.map((m) => {
+      const f = Object.values(S.labels[m.name] || {}).filter((r) => r.label === 1).length;
+      return `<option value="${esc(m.name)}">${esc(m.name)} (${f} fail)</option>`;
+    }).join("") : `<option value="">no modes yet</option>`;
+    if (M.mode && !S.modes.some((m) => m.name === M.mode)) M.mode = null;
+  }
+  el("by-cluster").addEventListener("click", () => setColor("cluster"));
+  el("by-review").addEventListener("click", () => setColor("review"));
+  el("by-mode").addEventListener("click", () => setColor("mode"));
+  el("mode").addEventListener("change", (e) => { M.mode = e.target.value || null; renderClusters(); draw(); });
+  function clearAll() {
+    M.highlight = []; M.query = ""; el("search").value = "";
+    if (M.pane === "cluster" || M.pane === "ref") M.pane = M.selected ? "trace" : "intro";
+    M.selectedRef = null; M.open = null;
+    renderClusters(); renderDetail(); draw();
+  }
+  // Esc and 0 only while the map is showing; every other key keeps its
+  // app-wide meaning (digits still label, / still jumps to Reference).
+  document.addEventListener("keydown", (e) => {
+    if (S.view !== "map" || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if ($("#help").classList.contains("open")) return;
+    if (e.key === "Escape") clearAll();
+    else if (e.key === "0") { fitView(); draw(); }
+  });
+  new ResizeObserver(() => { if (S.view === "map") resize(); }).observe(el("wrap"));
+
+  return {
+    load, show, empty,
+    loaded: () => !!M.run,
+    // Review state changes (a note, a new batch) repaint without refetching.
+    refresh: () => { if (M.run && S.view === "map") { if (M.colorBy === "mode") renderModes(), (el("mode").value = M.mode || ""); renderClusters(); draw(); } },
+  };
+})();
 
 // ---------------------------------------------------------------- reference
 // Every source of truth in one searchable place. Checking a reply against the
@@ -2319,7 +2985,7 @@ const SHORTCUTS = [
     run: () => { $("#tab-ref").click(); setTimeout(() => $("#ref-q").focus(), 60); } },
   { group: "Move", key: "r", label: "back to Review",
     run: () => { S.view = "review"; render(); } },
-  { group: "Move", key: "m", label: "Map: cluster coverage, click a point to open it",
+  { group: "Move", key: "m", label: "Map: clusters and coverage; double-click a point to open it",
     run: () => { S.view = "map"; render(); } },
 
   { group: "Open coding", key: "t", label: "cycle tool detail: compact, full, off",
@@ -2413,7 +3079,26 @@ $("#toolbtn").onclick = () => cycleTools();
 $("#helpbtn").onclick = () => toggleHelp();
 $("#help").onclick = (e) => { if (e.target.id === "help") toggleHelp(false); };
 
-load().then(() => setInterval(poll, POLL_MS)).catch((e) => {
+// A #trace=<id> link opens that trace in the review view (a unique prefix
+// works); #batch=<name> opens a batch or worklist in the filter.
+function openFromHash() {
+  const list = /^#batch=(.+)$/.exec(location.hash);
+  if (list) {
+    const name = decodeURIComponent(list[1]);
+    if (!S.manifest.batches.some((b) => b.name === name)) { toast(`no batch ${name}`); return; }
+    S.filter = "batch:" + name; $("#filter").value = S.filter;
+    S.idx = 0; S.view = "review"; render();
+    return;
+  }
+  const m = /^#trace=([0-9a-f]+)$/i.exec(location.hash);
+  if (!m) return;
+  const hits = Object.keys(S.byId).filter((id) => id.startsWith(m[1].toLowerCase()));
+  if (hits.length === 1) openInReview(hits[0]);
+  else toast(hits.length ? `trace prefix ${m[1]} is ambiguous` : `no trace ${m[1]} in the pool`);
+}
+window.addEventListener("hashchange", openFromHash);
+
+load().then(() => { openFromHash(); setInterval(poll, POLL_MS); }).catch((e) => {
   document.body.innerHTML =
     `<div style="padding:30px;font-family:var(--mono)">Failed to load: ${esc(e.message)}
      <br><br>Build the pool first:<br><code>uv run python -m analysis.review_app.traces</code></div>`;
