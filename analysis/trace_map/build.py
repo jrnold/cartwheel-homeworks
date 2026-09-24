@@ -1,7 +1,8 @@
 """Build the trace map: embed, cluster and lay out the pool, then write one HTML file.
 
 The output lands at ``analysis/state/trace_clusters/map.html`` (gitignored, like
-the rest of that directory). Summaries and embeddings come from the per-trace
+the rest of that directory), with the same data in ``map.json`` for the review
+app's Map tab. Summaries and embeddings come from the per-trace
 cache that ``analysis.trace_clusters`` keeps, so a rebuild only calls Ollama for
 traces whose summary changed.
 
@@ -230,6 +231,21 @@ def write(html: str, out: Path | None = None) -> Path:
     return path
 
 
+DATA_FILE = "map.json"
+
+
+def write_data(data: dict[str, Any], out: Path | None = None) -> Path:
+    """Save the map data without the per-trace conversation copy, for the review app.
+
+    The review app already holds every conversation in the pool, so ``pool``
+    stays out; everything the page draws (positions, clusters, their written
+    summaries, reference items) goes in.
+    """
+    path = out or _state.state_path(CACHE_DIR, DATA_FILE)
+    _state.write_json(path, {k: v for k, v in data.items() if k != "pool"})
+    return path
+
+
 def serve(path: Path, *, host: str = "127.0.0.1", port: int = DEFAULT_PORT, open_browser: bool = False) -> None:
     """Serve ``path`` at ``/`` until interrupted.
 
@@ -307,6 +323,7 @@ def main() -> None:
             describe_model=None if args.describe_model == "none" else args.describe_model,
         )
         path = write(render(data), args.out)
+        write_data(data)
         fallbacks = data["backends"]["summary_fallbacks"]
         print(
             f"{data['n_traces']} traces, {len(data['clusters'])} clusters, "

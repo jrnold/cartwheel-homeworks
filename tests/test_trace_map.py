@@ -117,6 +117,16 @@ def test_write_defaults_to_the_gitignored_state_dir(tmp_path: Path) -> None:
     assert path.read_text() == "<html></html>"
 
 
+def test_write_data_saves_the_map_without_the_conversation_copy(tmp_path: Path) -> None:
+    data = build.build(TfidfEmbedder(), references=[], summaries="heuristic", params=OFFLINE, describe_model=None)
+    path = build.write_data(data)
+    assert path == tmp_path / "trace_clusters" / "map.json"
+    saved = json.loads(path.read_text())
+    assert "pool" not in saved
+    assert saved["traces"] == json.loads(json.dumps(data["traces"]))
+    assert "must not reach the page" not in path.read_text()
+
+
 def test_template_has_one_data_slot_and_build_instructions() -> None:
     template = build.TEMPLATE.read_text()
     assert template.count(build.DATA_SLOT) == 1
