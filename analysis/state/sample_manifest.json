@@ -635,6 +635,178 @@
       },
       "distance": "Euclidean distance to the nearest seed in UMAP(n_components=15, metric=cosine, seed=0) of the LLM-summary embeddings, rebuilt from the cache; re-clustering it reproduces all 267 labels in latest.json",
       "deviation": "Replaces the handout's batch 4 (25 depth searches) and batch 5 (15 final uniform) with one 40-trace batch, by the reviewer's choice. There is no separate final uniform batch for the stability check."
+    },
+    {
+      "name": "wl-acts-positives",
+      "worklist": true,
+      "mode": "acts_on_unconfirmed_order",
+      "method": "Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+      "selected_at": "2026-09-24T02:30:44+00:00",
+      "size": 9,
+      "picks": [
+        {
+          "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
+          "reason": "your note: didn't confirm it is the correct order"
+        },
+        {
+          "trace_id": "8e4bc12111577d5815840d8dada9b3d2",
+          "reason": "your note: no double check before cancelling"
+        },
+        {
+          "trace_id": "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+          "reason": "your note: ask for confirmation before proceeding"
+        },
+        {
+          "trace_id": "7bd92288418d057a63a4b443ef990d73",
+          "reason": "your note: opened ticket before confirming the order"
+        },
+        {
+          "trace_id": "58220a254399d6a85a80e6220c8120ce",
+          "reason": "search: refund on an order ID inferred from a description"
+        },
+        {
+          "trace_id": "693eb38472114b801d56bdf5380bc511",
+          "reason": "search: refund on an order ID inferred from a description"
+        },
+        {
+          "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+          "reason": "search: refund on an order ID inferred from a description"
+        },
+        {
+          "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
+          "reason": "search: refund on an order ID inferred from a description"
+        },
+        {
+          "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
+          "reason": "search: refund on an order ID inferred from a description"
+        }
+      ],
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+    },
+    {
+      "name": "wl-acts-close-negatives",
+      "worklist": true,
+      "mode": "acts_on_unconfirmed_order",
+      "method": "Candidate close negatives: order requests where the agent looked up the order and asked the user to confirm or choose before acting.",
+      "selected_at": "2026-09-24T02:30:44+00:00",
+      "size": 3,
+      "picks": [
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "your note: asked which order before acting"
+        },
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "search: asks which desk lamp order before any action"
+        },
+        {
+          "trace_id": "d03bebeb79fc2361f2953e3aba3125d5",
+          "reason": "search: asks which tote order and whether it was opened"
+        }
+      ],
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+    },
+    {
+      "name": "wl-incomplete-positives",
+      "worklist": true,
+      "mode": "incomplete_answer",
+      "method": "Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+      "selected_at": "2026-09-24T02:30:44+00:00",
+      "size": 15,
+      "picks": [
+        {
+          "trace_id": "7f2e8bcfe642dc217416ab7888a89862",
+          "reason": "your note: not enough information for the search request"
+        },
+        {
+          "trace_id": "89e772f1691fd10058d8037932827c09",
+          "reason": "your note: failed to answer, expected recent orders"
+        },
+        {
+          "trace_id": "03dd12bd077faf452765bf600c812a60",
+          "reason": "your note: needs item names"
+        },
+        {
+          "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+          "reason": "your note: needs more about the orders"
+        },
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "your note: cannot tell which order it is"
+        },
+        {
+          "trace_id": "0f64589f8eca70319090cee8533993b1",
+          "reason": "your note: doesn't say which order"
+        },
+        {
+          "trace_id": "6a2c28665db0a00070e6636e90e7e8d3",
+          "reason": "your note: no alternative when nothing matches"
+        },
+        {
+          "trace_id": "45797b1b3b137ba01160978a2ac5ef36",
+          "reason": "your note: doesn't say where to change the email"
+        },
+        {
+          "trace_id": "cad98979f6350b29971be7daaa1ecb86",
+          "reason": "your note: unclear why it can't be cancelled"
+        },
+        {
+          "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
+          "reason": "search: mugs listed with Store ID 1/2, no store names"
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "search: headphones table with Store ID column, no store names"
+        },
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "search: five vase prices, no stores"
+        },
+        {
+          "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+          "reason": "search: five vase prices, no stores"
+        },
+        {
+          "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
+          "reason": "search: five vase prices, no stores (support user)"
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "search: 'store ID 1' and 'another store' unnamed (merchant)"
+        }
+      ],
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+    },
+    {
+      "name": "wl-incomplete-close-negatives",
+      "worklist": true,
+      "mode": "incomplete_answer",
+      "method": "Candidate close negatives: similar requests answered with store names, prices, the order identified, a reason, or a next step.",
+      "selected_at": "2026-09-24T02:30:44+00:00",
+      "size": 5,
+      "picks": [
+        {
+          "trace_id": "f6b7d73b685fdb17594dae4099e99384",
+          "reason": "search: headphones under $30 at Pocket Arcade, store named, prices given"
+        },
+        {
+          "trace_id": "8ae048d967dfe815dab35c265e1b3f13",
+          "reason": "search: camp stoves at Trailhead Supply with prices"
+        },
+        {
+          "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
+          "reason": "search: water bottle at Meridian Cycles with price"
+        },
+        {
+          "trace_id": "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+          "reason": "search: nothing under $25, but offers three alternative searches"
+        },
+        {
+          "trace_id": "7ee692cee8e45fa25ba2e856bdca1936",
+          "reason": "search: names order #2197 and why it's ineligible"
+        }
+      ],
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
     }
   ],
   "pool": "review_pool.json",

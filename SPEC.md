@@ -96,7 +96,11 @@ Successful results contain `ok: true` and the result fields. Expected failures c
 
 The following cases always go to a human:
 
-- **ESC-1.** Refunds above the threshold; the tool queues the refund, and the agent explains the result.
+- **ESC-1.** Refunds above the threshold. First the agent confirms with the user that it has
+  the right order: it shows the item, store, date, and total, and waits for the user to confirm.
+  Only then does it call `issue_refund`, which queues the refund for human approval, and
+  `escalate_to_human` to open a ticket for that refund. The reply states that the refund is
+  queued for review, gives the ticket number, and says when a human will follow up.
 - **ESC-2.** Account changes of any kind, escalated once the user reports that
   account settings did not resolve the request.
 - **ESC-3.** Disputes and requests the agent cannot resolve from the help center and the
