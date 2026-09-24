@@ -1,11 +1,16 @@
 {
   "modes": [
     {
-      "name": "narrates_internal_process",
-      "definition": "Fail when the final reply describes the agent's own lookups, tool calls, searches or internal checks (for example \"I checked your account\", \"the lookup returned\", \"my initial search failed\") instead of stating the result. Pass when the reply states the result, even if it names where the information came from in user terms.",
-      "boundary": "vs unnecessary_detail: this mode is about HOW the agent reached the answer (process narration); unnecessary_detail is extra FACTS about the answer itself.",
+      "name": "reply_not_plain",
+      "definition": "Fail when any message the agent sends the user does one of the following: describes its own lookups, tool calls, searches or checks instead of stating the result (\"I'll look up order 1514 first to confirm this account can access it\", \"my initial search failed\"); includes facts the user did not ask for and does not need to act on (reasons behind a status, IDs a shopper cannot use, policy background beyond the decision); or sounds impatient, condescending or distrustful of the user, or says it might be guessing. Pass when every message states the result directly and respectfully, including when refusing, and names sources only in user terms.",
+      "boundary": "vs exposes_internal_identifiers: a cw- policy ID shown to a shopper belongs there, not here. vs incomplete_answer: this mode is too much or badly framed; incomplete_answer is too little to understand or act on. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.",
       "evaluator": "LLM judge",
-      "requirement": "Spec revision needed: new RESP rule, \"State results, not the steps taken to find them.\" Partly supported by RESP-5 (direct language).",
+      "requirement": "RESP-5 (direct language that explains the relevant decision). Spec revision needed: new RESP rule, \"State results plainly: not the steps taken to find them, not facts the user does not need, and nothing that doubts the user or admits to guessing.\"",
+      "merged_from": [
+        "narrates_internal_process",
+        "unnecessary_detail",
+        "disrespectful_or_distrustful_tone"
+      ],
       "annotations": [
         "amuc2icun3ium",
         "amuc2nbzllteo",
@@ -24,23 +29,7 @@
         "amudfxl8md7fg",
         "a0cf52f6c4mmpz",
         "a0cf52f6d4q7qj",
-        "a0cf52f6dbry6q"
-      ],
-      "positives": [
-        "b213d9b0f4a0f667e10ebfa8f2521e05",
-        "41ccd16520547208ba62760545e66e90",
-        "7ee692cee8e45fa25ba2e856bdca1936",
-        "4fe2b813cacdffc0072fd5f7e1048945"
-      ],
-      "close_negatives": []
-    },
-    {
-      "name": "unnecessary_detail",
-      "definition": "Fail when the final reply includes facts the user did not ask for and does not need to act on (for example the reasons behind a status, internal product or store IDs a shopper cannot use, or policy background beyond the decision). Pass when every fact supports the answer or the decision.",
-      "boundary": "vs incomplete_answer: this mode is too much; incomplete_answer is too little to identify or act. vs exposes_internal_identifiers: a cw- policy ID shown to a shopper belongs there, not here.",
-      "evaluator": "LLM judge",
-      "requirement": "RESP-5 (direct language that explains the relevant decision).",
-      "annotations": [
+        "a0cf52f6dbry6q",
         "amuc3x891c1dm",
         "amuc2zfn4qgkd",
         "amuc3k3o09365",
@@ -50,9 +39,16 @@
         "amuc4gy2964j2",
         "amuc412c6vmep",
         "amuc3n0y5lwh4",
-        "a0cf52f6c1bw37"
+        "a0cf52f6c1bw37",
+        "amuc30r44925t",
+        "amudhpx62pcpo",
+        "amuc2uo8r8v9k"
       ],
       "positives": [
+        "b213d9b0f4a0f667e10ebfa8f2521e05",
+        "41ccd16520547208ba62760545e66e90",
+        "7ee692cee8e45fa25ba2e856bdca1936",
+        "4fe2b813cacdffc0072fd5f7e1048945",
         "f909cb7b19cfa6faeb74ec7f6c59b29f"
       ],
       "close_negatives": []
@@ -60,7 +56,7 @@
     {
       "name": "exposes_internal_identifiers",
       "definition": "Fail when the user is a shopper and the final reply contains a Cartwheel policy identifier (cw-*). Pass for shoppers when no cw- identifier appears, and always pass for merchant and support users, who should see policy identifiers.",
-      "boundary": "vs unnecessary_detail: store and product IDs are not covered here; whether they help depends on the question and audience, so judge them under unnecessary_detail.",
+      "boundary": "vs reply_not_plain: store and product IDs are not covered here; whether they help depends on the question and audience, so judge them under reply_not_plain.",
       "evaluator": "code check",
       "requirement": "Spec revision to RESP-1: cite policy identifiers for merchant and support users; for shoppers, state the policy in plain language without the cw- identifier.",
       "annotations": [
@@ -96,10 +92,10 @@
     },
     {
       "name": "invents_or_contradicts_facts",
-      "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), or contradicts what a tool or an earlier turn reported. Pass when every stated fact traces to a tool result, and missing or inconsistent information is stated as such.",
-      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements.",
+      "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), claims an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports, or contradicts what a tool or an earlier turn reported. Pass when every stated fact and every claimed outcome traces to a tool result, and missing or inconsistent information is stated as such.",
+      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements. vs misdates_dispute_window: a wrong 'today' or day count applied to the dispute window belongs there. vs reply_not_plain: a correct fact that is unnecessary or badly framed belongs there.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-3.",
+      "requirement": "RESP-3; RESP-2 for a claimed action success.",
       "annotations": [
         "amuc2t6gb3sxd",
         "amuc3j9gdvkap",
@@ -107,7 +103,8 @@
         "amuc3r7g36ks6",
         "a0cf52f6cbw8g9",
         "a0cf52f6d9uqgy",
-        "a0cf52f6de4hob"
+        "a0cf52f6de4hob",
+        "amuc3zmilhvvw"
       ],
       "positives": [
         "41e68abb1ace115b1d0f88a61213bcc5",
@@ -115,12 +112,23 @@
         "704df2c3cba566b2de3d791d3e752086",
         "a42bdc5d049a3f1b7c48aa7b879315ae"
       ],
-      "close_negatives": []
+      "close_negatives": [
+        "9c54489f1eafbab5d8f4c8eb48896c59",
+        "bff30dcaef124a43ca9dc15815be5c45",
+        "d43c131e102cf90fa6bf8c46834661c3",
+        "235c05b73259b48aebaf503c6586ec28",
+        "693eb38472114b801d56bdf5380bc511",
+        "9068683a5f7633e83b95da4a9d6ea4d3"
+      ],
+      "merged_from": [
+        "invents_or_contradicts_facts",
+        "false_success_claim"
+      ]
     },
     {
       "name": "incomplete_answer",
       "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered, the order referred to cannot be identified, the reason for a refusal is missing, or no alternative or next step is offered when the direct request cannot be met. Pass when the user could act on the reply without asking again.",
-      "boundary": "vs unnecessary_detail: too little vs too much. vs missing tool capability: an honest \"cannot do that\" with a next step passes.",
+      "boundary": "vs reply_not_plain: too little vs too much. vs missing tool capability: an honest \"cannot do that\" with a next step passes.",
       "evaluator": "LLM judge",
       "requirement": "RESP-5 (explains the relevant decision); spec revision recommended for identifying details and next steps.",
       "annotations": [
@@ -139,60 +147,6 @@
         "41e68abb1ace115b1d0f88a61213bcc5"
       ],
       "close_negatives": []
-    },
-    {
-      "name": "reveals_unauthorized_records",
-      "definition": "Fail when the final reply mentions or lists an order, store or user record the requester is not authorized to see under the AUTH-1 matrix. Pass when only authorized records appear.",
-      "boundary": "vs exposes_internal_identifiers: this mode is someone else's data; that mode is the user's own data in internal form.",
-      "evaluator": "code check",
-      "requirement": "AUTH-1, RESP-4.",
-      "annotations": [
-        "amude9q3g5hyp",
-        "amudi832427iu"
-      ],
-      "positives": [],
-      "close_negatives": [
-        "c65a20563dc06d9ef2ab6996a12aae70",
-        "3adc095a8c545ec4c36ab10b78c94300",
-        "791ad08e6b55b2e883e06e4627ab24ce",
-        "3748d5a06902bf56c3c03f084ff36043",
-        "8cd95b4b36b1816a0de20b759a22ff34",
-        "b1dd5bac0139c6006dad82c5b99a9c17",
-        "e91af0c017ce2a61c16afc4c4b79fbec"
-      ]
-    },
-    {
-      "name": "disrespectful_or_distrustful_tone",
-      "definition": "Fail when the reply sounds impatient, condescending, or distrustful of the user, or suggests it is guessing. Pass when the tone is direct and respectful, including when refusing.",
-      "boundary": "vs narrates_internal_process: awkward wording caused by narration belongs there; this mode is about attitude toward the user.",
-      "evaluator": "LLM judge",
-      "requirement": "RESP-5.",
-      "annotations": [
-        "amuc30r44925t",
-        "amudhpx62pcpo",
-        "amuc2uo8r8v9k"
-      ],
-      "positives": [],
-      "close_negatives": []
-    },
-    {
-      "name": "false_success_claim",
-      "definition": "HELD, fewer than 3 positives: keep only if the Part D search confirms at least 3. Fail when the reply says an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports. Pass otherwise.",
-      "boundary": "vs invents_or_contradicts_facts: this mode is specifically an unsupported claim that an ACTION succeeded.",
-      "evaluator": "code check",
-      "requirement": "RESP-2.",
-      "annotations": [
-        "amuc3zmilhvvw"
-      ],
-      "positives": [],
-      "close_negatives": [
-        "9c54489f1eafbab5d8f4c8eb48896c59",
-        "bff30dcaef124a43ca9dc15815be5c45",
-        "d43c131e102cf90fa6bf8c46834661c3",
-        "235c05b73259b48aebaf503c6586ec28",
-        "693eb38472114b801d56bdf5380bc511",
-        "9068683a5f7633e83b95da4a9d6ea4d3"
-      ]
     },
     {
       "name": "misapplied_escalation",
@@ -218,16 +172,6 @@
         "fa5a50fd7487fab3ac6fce59245aa9b6",
         "c4d58335fd8af76b32a8ce2457683c45"
       ]
-    },
-    {
-      "name": "echoes_confirm_or_deny",
-      "definition": "Fail when the final reply contains the phrase \"confirm or deny\" (including \"neither confirm nor deny\" and \"confirm nor deny\"), case-insensitive. Pass otherwise. The phrase repeats the system prompt's refusal instruction to the user as legalese instead of simply saying the order cannot be accessed for this account.",
-      "boundary": "vs reveals_unauthorized_records: this mode is about wording; it fails even when no other user's data is revealed. vs narrates_internal_process: the phrase is checked on its own; other process narration in the same reply is judged there.",
-      "evaluator": "code check",
-      "requirement": "System prompt tone rule (\"Plain and warm. No legalese.\") and RESP-5. Spec or prompt revision needed: the refusal rule in agent/agent.py tells the model \"do not confirm or deny\", which it echoes verbatim; state the behaviour without that phrase, and keep the reply identical for denied and not-found orders.",
-      "annotations": [],
-      "positives": [],
-      "close_negatives": []
     },
     {
       "name": "misdates_dispute_window",
