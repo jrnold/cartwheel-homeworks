@@ -91,6 +91,9 @@ def enqueue(
             recorded[trace_id] = langfuse_io.enqueue_trace(
                 queue_id, trace_id, client=client
             )
+            # Batches overlap, so a later batch must see what an earlier one
+            # added in this same run.
+            pending.add(trace_id.lower())
             added += 1
         batch["queue_items"] = recorded
         results.append(

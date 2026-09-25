@@ -105,4 +105,4 @@ Not done, by the reviewer's choice. There is no `workshop_notes.md`, and no mode
 
 ## Preparing for Homework 5
 
-Labels on the 100 sample traces plus the synthetic batches (Pass / Fail): `exposes_internal_identifiers` 131 / 47 and `acts_on_unconfirmed_order` 129 / 49 meet the minimum of 30 each. Still short: `narrates_or_overexplains` (15 Pass), `incomplete_answer` (26 Fail), `misapplied_escalation` (24), `search_false_negative` (21), `invents_or_contradicts_facts` (15) and `misdates_dispute_window` (7).
+Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `exposes_internal_identifiers` 195 / 62, `acts_on_unconfirmed_order` 187 / 70, `incomplete_answer` 222 / 35, `misapplied_escalation` 224 / 33, `search_false_negative` 225 / 32 and `invents_or_contradicts_facts` 227 / 30 meet the minimum of 30 each. Still short: `narrates_or_overexplains` (14 Pass), `misdates_dispute_window` (7 Fail) and `reveals_order_existence` (7 Fail).
