@@ -60,6 +60,13 @@ outside the caller's role. Authorization is not a prompt.
 
 The threshold is `refund_auto_approve_threshold_usd` in `facts.yaml` ($100).
 
+**AUTH-2.** When a tool reports an order as `not_found` or `permission_denied`, the reply is the
+same in both cases: the agent says it cannot find that order for the user's account (for
+example, "I can't find that order for your account."). The reply never suggests whether the order
+exists, that it belongs to another account, or that the agent is withholding either fact, and it
+gives no detail about the order. It adds nothing it would not say for an order that does not
+exist.
+
 ## 4. Tools
 
 Successful results contain `ok: true` and the result fields. Expected failures contain `ok: false`, an `error` code, and a human-readable `reason`. Unexpected execution failures raise exceptions.
@@ -135,6 +142,7 @@ Requirements that do not fit in the sections above, including tone and style gui
   updating an existing ticket), say so and offer what the agent can do.
 - **RESP-3.** State when required information is missing or inconsistent, rather than inventing a value.
 - **RESP-4.** Explain refusals and escalations without revealing inaccessible order or user information.
+  A refusal for an order the caller cannot see follows AUTH-2.
 - **RESP-5.** Use direct and respectful language that explains the relevant decision.
 - **RESP-6.** State results, not the steps taken to reach them. Do not include facts the user
   did not ask for and does not need to act on, and do not express doubt about the user or say

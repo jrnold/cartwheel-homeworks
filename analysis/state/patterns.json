@@ -2,8 +2,8 @@
   "modes": [
     {
       "name": "narrates_or_overexplains",
-      "definition": "Fail when any message the agent sends the user does one of the following: describes its own lookups, tool calls, searches or checks instead of stating the result (\"I'll look up order 1514 first to confirm this account can access it\", \"my initial search failed\"); includes facts the user did not ask for and does not need to act on (reasons behind a status, IDs a shopper cannot use, policy background beyond the decision); or sounds impatient, condescending or distrustful of the user, or says it might be guessing. Pass when every message states the result directly and respectfully, including when refusing, and names sources only in user terms.",
-      "boundary": "vs exposes_internal_identifiers: a cw- policy ID shown to a shopper belongs there, not here. vs incomplete_answer: this mode is too much or badly framed; incomplete_answer is too little to understand or act on. An ID shown in addition to the name belongs here; an ID shown instead of the name belongs there. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.",
+      "definition": "Fail when any message the agent does one of the following describes its own lookups, tool calls, searches or checks instead of stating the result.  Includes facts the user did not ask for and does not need to act on (reasons behind a status, IDs a shopper cannot use, policy background beyond the decision).\n\nExamples: \n- \"I'll look up order 1514 first to confirm this account can access it\",\n- \"my initial search failed\"\n\nPass when every message states the result directly and respectfully, including when refusing, and names sources only in user terms.",
+      "boundary": "Boundary to other modes:\n\n- invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.\n- exposes_internal_policy_identifiers: Citing specific policy numbers to user are their own problem.\n",
       "evaluator": "LLM judge",
       "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule.",
       "merged_from": [
@@ -12,14 +12,12 @@
         "disrespectful_or_distrustful_tone"
       ],
       "annotations": [
-        "amuc2icun3ium",
         "amuc2nbzllteo",
         "amuc2m3qsd0oo",
         "amuc2o4ctkvnv",
         "amuc2tuktv3w5",
         "amuc3pi0yll8b",
         "amuc4i7m6ke9b",
-        "amuc4kb779dzd",
         "amuc3u6hlcg8p",
         "amuc2zq5pjlog",
         "amuc3l9f0hi30",
@@ -51,7 +49,12 @@
         "4fe2b813cacdffc0072fd5f7e1048945",
         "f909cb7b19cfa6faeb74ec7f6c59b29f"
       ],
-      "close_negatives": []
+      "close_negatives": [
+        "fe99e8f6b9c7444acd73f7c1e2caf33d",
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "693eb38472114b801d56bdf5380bc511",
+        "45797b1b3b137ba01160978a2ac5ef36"
+      ]
     },
     {
       "name": "exposes_internal_identifiers",
@@ -73,7 +76,11 @@
         "7ee692cee8e45fa25ba2e856bdca1936",
         "704df2c3cba566b2de3d791d3e752086"
       ],
-      "close_negatives": []
+      "close_negatives": [
+        "0474e2952bad8c976f4dcfb09e89a246",
+        "8bad20df566b934bcadf23237120e105",
+        "245cc11299a87b99036f3758fcc180c0"
+      ]
     },
     {
       "name": "acts_on_unconfirmed_order",
@@ -87,8 +94,19 @@
         "amudfpyon75uz",
         "amudefs2win5d"
       ],
-      "positives": [],
-      "close_negatives": []
+      "positives": [
+        "b5557297f306cb7d0d9ca08ea3f70968",
+        "7bd92288418d057a63a4b443ef990d73",
+        "8e4bc12111577d5815840d8dada9b3d2",
+        "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+        "58220a254399d6a85a80e6220c8120ce",
+        "d43c131e102cf90fa6bf8c46834661c3"
+      ],
+      "close_negatives": [
+        "44b9269f1ceecfd337c0c8115fd993ce",
+        "d03bebeb79fc2361f2953e3aba3125d5",
+        "7534da6cb5ae2b0839353587a83f0481"
+      ]
     },
     {
       "name": "invents_or_contradicts_facts",
@@ -110,14 +128,14 @@
         "41e68abb1ace115b1d0f88a61213bcc5",
         "9ad0d23ac84fad177ca95c455f3af265",
         "704df2c3cba566b2de3d791d3e752086",
-        "a42bdc5d049a3f1b7c48aa7b879315ae"
+        "a42bdc5d049a3f1b7c48aa7b879315ae",
+        "693eb38472114b801d56bdf5380bc511"
       ],
       "close_negatives": [
         "9c54489f1eafbab5d8f4c8eb48896c59",
         "bff30dcaef124a43ca9dc15815be5c45",
         "d43c131e102cf90fa6bf8c46834661c3",
         "235c05b73259b48aebaf503c6586ec28",
-        "693eb38472114b801d56bdf5380bc511",
         "9068683a5f7633e83b95da4a9d6ea4d3"
       ],
       "merged_from": [
@@ -127,8 +145,8 @@
     },
     {
       "name": "incomplete_answer",
-      "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered; the results cannot be told apart or understood (products or orders listed by store number instead of store name, without prices, or by ID without a name, especially in search results); the order referred to cannot be identified; the reason for a refusal is missing; or no alternative or next step is offered when the direct request cannot be met. Pass when the user could understand and act on the reply without asking again.",
-      "boundary": "vs narrates_or_overexplains: too little vs too much. A store number shown INSTEAD of the store name fails here; a store or product ID shown IN ADDITION to the name belongs under narrates_or_overexplains. vs search_false_negative: a false 'nothing matches' caused by the search tool belongs there; correct results presented without enough to understand them belong here. vs missing tool capability: an honest \"cannot do that\" with a next step passes.",
+      "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered; the results cannot be told apart or understood (products or orders listed by store number instead of store name, without prices, or by ID without a name, especially in search results); the order referred to cannot be identified; the reason for a refusal is missing; or no alternative or next step is offered when the direct request cannot be met, or when a refund or cancellation request is answered with eligibility alone instead of showing the order details and asking the user to confirm the action. Pass when the user could understand and act on the reply without asking again.",
+      "boundary": "vs narrates_or_overexplains: too little vs too much. A store number shown INSTEAD of the store name fails here; a store or product ID shown IN ADDITION to the name belongs under narrates_or_overexplains. vs search_false_negative: a false 'nothing matches' caused by the search tool belongs there; correct results presented without enough to understand them belong here. vs missing tool capability: an honest \"cannot do that\" with a next step passes. vs reveals_order_existence: a refusal for an order the user cannot see is judged there, not here; it needs no next step beyond what a not-found reply would give.",
       "evaluator": "LLM judge",
       "requirement": "RESP-7 (identify products, stores and orders in usable terms; give a reason and a next step) and RESP-5. Implementation: TOOL-3 now returns the store name.",
       "annotations": [
@@ -144,13 +162,23 @@
         "amuc4hpfo982p"
       ],
       "positives": [
-        "41e68abb1ace115b1d0f88a61213bcc5"
+        "41e68abb1ace115b1d0f88a61213bcc5",
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "177c18604b61a4612411654ddeac3b4c",
+        "85bd9dd08b11f0b3428d478d51f48b5f",
+        "3748d5a06902bf56c3c03f084ff36043"
       ],
-      "close_negatives": []
+      "close_negatives": [
+        "da8dd524da19547d722cb66a9252affb",
+        "f6b7d73b685fdb17594dae4099e99384",
+        "8ae048d967dfe815dab35c265e1b3f13",
+        "a4ec1380e9e0ce97a500a29e891ab72d",
+        "7ee692cee8e45fa25ba2e856bdca1936"
+      ]
     },
     {
       "name": "misapplied_escalation",
-      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund queued without its ticket (ESC-1), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
+      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund on an eligible order that is not both queued with issue_refund and given a ticket (ESC-1; a ticket alone, or a queued refund alone, fails), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
       "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly. vs acts_on_unconfirmed_order: an escalation (including the ESC-1 refund ticket) opened before the user confirmed which order it concerns belongs there; this mode is about whether the escalation was called for at all.",
       "evaluator": "LLM judge",
       "requirement": "ESC-1 to ESC-5 (required escalations, including the ESC-5 investigation ticket for bad data), ESC-6 (not on behalf of support users), ESC-7 (no additional tickets for an order that has one), AUTH-1.",
@@ -189,7 +217,9 @@
       ],
       "positives": [
         "ccee21cec42b438ab24ef010efd6761e",
-        "704df2c3cba566b2de3d791d3e752086"
+        "704df2c3cba566b2de3d791d3e752086",
+        "63a5469b15bcc8cd09bd0c58864dd053",
+        "b42e0a577d4b7adcc434ba7bdec736db"
       ],
       "close_negatives": [
         "c4d58335fd8af76b32a8ce2457683c45",
@@ -220,6 +250,32 @@
         "8ae048d967dfe815dab35c265e1b3f13",
         "85bd9dd08b11f0b3428d478d51f48b5f",
         "464a74d4e1edddf54951f492c8ba4180"
+      ]
+    },
+    {
+      "name": "reveals_order_existence",
+      "definition": "Fail when a tool returns not_found or permission_denied for an order and the reply says anything other than that the agent cannot find that order for the user's account: saying it cannot access the order (which implies the order exists), mentioning who it belongs to or another account, saying the agent is withholding whether it exists, or giving any detail about it. Pass when the reply is the same as for an order that does not exist, e.g. \"I can't find that order for your account.\" Traces with no denied or unknown order pass.",
+      "boundary": "vs narrates_or_overexplains: a preamble that narrates the access check before the tool runs belongs there; this mode is the refusal after the tool reports the order. vs incomplete_answer: a refusal here needs no next step. vs exposes_internal_identifiers: that mode is the user's own data in internal form; this one is information about an order the user cannot see.",
+      "evaluator": "code check (the reply after a not_found or permission_denied result must match the not-found wording), with an LLM judge for paraphrases",
+      "requirement": "AUTH-2, RESP-4.",
+      "merged_from": [],
+      "annotations": [
+        "amuc2icun3ium",
+        "amuc4kb779dzd"
+      ],
+      "positives": [
+        "e066a9364114921000898200b8dc5ec1",
+        "f40c900a0ac8c09689d0209842b5bc81",
+        "cb3c7eaf2548dcf19ddc14b014be1af4",
+        "3adc095a8c545ec4c36ab10b78c94300",
+        "791ad08e6b55b2e883e06e4627ab24ce",
+        "8cd95b4b36b1816a0de20b759a22ff34",
+        "e91af0c017ce2a61c16afc4c4b79fbec"
+      ],
+      "close_negatives": [
+        "a1cae7beb645eb6cc760e4f440bceb33",
+        "374b429022d652129d466531393ed005",
+        "f1fc8470edd641646583b7c0fc023e74"
       ]
     }
   ]

@@ -342,17 +342,6 @@
       "source": "human"
     },
     {
-      "id": "amude9q3g5hyp",
-      "trace_id": "cb3c7eaf2548dcf19ddc14b014be1af4",
-      "session_id": "00e645ab03e949fb93f64e56e1d6692c",
-      "scenario_id": "support-0223",
-      "note": "Referencing orders that belong to others.",
-      "anchor": "s4",
-      "quote": "I can’t confirm or deny that the order exists or say who it belongs to.",
-      "ts": "2026-09-23T00:58:28.828Z",
-      "source": "human"
-    },
-    {
       "id": "amudebc5hbu8r",
       "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
       "session_id": "056c73d6ed534cafa9bf5a1f90f0ac59",
@@ -566,17 +555,6 @@
       "anchor": "s2",
       "quote": "search_products({\"query\":\"teapots\",\"store\":\"Juniper Home Goods\",\"max_price_usd\":30,\"limit\":5})",
       "ts": "2026-09-23T02:46:26.434Z",
-      "source": "human"
-    },
-    {
-      "id": "amudi832427iu",
-      "trace_id": "da8dd524da19547d722cb66a9252affb",
-      "session_id": "6c16dd45492c4fed8db931fd65efe733",
-      "scenario_id": "support-0193",
-      "note": "Listing results from an unauthorized store.",
-      "anchor": "s7",
-      "quote": "There are also Heavy-Duty Vase listings in another store at $149.50 and $254.75.",
-      "ts": "2026-09-23T02:49:10.780Z",
       "source": "human"
     },
     {

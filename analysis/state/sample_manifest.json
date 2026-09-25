@@ -634,7 +634,49 @@
         ]
       },
       "distance": "Euclidean distance to the nearest seed in UMAP(n_components=15, metric=cosine, seed=0) of the LLM-summary embeddings, rebuilt from the cache; re-clustering it reproduces all 267 labels in latest.json",
-      "deviation": "Replaces the handout's batch 4 (25 depth searches) and batch 5 (15 final uniform) with one 40-trace batch, by the reviewer's choice. There is no separate final uniform batch for the stability check."
+      "deviation": "Replaces the handout's batch 4 (25 depth searches) and batch 5 (15 final uniform) with one 40-trace batch, by the reviewer's choice. There is no separate final uniform batch for the stability check.",
+      "queue_items": {
+        "c65a20563dc06d9ef2ab6996a12aae70": "cmufxcnu70003o2076njfe5yq",
+        "9c54489f1eafbab5d8f4c8eb48896c59": "cmufxcnvj0006o207agngo2sk",
+        "8f616c8ead8dd282a636eb3bf5ce79b0": "cmufxcnvu0009o207c0n2hs7q",
+        "1abe69f8b7d962257ac91d9948aab762": "cmufxcnw3000co207068uxfg8",
+        "3adc095a8c545ec4c36ab10b78c94300": "cmufxcnwd000fo2074fxtefmp",
+        "bff30dcaef124a43ca9dc15815be5c45": "cmufxcnwl000io207k47asxqi",
+        "cdd173cd61973b71cf41a21def903325": "cmufxcnwu000lo207ix3p9o08",
+        "a4ec1380e9e0ce97a500a29e891ab72d": "cmufxcnx1000oo207s5mjkelf",
+        "791ad08e6b55b2e883e06e4627ab24ce": "cmufxcnxa000ro207a5im01jj",
+        "d43c131e102cf90fa6bf8c46834661c3": "cmufxcnxj000uo207atyfnyut",
+        "948d8c4c22cb53304287ce3b39dd9b26": "cmufxcnxr000xo207k3jh4nfz",
+        "8ae048d967dfe815dab35c265e1b3f13": "cmufxcnxy0010o207zqtz1fsy",
+        "3748d5a06902bf56c3c03f084ff36043": "cmufxcny60013o2072u9im22i",
+        "235c05b73259b48aebaf503c6586ec28": "cmufxcnye0016o2078vrv1xga",
+        "cb1bdd24112dce17038b78061059fcf7": "cmufxcnyl0019o2073b69srln",
+        "85bd9dd08b11f0b3428d478d51f48b5f": "cmufxcnys001co20759nkg3sn",
+        "8cd95b4b36b1816a0de20b759a22ff34": "cmufxcnz1001fo2071ueebeh6",
+        "693eb38472114b801d56bdf5380bc511": "cmufxcnz7001io2070ejrc2pz",
+        "fa5a50fd7487fab3ac6fce59245aa9b6": "cmufxcnzj001lo207r2zdq963",
+        "464a74d4e1edddf54951f492c8ba4180": "cmufxcnzx001oo207r34elcse",
+        "b1dd5bac0139c6006dad82c5b99a9c17": "cmufxco05001ro207kfvne7rl",
+        "9068683a5f7633e83b95da4a9d6ea4d3": "cmufxco0f001uo207hjpc8asv",
+        "c4d58335fd8af76b32a8ce2457683c45": "cmufxco0m001xo2074znovms8",
+        "cfa2975a6ee5a9d6cdd7a583ead4fbbe": "cmufxco0t0020o207m0uhu3zn",
+        "e91af0c017ce2a61c16afc4c4b79fbec": "cmufxco120023o207zsduzb8x",
+        "b213d9b0f4a0f667e10ebfa8f2521e05": "cmufxco1b0026o2074y1vdlpi",
+        "d762db41f33414ca3c8e2b8b2b0886be": "cmufxco1j0029o207r6lks6ls",
+        "f909cb7b19cfa6faeb74ec7f6c59b29f": "cmufxco1r002co207i0qll4i8",
+        "41ccd16520547208ba62760545e66e90": "cmufxco20002fo207y87c542v",
+        "fc301510846d2936512cf3162415b19a": "cmufxco29002io207i1yzovsl",
+        "e167a37c2561dfc26505eb05f25bc880": "cmufxco36002lo2077fr6y1xn",
+        "41e68abb1ace115b1d0f88a61213bcc5": "cmufxco3f002oo207g3fuhlcz",
+        "415174a77da5b1068b5654b5d75d463f": "cmufxco42002ro207ufviniwt",
+        "9ad0d23ac84fad177ca95c455f3af265": "cmufxco4d002uo207g70isdwp",
+        "92802071872450ec2f70b09c5024a015": "cmufxco4m002xo2074wvcdr3d",
+        "7ee692cee8e45fa25ba2e856bdca1936": "cmufxco4u0030o2076fihfbnl",
+        "6fb0b9f926f973f476989fc272c7ba20": "cmufxco570033o207pefj8pes",
+        "704df2c3cba566b2de3d791d3e752086": "cmufxco5f0036o20778v54ewl",
+        "4fe2b813cacdffc0072fd5f7e1048945": "cmufxco5p0039o207amfmbpbv",
+        "a42bdc5d049a3f1b7c48aa7b879315ae": "cmufxco5x003co2072zvknxo2"
+      }
     },
     {
       "name": "wl-acts-positives",
@@ -681,7 +723,12 @@
           "reason": "search: refund on an order ID inferred from a description"
         }
       ],
-      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "queue_items": {
+        "693eb38472114b801d56bdf5380bc511": "cmufxcnz7001io2070ejrc2pz",
+        "d43c131e102cf90fa6bf8c46834661c3": "cmufxcnxj000uo207atyfnyut",
+        "fa5a50fd7487fab3ac6fce59245aa9b6": "cmufxcnzj001lo207r2zdq963"
+      }
     },
     {
       "name": "wl-acts-close-negatives",
@@ -704,7 +751,8 @@
           "reason": "search: asks which tote order and whether it was opened"
         }
       ],
-      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "queue_items": {}
     },
     {
       "name": "wl-incomplete-positives",
@@ -775,7 +823,13 @@
           "reason": "search: 'store ID 1' and 'another store' unnamed (merchant)"
         }
       ],
-      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "queue_items": {
+        "85bd9dd08b11f0b3428d478d51f48b5f": "cmufxcnys001co20759nkg3sn",
+        "c65a20563dc06d9ef2ab6996a12aae70": "cmufxcnu70003o2076njfe5yq",
+        "3748d5a06902bf56c3c03f084ff36043": "cmufxcny60013o2072u9im22i",
+        "b1dd5bac0139c6006dad82c5b99a9c17": "cmufxco05001ro207kfvne7rl"
+      }
     },
     {
       "name": "wl-incomplete-close-negatives",
@@ -806,7 +860,279 @@
           "reason": "search: names order #2197 and why it's ineligible"
         }
       ],
-      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch."
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "queue_items": {
+        "8ae048d967dfe815dab35c265e1b3f13": "cmufxcnxy0010o207zqtz1fsy",
+        "a4ec1380e9e0ce97a500a29e891ab72d": "cmufxcnx1000oo207s5mjkelf",
+        "cfa2975a6ee5a9d6cdd7a583ead4fbbe": "cmufxco0t0020o207m0uhu3zn",
+        "7ee692cee8e45fa25ba2e856bdca1936": "cmufxco4u0030o2076fihfbnl"
+      }
+    },
+    {
+      "name": "wl-check-acts",
+      "worklist": true,
+      "mode": "acts_on_unconfirmed_order",
+      "method": "Boundary check: Claude-filled labels ranked by low confidence, a changed label, or a Claude Fail without your note",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 7,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — escalate_to_human opened ticket 173 about order 8001 taken as typed; no read-back/confirmation (record's product is Woven Wool Socks, not the Jam Trio the user "
+        },
+        {
+          "trace_id": "681a31760df2c03f6343385eef5eb811",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — escalate_to_human ticket 176 about order 8002 taken as typed without reading back details or confirming"
+        },
+        {
+          "trace_id": "c5ef84688112f529ee66848bf1eb8c1e",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — cancel_order on 3856 executed immediately on the typed ID with no read-back of order details or confirmation"
+        },
+        {
+          "trace_id": "8a7b68cb205b6758ac565ef18073ca72",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — cancel_order on 6039 as typed; support user asked to \"cancel it if still possible\" but details were not read back or confirmed"
+        },
+        {
+          "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — Order 8003 taken as typed; escalate_to_human ticket #179 opened about it without reading back details or getting confirmation"
+        },
+        {
+          "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+          "reason": "Claude Pass, confidence low — ticket is about an unspecified charge, not a specific inferred order; no cancel/refund"
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "Claude Fail, confidence medium — Opened ticket 180 about order 8003, an ID taken as typed in the prior turn; details were read back but the merchant never confirmed the order, and only asked fo"
+        }
+      ]
+    },
+    {
+      "name": "wl-check-incomplete",
+      "worklist": true,
+      "mode": "incomplete_answer",
+      "method": "Boundary check: Claude-filled labels ranked by low confidence, a changed label, or a Claude Fail without your note",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 10,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — refusal \"I cannot access that order for this account\" with no next step"
+        },
+        {
+          "trace_id": "681a31760df2c03f6343385eef5eb811",
+          "reason": "Claude Pass, confidence low — refusal reason (not refund-eligible) and next step (ticket #176) given, though it does not say the delivery date is missing"
+        },
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "Claude Pass, confidence low — both orders shown with store and delivery date and eligibility; asks which (products not named)"
+        },
+        {
+          "trace_id": "3adc095a8c545ec4c36ab10b78c94300",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — refusal \"I cannot access that order for this account\" with no next step (e.g. check the order number / account)"
+        },
+        {
+          "trace_id": "cb1bdd24112dce17038b78061059fcf7",
+          "reason": "Claude Pass, confidence low — order identified, ticket opened; does not say outright that the 60-day window has passed"
+        },
+        {
+          "trace_id": "e91af0c017ce2a61c16afc4c4b79fbec",
+          "reason": "Claude Fail, confidence medium; no open-code note of yours — \"I'm sorry, but I can't access that order for this account.\" with no next step"
+        },
+        {
+          "trace_id": "0e53f4e5f417745ca668783d28012cf5",
+          "reason": "Claude Fail, confidence medium — orders listed only by ID, date and price with no product or store name, so shopper cannot tell which is the wrong-item order"
+        },
+        {
+          "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+          "reason": "Claude Fail, confidence medium — 'I don't see any wooden puzzles ... right now.' offers no alternative or next step"
+        },
+        {
+          "trace_id": "e066a9364114921000898200b8dc5ec1",
+          "reason": "Claude Fail, confidence medium — 'I cannot access that order for this account...' ends with no next step or alternative"
+        },
+        {
+          "trace_id": "f40c900a0ac8c09689d0209842b5bc81",
+          "reason": "Claude Pass, confidence medium — clear denial; no-disclosure refusal appropriate"
+        }
+      ]
+    },
+    {
+      "name": "wl-check-invents",
+      "worklist": true,
+      "mode": "invents_or_contradicts_facts",
+      "method": "Boundary check: Claude-filled labels ranked by low confidence, a changed label, or a Claude Fail without your note",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 10,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "89e772f1691fd10058d8037932827c09",
+          "reason": "Claude Pass, confidence low — claims no \"show all orders\" tool; list_my_orders would be invalid for support anyway, so no wrong fact asserted about orders"
+        },
+        {
+          "trace_id": "91f77f79b3df3de2d6f0d85419b23209",
+          "reason": "Claude Pass, confidence low — \"looks like a delivered-but-not-received situation\" is an inference from delivered status and the shopper’s claim, hedged"
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "Claude Fail, confidence medium — Reply says 'For pocket arcade under $40, I didn't find a clear matching product' though the tool returned Pocket Arcade (store 19) headphones; misreads store as"
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "Claude Pass, confidence medium — $9.00 Travel Bluetooth Speaker matches tool; \"only speaker under $50\" matches catalog"
+        },
+        {
+          "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
+          "reason": "Claude Pass, confidence medium — $9.75 for blank-title product 3 from tool; stock stated as unknown"
+        },
+        {
+          "trace_id": "8bad20df566b934bcadf23237120e105",
+          "reason": "Claude Pass, confidence medium — rules match cw-store-overrides; examples are illustrative"
+        },
+        {
+          "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+          "reason": "Claude Pass, confidence medium — Main error is the wrong \"today is September 17, 2026\" applied to the dispute window, which belongs to misdates_dispute_window; order values match tools"
+        },
+        {
+          "trace_id": "cbb6f00b4bf14e98707ffe2d2c05be97",
+          "reason": "Claude Pass, confidence medium — 30-day window and no override from tool results (override claim cited to cw-returns rather than store info)"
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "Claude Pass, confidence medium — Store 1 is merchant 9001's store (Blue Heron Ceramics); prices match tool"
+        },
+        {
+          "trace_id": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "reason": "Claude Pass, confidence medium — escalation criteria and 24h SLA match cw-escalations; handoff tips are advice, not stated facts"
+        }
+      ]
+    },
+    {
+      "name": "wl-check-escalation",
+      "worklist": true,
+      "mode": "misapplied_escalation",
+      "method": "Boundary check: Claude-filled labels ranked by low confidence, a changed label, or a Claude Fail without your note",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 10,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "Claude Fail, confidence low; no open-code note of yours — order is outside the 21-day store window (delivered 2026-06-09, 22 days) so policy resolves it, yet agent opened a refund-exception ticket"
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "Claude Fail, confidence low — Merchant only asked for status; agent opened a duplicate ticket 180 although ticket 179 already covered the case"
+        },
+        {
+          "trace_id": "ac8039c944bc9f63cf5e5a3ce68046a2",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — refund of $439 queued_for_approval with no ticket opened (ESC-1 as revised)"
+        },
+        {
+          "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — product 4 has a -$5.00 price; reply only offers a ticket if the user supplies the correct price (ESC-5)"
+        },
+        {
+          "trace_id": "235c05b73259b48aebaf503c6586ec28",
+          "reason": "Claude Pass, confidence low — human review for >$100 refund is what policy calls for (ticket used instead of issue_refund queue)"
+        },
+        {
+          "trace_id": "41e68abb1ace115b1d0f88a61213bcc5",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — order 8002 has no delivery date; reply gives eligibility and opens no ticket (ESC-5)"
+        },
+        {
+          "trace_id": "92802071872450ec2f70b09c5024a015",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — order 8003's store differs from its product's store; reply lists it and opens no ticket (ESC-5)"
+        },
+        {
+          "trace_id": "704df2c3cba566b2de3d791d3e752086",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — order 8001 was shipped after it was delivered; reply relies on the delivery date and opens no ticket (ESC-5)"
+        },
+        {
+          "trace_id": "a42bdc5d049a3f1b7c48aa7b879315ae",
+          "reason": "Claude Fail, confidence high; label was changed; no open-code note of yours — order 8002 has no delivery date; reply says it was delivered and opens no ticket (ESC-5)"
+        },
+        {
+          "trace_id": "cad98979f6350b29971be7daaa1ecb86",
+          "reason": "Claude Pass, confidence medium — Offers human escalation only for a delivery/item problem, consistent with policy"
+        }
+      ]
+    },
+    {
+      "name": "wl-check-search",
+      "worklist": true,
+      "mode": "search_false_negative",
+      "method": "Boundary check: Claude-filled labels ranked by low confidence, a changed label, or a Claude Fail without your note",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 6,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "Claude Pass, confidence medium — tool did return the Pocket Arcade headphones; the false 'no match' is misinterpretation, not a retrieval miss"
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "Claude Pass, confidence medium — Catalog has only one speaker under $50 (221, $9); next cheapest is $56.75, so the claim is true"
+        },
+        {
+          "trace_id": "7f2e8bcfe642dc217416ab7888a89862",
+          "reason": "Claude Pass, confidence medium — does not claim nothing exists; returns the matches"
+        },
+        {
+          "trace_id": "1abe69f8b7d962257ac91d9948aab762",
+          "reason": "Claude Fail, confidence not recorded; no open-code note of yours"
+        },
+        {
+          "trace_id": "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+          "reason": "Claude Fail, confidence not recorded; no open-code note of yours"
+        },
+        {
+          "trace_id": "b213d9b0f4a0f667e10ebfa8f2521e05",
+          "reason": "Claude Fail, confidence not recorded; no open-code note of yours"
+        }
+      ]
+    },
+    {
+      "name": "wl-check-identifiers",
+      "worklist": true,
+      "mode": "exposes_internal_identifiers",
+      "method": "Boundary check: shopper replies that pass while showing other IDs or an earlier cw- ID, and Fails the role rule does not obviously support",
+      "selected_at": "2026-09-24T23:09:08+00:00",
+      "size": 7,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "shopper, Pass: final reply shows store or product IDs"
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "shopper, Pass: final reply shows store or product IDs"
+        },
+        {
+          "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
+          "reason": "shopper, Pass: final reply shows a ticket/request number (not a refund ID?)"
+        },
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "shopper, Pass: final reply shows a ticket/request number (not a refund ID?)"
+        },
+        {
+          "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
+          "reason": "shopper, Pass: final reply shows store or product IDs"
+        },
+        {
+          "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
+          "reason": "shopper, Pass: final reply shows store or product IDs"
+        },
+        {
+          "trace_id": "464a74d4e1edddf54951f492c8ba4180",
+          "reason": "shopper, Pass: final reply shows store or product IDs"
+        }
+      ]
     }
   ],
   "pool": "review_pool.json",
@@ -814,7 +1140,7 @@
   "queue": {
     "name": "hw4-review-sample",
     "queue_id": "cmuc1a5st00a6o2075xudrmce",
-    "enqueued_at": "2026-09-22T02:07:25+00:00",
+    "enqueued_at": "2026-09-24T19:28:11+00:00",
     "note": "flat queue; batch provenance is in this manifest, not in Langfuse"
   }
 }
