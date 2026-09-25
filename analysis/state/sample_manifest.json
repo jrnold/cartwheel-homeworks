@@ -1133,6 +1133,37 @@
           "reason": "shopper, Pass: final reply shows store or product IDs"
         }
       ]
+    },
+    {
+      "name": "wl-check-narrates",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "Your labels whose verdict changes when only the final reply is judged",
+      "selected_at": "2026-09-25T02:31:56+00:00",
+      "size": 5,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+          "reason": "your Fail; final reply alone reads as Pass (medium): 'I submitted the refund request for order 3568' with amount, status, ticket - results the requester can act on"
+        },
+        {
+          "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
+          "reason": "your Fail; final reply alone reads as Pass (medium): 'submitted a full refund request for $267.50... queued for human review' - states outcome and next step"
+        },
+        {
+          "trace_id": "8e4bc12111577d5815840d8dada9b3d2",
+          "reason": "your Fail; final reply alone reads as Pass (high): 'Order 5637 has been cancelled.' - result only"
+        },
+        {
+          "trace_id": "693eb38472114b801d56bdf5380bc511",
+          "reason": "your Pass; final reply alone reads as Fail (medium): 'I found the Northwind Books order and confirmed it is refund-eligible' - narrates a verification step before stating the result"
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "your Fail; final reply alone reads as Pass (low): 'Which purchase do you want refunded?' - lists candidate orders for the user to choose; 'I'll check the order details' is a brief next step"
+        }
+      ]
     }
   ],
   "pool": "review_pool.json",

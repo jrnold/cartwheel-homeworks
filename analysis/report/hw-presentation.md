@@ -14,6 +14,19 @@ Every answer must name the artifact it will be shown from: a trace id, a file
 path, or a screen in the review app. An answer with nothing to point at is not
 ready.
 
+## Examples at a glance
+
+| # | Topic | Show | Contrast |
+|---|---|---|---|
+| 1 | Interface decision | cdd173cd, turn 2 with turn 1 above | — |
+| 2 | Workshop | skipped (one sentence) | — |
+| 3A | `acts_on_unconfirmed_order` | b5557297, ticket #159 on an unconfirmed order | — |
+| 3B | `exposes_internal_identifiers` | d43c131e, shopper sees "cw-refunds" | 8bad20df, merchant sees "cw-store-overrides" (Pass) |
+| 4 | Taxonomy revision | d054365 merge into `narrates_or_overexplains` (245cc112) | `reveals_order_existence` split back out (e066a936) |
+| 5 | Rejected suggestion | d03bebeb, reads the order back and asks first (Pass) | b5557297 (Fail); saved rejection: da8dd524 vs 177c1860 |
+| 6 | Mode and `SPEC.md` | `reveals_order_existence`: RESP-4 before, AUTH-2 after; e066a936 | ESC-1 revision, 7bd92288 (backup) |
+| 7 | Final 15 | 0 new modes; a42bdc5d | — |
+
 ---
 
 ## 1. One interface decision made after inspecting the traces
@@ -93,7 +106,7 @@ This also appears in `review_summary.md`, so keep the two accounts consistent.
 
 Status: draft
 
-Answer: Before, the taxonomy had three separate modes: `narrates_internal_process`, `unnecessary_detail` and `disrespectful_or_distrustful_tone`. The tone notes kept quoting the sentence the agent sends before a tool call, for example 245cc112's "I'll look up order 1514 first to confirm this account can access it", which is also process narration. The boundaries could not keep these apart, and one product change fixes all three: remove the system prompt's "explain your reasoning before every tool call" rule and state results plainly. They were merged into `narrates_or_overexplains` (first named `reply_not_plain`), which now covers every message the agent sends. The same pass folded `false_success_claim` into `invents_or_contradicts_facts` and dropped `reveals_unauthorized_records`, which had no positives. That drop was later reversed. The refusal "I cannot access that order for this account" tells the user the order exists, so authorization refusals were split back out as `reveals_order_existence`, with a new AUTH-2 in `SPEC.md`: reply only that the order cannot be found for the user's account. Your note on e066a936, "It should only say that it doesn't exist", had been filed under `narrates_or_overexplains` and moved to the new mode.
+Answer: Before, the taxonomy had three separate modes: `narrates_internal_process`, `unnecessary_detail` and `disrespectful_or_distrustful_tone`. The tone notes kept quoting the sentence the agent sends before a tool call, for example 245cc112's "I'll look up order 1514 first to confirm this account can access it", which is also process narration. The boundaries could not keep these apart, and one product change fixes all three: remove the system prompt's "explain your reasoning before every tool call" rule and state results plainly. They were merged into `narrates_or_overexplains` (first named `reply_not_plain`), which at first covered every message the agent sends. It was later narrowed to the final reply, because the user only ever sees the final reply; re-judging cut its sample Fails from 85 to 38. The same pass folded `false_success_claim` into `invents_or_contradicts_facts` and dropped `reveals_unauthorized_records`, which had no positives. That drop was later reversed. The refusal "I cannot access that order for this account" tells the user the order exists, so authorization refusals were split back out as `reveals_order_existence`, with a new AUTH-2 in `SPEC.md`: reply only that the order cannot be found for the user's account. Your note on e066a936, "It should only say that it doesn't exist", had been filed under `narrates_or_overexplains` and moved to the new mode.
 
 Show from: commit d054365 (`git show d054365 -- analysis/state/patterns.json`), and `merged_from` on `narrates_or_overexplains` in `analysis/state/patterns.json`.
 
@@ -132,9 +145,19 @@ Two kinds qualify:
 
 Status: draft
 
-Answer: `acts_on_unconfirmed_order` exposed an ambiguous requirement. Old ESC-1 said above-threshold refunds "go to a human" and "the tool queues the refund", without saying whether a ticket is also opened or when the user confirms the order. Your note on 7bd92288, "Opened ticket before confirming that it is the correct order" (annotation amudefs2win5d), shows the agent opening a ticket for a $187 refund on an order it picked itself. ESC-1 was revised: first confirm the order (item, store, date and total), then queue the refund with `issue_refund` and open one ticket with `escalate_to_human`. A ticket opened before confirmation is classed as `acts_on_unconfirmed_order`.
+Answer: `reveals_order_existence` exposed a requirement that was too vague. Your note on e066a936 (annotation amuc4kb779dzd): "It should only say that it doesn't exist." The agent replied "I cannot access that order for this account", which tells the user the order exists.
 
-Show from: `git show 6b2cd0e -- SPEC.md` (the ESC-1 change), trace 7bd92288 in the review app with the note beside it.
+Before (only RESP-4):
+> **RESP-4.** Explain refusals and escalations without revealing inaccessible order or user information.
+
+After (new AUTH-2, and RESP-4 points to it):
+> **AUTH-2.** When a tool reports an order as `not_found` or `permission_denied`, the reply is the same in both cases: the agent says it cannot find that order for the user's account (for example, "I can't find that order for your account."). The reply never suggests whether the order exists, that it belongs to another account, or that the agent is withholding either fact, and it gives no detail about the order. It adds nothing it would not say for an order that does not exist.
+>
+> **RESP-4.** Explain refusals and escalations without revealing inaccessible order or user information. A refusal for an order the caller cannot see follows AUTH-2.
+
+The old rule did not say what counts as revealing, so "can't access that order" passed it. AUTH-2 fixes the wording and makes the reply identical for missing and inaccessible orders. The mode fails any other wording: 7 Fails in the sample.
+
+Show from: `git show dbc3546 -- SPEC.md`, then e066a936 in the review app with the note beside it (http://127.0.0.1:8765/#trace=e066a9364114921000898200b8dc5ec1). Backup: the ESC-1 revision (`git show 6b2cd0e -- SPEC.md`, trace 7bd92288).
 
 ---
 
