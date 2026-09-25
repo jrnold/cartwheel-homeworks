@@ -34,7 +34,7 @@ Counts are sample fractions of the 100 reviewed traces, not prevalence estimates
 
 | Mode | Fail | Sample fraction | Evaluator | Requirement |
 |---|---|---|---|---|
-| `narrates_or_overexplains` | 38 | 0.38 | LLM judge | RESP-6, RESP-5 |
+| `narrates_or_overexplains` | 30 | 0.30 | LLM judge | RESP-6, RESP-5 |
 | `exposes_internal_identifiers` | 29 | 0.29 | Code check | RESP-1 (revised) |
 | `acts_on_unconfirmed_order` | 27 | 0.27 | LLM judge | ACT-1, ESC-1 (revised) |
 | `misapplied_escalation` | 15 | 0.15 | LLM judge | ESC-1 to ESC-7, AUTH-1 |
@@ -52,7 +52,7 @@ Definitions, boundaries, positives, close negatives and originating annotations 
 
 | Mode | Batches 1 and 2 (60) | Batch 3 (25) | Final 15 |
 |---|---|---|---|
-| `narrates_or_overexplains` | 20 | 11 | 7 |
+| `narrates_or_overexplains` | 16 | 8 | 6 |
 | `exposes_internal_identifiers` | 15 | 9 | 5 |
 | `acts_on_unconfirmed_order` | 18 | 9 | 0 |
 | `incomplete_answer` | 8 | 5 | 1 |
@@ -68,7 +68,7 @@ The final 15 did change a definition. Four of them (41e68abb, 704df2c3, a42bdc5d
 
 The first draft had three separate modes: `narrates_internal_process`, `unnecessary_detail` and `disrespectful_or_distrustful_tone`. The tone notes kept quoting the sentence the agent sends before a tool call, for example 245cc112's "I'll look up order 1514 first to confirm this account can access it", which is also process narration. The boundaries could not keep the three apart, and one product change fixes all three: remove the system prompt's "explain your reasoning before every tool call" rule and state results plainly. They were merged into `narrates_or_overexplains` (first named `reply_not_plain`), which at first covered every message the agent sends. The same pass folded `false_success_claim` into `invents_or_contradicts_facts` and dropped `reveals_unauthorized_records`, which had no positives. See commit d054365 and `merged_from` in `patterns.json`.
 
-The mode was later narrowed to the final reply. The server returns only `final_output` (`server/app.py`), so the messages the agent writes before a tool call never reach the user. All 112 labeled traces were re-judged on the final reply alone: 63 of Claude's labels changed (61 Fail to Pass, 2 Pass to Fail), and the sample count fell from 85 Fails to 38. The reviewer's own labels were left as they were; the 5 whose verdict would change are in the worklist `wl-check-narrates`.
+The mode was later narrowed to the final reply. The server returns only `final_output` (`server/app.py`), so the messages the agent writes before a tool call never reach the user. All 112 labeled traces were re-judged on the final reply alone: 63 of Claude's labels changed (61 Fail to Pass, 2 Pass to Fail), and the sample count fell from 85 Fails to 38. The reviewer then coded the 5 own labels whose verdict would change (`wl-check-narrates`): 3 became Pass, and 693eb384 stayed Pass, which set two rules: a brief summary of what was done and a one-line reason for a status are results, and internal IDs belong to other modes. Four more of Claude's labels became Pass under those rules, Nine close cases went to `wl-check-narrates-2`; the reviewer kept all eight of Claude's Fails there, including brief "I checked order 8001…" wording, and changed 8e4bc121 to Pass because its Fail rested on a preamble. The sample now has 30 Fails.
 
 That drop was later reversed. The reviewer's notes on f40c900a and e066a936 ("It should only say that it doesn't exist") had been filed under `narrates_or_overexplains`, and two refusals were failing `incomplete_answer` for giving no next step. The reviewer decided that the refusal itself leaks: "I cannot access that order for this account" tells the user the order exists. Authorization refusals were split back out as `reveals_order_existence`, and AUTH-2 was added to `SPEC.md`: say only that the order cannot be found for the user's account, the same reply as for an order that does not exist. The two notes moved to the new mode, and the two `incomplete_answer` Fails became Passes.
 
@@ -107,4 +107,4 @@ Not done, by the reviewer's choice. There is no `workshop_notes.md`, and no mode
 
 ## Preparing for Homework 5
 
-Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `exposes_internal_identifiers` 195 / 62, `acts_on_unconfirmed_order` 187 / 70, `incomplete_answer` 222 / 35, `misapplied_escalation` 224 / 33, `search_false_negative` 225 / 32, `invents_or_contradicts_facts` 227 / 30 and `narrates_or_overexplains` 73 / 39 meet the minimum of 30 each. Still short: `misdates_dispute_window` (7 Fail) and `reveals_order_existence` (7 Fail).
+Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `exposes_internal_identifiers` 195 / 62, `acts_on_unconfirmed_order` 187 / 70, `incomplete_answer` 222 / 35, `misapplied_escalation` 224 / 33, `search_false_negative` 225 / 32, `invents_or_contradicts_facts` 227 / 30 and `narrates_or_overexplains` 81 / 31 meet the minimum of 30 each. Still short: `misdates_dispute_window` (7 Fail) and `reveals_order_existence` (7 Fail).

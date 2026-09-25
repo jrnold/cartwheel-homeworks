@@ -1164,6 +1164,53 @@
           "reason": "your Fail; final reply alone reads as Pass (low): 'Which purchase do you want refunded?' - lists candidate orders for the user to choose; 'I'll check the order details' is a brief next step"
         }
       ]
+    },
+    {
+      "name": "wl-check-narrates-2",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "Close cases after the reviewer's codes on wl-check-narrates (brief result summaries, one-line reasons and IDs are not this mode)",
+      "selected_at": "2026-09-25T03:01:44+00:00",
+      "size": 9,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "brief 'I checked the order for your trekking poles' framing; compare your Pass on 693eb384"
+        },
+        {
+          "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+          "reason": "brief 'I checked order 8001 for your store, and the record currently shows' framing; compare 693eb384"
+        },
+        {
+          "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+          "reason": "'I checked the recent orders on this account' plus 'I did not issue or promise any refund'"
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "product and store IDs plus 'in the current catalog search'"
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "merchant; IDs plus other stores' listings beyond the price asked"
+        },
+        {
+          "trace_id": "f88fb1e2a67ae4c5fa6ddb221022dbb9",
+          "reason": "'counted from the delivery date, not the purchase date': a short reason, or policy background?"
+        },
+        {
+          "trace_id": "704df2c3cba566b2de3d791d3e752086",
+          "reason": "how the return window is counted, plus the record's eligibility flag"
+        },
+        {
+          "trace_id": "1175a6bc10bc41884e9b8672afc394ce",
+          "reason": "adds the $100 review rule and 5-10 day timing when only eligibility was asked"
+        },
+        {
+          "trace_id": "8e4bc12111577d5815840d8dada9b3d2",
+          "reason": "your Fail; the note quotes the preamble, and the final reply is only 'Order 5637 has been cancelled.'"
+        }
+      ]
     }
   ],
   "pool": "review_pool.json",

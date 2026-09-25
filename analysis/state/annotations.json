@@ -397,17 +397,6 @@
       "source": "human"
     },
     {
-      "id": "amudfi7b1h4ds",
-      "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
-      "session_id": "11c92072d6d441d99e951a7d9af7d12c",
-      "scenario_id": "support-0239",
-      "note": "Chose one order over others",
-      "anchor": "s4",
-      "quote": "The recent order that is currently marked refund-eligible is:\n\nOrder #9031 — $284.75, delivered 2026-06-09",
-      "ts": "2026-09-23T01:33:03.997Z",
-      "source": "human"
-    },
-    {
       "id": "amudfkkvah6i3",
       "trace_id": "89e772f1691fd10058d8037932827c09",
       "session_id": "19d41633d3754f46a6f0e421690ebfb6",
@@ -1095,6 +1084,28 @@
       "quote": "Yes — order 8002 is marked as **delivered**.",
       "ts": "2026-09-23T17:31:55.964085Z",
       "source": "agent"
+    },
+    {
+      "id": "amugdf2t3o7ws",
+      "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+      "session_id": "11c92072d6d441d99e951a7d9af7d12c",
+      "scenario_id": "support-0239",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-25T02:57:57.495Z",
+      "source": "human"
+    },
+    {
+      "id": "amuge46qe2fbz",
+      "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+      "session_id": "09a5695b5d494a159ab3f0cc8486d1f9",
+      "scenario_id": "support-0178",
+      "note": "Should escalate to a human without speculating on causes.",
+      "anchor": "s7",
+      "quote": "Since the delivery date is earlier than the ship date, that looks like a tracking/data inconsistency.",
+      "ts": "2026-09-25T03:17:28.982Z",
+      "source": "human"
     }
   ]
 }
