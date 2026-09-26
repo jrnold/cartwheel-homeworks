@@ -45,7 +45,14 @@ from agent import db
 from agent.agent import build_agent, prompt_version
 from agent.auth import AuthContext
 from agent.config import REPO_ROOT
-from observability.instrument import load_env, setup_openai_tracing, setup_tracing
+from observability.instrument import (
+    flush_raindrop,
+    load_env,
+    raindrop_traits,
+    setup_openai_tracing,
+    setup_raindrop,
+    setup_tracing,
+)
 
 DEFAULT_USERS = {"shopper": 1, "merchant": 9001, "support": 9501}
 MAX_TURNS = 12  # cap runaway loops; keeps conversations bounded
@@ -102,12 +109,14 @@ async def chat(
     defenses: bool = False,
     debug: bool = False,
     tracing: bool = False,
+    session_id: str | None = None,
 ) -> None:
     agent = build_agent(ctx, model=model, defenses=defenses)
     # main() enables callbacks for Langfuse or explicit OpenAI tracing.
     run_config = RunConfig(tracing_disabled=not tracing)
     session = SQLiteSession(
-        f"cli-{ctx.role}-{ctx.user_id}-{int(time.time())}", str(SESSIONS_DB)
+        session_id or f"cli-{ctx.role}-{ctx.user_id}-{int(time.time())}",
+        str(SESSIONS_DB),
     )
     version = prompt_version()
     print(
@@ -196,6 +205,14 @@ def main() -> None:
         "--trace-openai", action="store_true",
         help="send traces to OpenAI (unavailable for zero-data-retention organizations)",
     )
+    # Not in the mutually exclusive group above: Raindrop reads the Agents SDK
+    # processor registry, so it mirrors to Workshop alongside either
+    # destination rather than competing with one.
+    parser.add_argument(
+        "--trace-raindrop",
+        action="store_true",
+        help="mirror the run to the local Raindrop Workshop daemon",
+    )
     parser.add_argument(
         "--defenses",
         action="store_true",
@@ -218,9 +235,32 @@ def main() -> None:
         except ValueError as exc:
             parser.error(str(exc))
     ctx = resolve_auth(args.role, args.user)
-    asyncio.run(
-        chat(ctx, args.model, defenses=args.defenses, debug=args.debug, tracing=tracing)
-    )
+    # One id for the chat session, shared by the SQLite transcript and the
+    # Raindrop conversation, so a multi-turn chat groups as one conversation.
+    session_id = f"cli-{ctx.role}-{ctx.user_id}-{int(time.time())}"
+    if args.trace_raindrop:
+        # After setup_tracing(): see the ordering note in setup_raindrop().
+        setup_raindrop(
+            user_id=str(ctx.user_id),
+            convo_id=session_id,
+            traits=raindrop_traits(ctx, prompt_version()),
+        )
+        # RunConfig(tracing_disabled=...) gates span creation itself, so a
+        # registered processor still sees nothing unless this is on.
+        tracing = True
+    try:
+        asyncio.run(
+            chat(
+                ctx,
+                args.model,
+                defenses=args.defenses,
+                debug=args.debug,
+                tracing=tracing,
+                session_id=session_id,
+            )
+        )
+    finally:
+        flush_raindrop()
 
 
 if __name__ == "__main__":

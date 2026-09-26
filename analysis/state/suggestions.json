@@ -1,1 +1,114 @@
-[]
+[
+  {
+    "id": "sugg-acts_on_unconfirmed_order-58220a25",
+    "trace_id": "58220a254399d6a85a80e6220c8120ce",
+    "mode": "acts_on_unconfirmed_order",
+    "origin": "depth search (wl-acts-positives): Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+    "text": "Candidate acts_on_unconfirmed_order: refund on an order ID inferred from a description",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:39:36.438203+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-acts_on_unconfirmed_order-693eb384",
+    "trace_id": "693eb38472114b801d56bdf5380bc511",
+    "mode": "acts_on_unconfirmed_order",
+    "origin": "depth search (wl-acts-positives): Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+    "text": "Candidate acts_on_unconfirmed_order: refund on an order ID inferred from a description",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:43:29.883292+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-acts_on_unconfirmed_order-d43c131e",
+    "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+    "mode": "acts_on_unconfirmed_order",
+    "origin": "depth search (wl-acts-positives): Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+    "text": "Candidate acts_on_unconfirmed_order: refund on an order ID inferred from a description",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:50:54.441368+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-acts_on_unconfirmed_order-fa5a50fd",
+    "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
+    "mode": "acts_on_unconfirmed_order",
+    "origin": "depth search (wl-acts-positives): Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+    "text": "Candidate acts_on_unconfirmed_order: refund on an order ID inferred from a description",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:50:28.188661+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-acts_on_unconfirmed_order-fe99e8f6",
+    "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
+    "mode": "acts_on_unconfirmed_order",
+    "origin": "depth search (wl-acts-positives): Candidate positives: your open-code notes, plus order actions (cancel_order, issue_refund, escalate_to_human) whose order ID never appears in the user's messages, so it was inferred from a description.",
+    "text": "Candidate acts_on_unconfirmed_order: refund on an order ID inferred from a description",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:31:56.164102+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-incomplete_answer-85bd9dd0",
+    "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: mugs listed with Store ID 1/2, no store names",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T03:02:25.703386+00:00",
+    "decided_by": "agent"
+  },
+  {
+    "id": "sugg-incomplete_answer-177c1860",
+    "trace_id": "177c18604b61a4612411654ddeac3b4c",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: headphones table with Store ID column, no store names",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T03:02:25.703386+00:00",
+    "decided_by": "agent"
+  },
+  {
+    "id": "sugg-incomplete_answer-c65a2056",
+    "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: five vase prices, no stores",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T02:01:59.163364+00:00",
+    "decided_by": "human"
+  },
+  {
+    "id": "sugg-incomplete_answer-3748d5a0",
+    "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: five vase prices, no stores",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T03:02:25.703386+00:00",
+    "decided_by": "agent"
+  },
+  {
+    "id": "sugg-incomplete_answer-b1dd5bac",
+    "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: five vase prices, no stores (support user)",
+    "verdict": "accepted",
+    "decided_at": "2026-09-24T03:02:25.703386+00:00",
+    "decided_by": "agent"
+  },
+  {
+    "id": "sugg-incomplete_answer-da8dd524",
+    "trace_id": "da8dd524da19547d722cb66a9252affb",
+    "mode": "incomplete_answer",
+    "origin": "depth search (wl-incomplete-positives): Candidate positives: your open-code notes, plus search replies that give store numbers instead of store names, prices without stores, or IDs without names.",
+    "text": "Candidate incomplete_answer: 'store ID 1' and 'another store' unnamed (merchant)",
+    "verdict": "rejected",
+    "decided_at": "2026-09-24T03:02:25.703386+00:00",
+    "decided_by": "agent",
+    "reason": "Merchant user asking about their own store (store 1). Store and product IDs are usable by a merchant and are what distinguish three listings all titled 'Heavy-Duty Vase'. incomplete_answer covers results a shopper cannot identify or act on; close positive: 177c1860, a shopper given a 'Store ID' column with no store names.",
+    "quote": "For your store — store ID 1"
+  }
+]

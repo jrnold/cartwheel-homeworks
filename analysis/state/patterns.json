@@ -1,1 +1,282 @@
-{"modes": []}
+{
+  "modes": [
+    {
+      "name": "narrates_or_overexplains",
+      "definition": "Fail when the final reply (the only message the user sees) describes the agent's own lookups, tool calls, searches or checks instead of stating the result, or includes facts the user did not ask for and does not need to act on (reasons behind a status beyond a one-line explanation, policy background beyond the decision). Messages the agent sends before a tool call are not shown to the user and are not judged. Internal IDs belong to exposes_internal_identifiers or incomplete_answer, not here.\n\nExamples: \n- \"I couldn't find a store literally named ceramics, but when I searched for ceramics heavy duty vase\" (7f2e8bcf),\n- \"I checked order 8001 for your store, and the record currently shows\" (078ec0db): reporting the check itself fails, even briefly,\n- \"my initial search failed\"\n\nPass when the final reply states the result directly and respectfully, including when refusing, and names sources only in user terms. A brief summary of what was done (\"I found the Northwind Books order and confirmed it is refund-eligible\", 693eb384) and a one-line reason for a status are results, not narration.",
+      "boundary": "Boundary to other modes:\n\n- invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.\n- exposes_internal_policy_identifiers: Citing specific policy numbers to user are their own problem.\n",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule.",
+      "merged_from": [
+        "narrates_internal_process",
+        "unnecessary_detail",
+        "disrespectful_or_distrustful_tone"
+      ],
+      "annotations": [
+        "amuc2nbzllteo",
+        "amuc2m3qsd0oo",
+        "amuc2o4ctkvnv",
+        "amuc2tuktv3w5",
+        "amuc3pi0yll8b",
+        "amuc4i7m6ke9b",
+        "amuc3u6hlcg8p",
+        "amuc2zq5pjlog",
+        "amuc3l9f0hi30",
+        "amuc3ly9x2ptc",
+        "amudebc5hbu8r",
+        "amudecc1pfoq0",
+        "amudfxl8md7fg",
+        "a0cf52f6c4mmpz",
+        "a0cf52f6d4q7qj",
+        "a0cf52f6dbry6q",
+        "amuc3x891c1dm",
+        "amuc2zfn4qgkd",
+        "amuc3k3o09365",
+        "amudeefqwdzu6",
+        "amudffzh1lv3v",
+        "amudi1lpprarf",
+        "amuc4gy2964j2",
+        "amuc412c6vmep",
+        "amuc3n0y5lwh4",
+        "a0cf52f6c1bw37",
+        "amuc30r44925t",
+        "amudhpx62pcpo",
+        "amuc2uo8r8v9k"
+      ],
+      "positives": [
+        "b213d9b0f4a0f667e10ebfa8f2521e05",
+        "41ccd16520547208ba62760545e66e90",
+        "7ee692cee8e45fa25ba2e856bdca1936",
+        "4fe2b813cacdffc0072fd5f7e1048945",
+        "f909cb7b19cfa6faeb74ec7f6c59b29f"
+      ],
+      "close_negatives": [
+        "fe99e8f6b9c7444acd73f7c1e2caf33d",
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "693eb38472114b801d56bdf5380bc511",
+        "45797b1b3b137ba01160978a2ac5ef36"
+      ]
+    },
+    {
+      "name": "exposes_internal_identifiers",
+      "definition": "Fail when the user is a shopper and the final reply contains a Cartwheel policy identifier (cw-*) or a refund ID (for example \"Refund ID: 604\", \"Refund request ID: 582\"). Pass for shoppers when neither appears, and always pass for merchant and support users, who should see policy identifiers and can use refund IDs in the approval queue.",
+      "boundary": "vs narrates_or_overexplains: store, product and ticket IDs are not covered here; whether they help depends on the question and audience, so judge them under narrates_or_overexplains.",
+      "evaluator": "code check",
+      "requirement": "RESP-1 (revised: shoppers get plain-language policy without cw- identifiers or refund IDs; merchant and support users get identifiers).",
+      "annotations": [
+        "amuc2wivc2cf7",
+        "amuc3smtmr70o",
+        "amuc3vsln1hdn",
+        "a0cf52f6bfzvrs",
+        "a0cf52f6c6glng"
+      ],
+      "positives": [
+        "d762db41f33414ca3c8e2b8b2b0886be",
+        "f909cb7b19cfa6faeb74ec7f6c59b29f",
+        "fc301510846d2936512cf3162415b19a",
+        "7ee692cee8e45fa25ba2e856bdca1936",
+        "704df2c3cba566b2de3d791d3e752086"
+      ],
+      "close_negatives": [
+        "0474e2952bad8c976f4dcfb09e89a246",
+        "8bad20df566b934bcadf23237120e105",
+        "245cc11299a87b99036f3758fcc180c0"
+      ]
+    },
+    {
+      "name": "acts_on_unconfirmed_order",
+      "definition": "Fail when the agent takes an immediate action on an order (cancel_order, issue_refund, or escalate_to_human opening a ticket about it) without the user first confirming that order: either the order was inferred from a description, or the ID was taken as typed without reading back its details. Pass when the agent confirms the order before acting, or takes no action.",
+      "boundary": "vs invents_or_contradicts_facts: this mode is about acting before confirming WHICH order; that mode is about stating values no tool returned. Asking the user to choose between orders (44b9269f) is a close negative. vs misapplied_escalation: a warranted escalation opened before the user confirmed the order fails here; an escalation the policy does not call for fails there.",
+      "evaluator": "LLM judge",
+      "requirement": "ACT-1 (confirm the order before cancelling, refunding or opening a ticket about it; ask when several match; read back typed IDs) and ESC-1 for refunds above the threshold.",
+      "annotations": [
+        "amuc2mu6gk53v",
+        "amuc3tv6suyrx",
+        "amudfpyon75uz",
+        "amudefs2win5d"
+      ],
+      "positives": [
+        "b5557297f306cb7d0d9ca08ea3f70968",
+        "7bd92288418d057a63a4b443ef990d73",
+        "8e4bc12111577d5815840d8dada9b3d2",
+        "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+        "58220a254399d6a85a80e6220c8120ce",
+        "d43c131e102cf90fa6bf8c46834661c3"
+      ],
+      "close_negatives": [
+        "44b9269f1ceecfd337c0c8115fd993ce",
+        "d03bebeb79fc2361f2953e3aba3125d5",
+        "7534da6cb5ae2b0839353587a83f0481"
+      ]
+    },
+    {
+      "name": "invents_or_contradicts_facts",
+      "definition": "Fail when the final reply states a value or conclusion no tool returned (an invented price, eligibility or interpretation of the request), claims an action succeeded (updated, cancelled, refunded, changed) without a tool result reporting that success, including actions no tool supports, or contradicts what a tool or an earlier turn reported. Pass when every stated fact and every claimed outcome traces to a tool result, and missing or inconsistent information is stated as such.",
+      "boundary": "vs acts_on_unconfirmed_order: that mode is about action on an unconfirmed order; this one is about unsupported statements. vs misdates_dispute_window: a wrong 'today' or day count applied to a dispute, return or refund window belongs there. vs narrates_or_overexplains: a correct fact that is unnecessary or badly framed belongs there. vs misapplied_escalation: stating a value a bad record cannot support fails here; not opening the ESC-5 investigation ticket fails there. One trace can fail both.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-3 (state missing or inconsistent information), RESP-2 (revised: no claimed success, including for actions no tool supports), and ESC-5 (no value a bad record cannot support).",
+      "annotations": [
+        "amuc2t6gb3sxd",
+        "amuc3j9gdvkap",
+        "amuc3o9t3khou",
+        "amuc3r7g36ks6",
+        "a0cf52f6cbw8g9",
+        "a0cf52f6d9uqgy",
+        "a0cf52f6de4hob",
+        "amuc3zmilhvvw"
+      ],
+      "positives": [
+        "41e68abb1ace115b1d0f88a61213bcc5",
+        "9ad0d23ac84fad177ca95c455f3af265",
+        "704df2c3cba566b2de3d791d3e752086",
+        "a42bdc5d049a3f1b7c48aa7b879315ae",
+        "693eb38472114b801d56bdf5380bc511"
+      ],
+      "close_negatives": [
+        "9c54489f1eafbab5d8f4c8eb48896c59",
+        "bff30dcaef124a43ca9dc15815be5c45",
+        "d43c131e102cf90fa6bf8c46834661c3",
+        "235c05b73259b48aebaf503c6586ec28",
+        "9068683a5f7633e83b95da4a9d6ea4d3"
+      ],
+      "merged_from": [
+        "invents_or_contradicts_facts",
+        "false_success_claim"
+      ]
+    },
+    {
+      "name": "incomplete_answer",
+      "definition": "Fail when the final reply does not give the user what they need to understand or act on their request: the question goes unanswered; the results cannot be told apart or understood (products or orders listed by store number instead of store name, without prices, or by ID without a name, especially in search results); the order referred to cannot be identified; the reason for a refusal is missing; or no alternative or next step is offered when the direct request cannot be met, or when a refund or cancellation request is answered with eligibility alone instead of showing the order details and asking the user to confirm the action. Pass when the user could understand and act on the reply without asking again.",
+      "boundary": "vs narrates_or_overexplains: too little vs too much. A store number shown INSTEAD of the store name fails here; a store or product ID shown IN ADDITION to the name belongs under narrates_or_overexplains. vs search_false_negative: a false 'nothing matches' caused by the search tool belongs there; correct results presented without enough to understand them belong here. vs missing tool capability: an honest \"cannot do that\" with a next step passes. vs reveals_order_existence: a refusal for an order the user cannot see is judged there, not here; it needs no next step beyond what a not-found reply would give.",
+      "evaluator": "LLM judge",
+      "requirement": "RESP-7 (identify products, stores and orders in usable terms; give a reason and a next step) and RESP-5. Implementation: TOOL-3 now returns the store name.",
+      "annotations": [
+        "amudflqbsb4je",
+        "amudfkkvah6i3",
+        "amudiat27tffw",
+        "amudi0ya8nxeb",
+        "amudhh9ckqtjm",
+        "amudimt4qysz8",
+        "amudhtbaa6xq3",
+        "amudi4k8yvx7y",
+        "amudg0e5k509r",
+        "amuc4hpfo982p"
+      ],
+      "positives": [
+        "41e68abb1ace115b1d0f88a61213bcc5",
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "177c18604b61a4612411654ddeac3b4c",
+        "85bd9dd08b11f0b3428d478d51f48b5f",
+        "3748d5a06902bf56c3c03f084ff36043"
+      ],
+      "close_negatives": [
+        "da8dd524da19547d722cb66a9252affb",
+        "f6b7d73b685fdb17594dae4099e99384",
+        "8ae048d967dfe815dab35c265e1b3f13",
+        "a4ec1380e9e0ce97a500a29e891ab72d",
+        "7ee692cee8e45fa25ba2e856bdca1936"
+      ]
+    },
+    {
+      "name": "misapplied_escalation",
+      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund on an eligible order that is not both queued with issue_refund and given a ticket (ESC-1; a ticket alone, or a queued refund alone, fails), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
+      "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly. vs acts_on_unconfirmed_order: an escalation (including the ESC-1 refund ticket) opened before the user confirmed which order it concerns belongs there; this mode is about whether the escalation was called for at all.",
+      "evaluator": "LLM judge",
+      "requirement": "ESC-1 to ESC-5 (required escalations, including the ESC-5 investigation ticket for bad data), ESC-6 (not on behalf of support users), ESC-7 (no additional tickets for an order that has one), AUTH-1.",
+      "annotations": [
+        "amudig94js9re",
+        "amudhnrh6k4do",
+        "a0cf0aca81ie1k",
+        "a0cf52f6cf2dk1"
+      ],
+      "positives": [
+        "8f616c8ead8dd282a636eb3bf5ce79b0",
+        "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+        "9ad0d23ac84fad177ca95c455f3af265"
+      ],
+      "close_negatives": [
+        "cdd173cd61973b71cf41a21def903325",
+        "948d8c4c22cb53304287ce3b39dd9b26",
+        "cb1bdd24112dce17038b78061059fcf7",
+        "fa5a50fd7487fab3ac6fce59245aa9b6",
+        "c4d58335fd8af76b32a8ce2457683c45"
+      ]
+    },
+    {
+      "name": "misdates_dispute_window",
+      "definition": "Fail when a reply states or implies that an order is inside or outside its dispute window (60 days, cw-disputes) or its return/refund window (30 days, cw-returns, or the store's override), or refuses or qualifies a dispute, return or refund on timing grounds, and that claim is wrong when the order's age is computed as the world date (2026-07-01, meta.world_asof) minus delivered_at. Pass when every window claim matches that computed age, or the reply makes no window claim.",
+      "boundary": "vs invents_or_contradicts_facts: a wrong 'today' or wrong day count applied to a dispute, return or refund window belongs here; other invented values belong there. A correct window claim that the order record contradicts (for example the refund_eligible flag) belongs there.",
+      "evaluator": "LLM judge",
+      "requirement": "DATE-1 (compute windows from delivered_at and meta.world_asof), cw-disputes, cw-returns and RESP-3. Implementation: give the agent the world date or have get_order return the order's age.",
+      "annotations": [
+        "a0cf0805a7j30o",
+        "a0cf0805a8v49c",
+        "a0cf0805a9mrfh",
+        "a0cf0805aamgme",
+        "a0cf0805abkj37",
+        "a0cf0805ac5nh6"
+      ],
+      "positives": [
+        "ccee21cec42b438ab24ef010efd6761e",
+        "704df2c3cba566b2de3d791d3e752086",
+        "63a5469b15bcc8cd09bd0c58864dd053",
+        "b42e0a577d4b7adcc434ba7bdec736db"
+      ],
+      "close_negatives": [
+        "c4d58335fd8af76b32a8ce2457683c45",
+        "cb1bdd24112dce17038b78061059fcf7",
+        "a1a5035a46e364540c87999e77eac460"
+      ]
+    },
+    {
+      "name": "search_false_negative",
+      "definition": "Fail when the reply tells the user that no product matches their request (query, store, or price limit), or cannot find the product they named, while the catalog contains a product that satisfies the request and the search tool missed it (plural or extra words, inexact store name, no keyword-free store listing, no lookup by product ID). Pass when the reply's product answer matches the catalog.",
+      "boundary": "vs incomplete_answer: this mode is a false 'nothing exists' caused by search misses; an answer that is merely thin, with correct results, belongs there. vs invents_or_contradicts_facts: the agent reports what the tool returned, so the fault is the retrieval, not an invented value.",
+      "evaluator": "code check",
+      "requirement": "TOOL-3 (revised: plurals, approximate store names, keyword-free store listing, product-ID lookup) and RESP-3.",
+      "annotations": [
+        "a0cf0aca84iyoy",
+        "a0cf10fc03te7m",
+        "a0cf52f6bcart8"
+      ],
+      "positives": [
+        "1abe69f8b7d962257ac91d9948aab762",
+        "6a2c28665db0a00070e6636e90e7e8d3",
+        "c2e7306d7ee7a6226e5e68e62034d142",
+        "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+        "b213d9b0f4a0f667e10ebfa8f2521e05"
+      ],
+      "close_negatives": [
+        "a4ec1380e9e0ce97a500a29e891ab72d",
+        "8ae048d967dfe815dab35c265e1b3f13",
+        "85bd9dd08b11f0b3428d478d51f48b5f",
+        "464a74d4e1edddf54951f492c8ba4180"
+      ]
+    },
+    {
+      "name": "reveals_order_existence",
+      "definition": "Fail when a tool returns not_found or permission_denied for an order and the reply says anything other than that the agent cannot find that order for the user's account: saying it cannot access the order (which implies the order exists), mentioning who it belongs to or another account, saying the agent is withholding whether it exists, or giving any detail about it. Pass when the reply is the same as for an order that does not exist, e.g. \"I can't find that order for your account.\" Traces with no denied or unknown order pass.",
+      "boundary": "vs narrates_or_overexplains: a final reply that narrates the lookup belongs there; this mode is what the refusal says about the order. Preambles before a tool call are not shown to the user. vs incomplete_answer: a refusal here needs no next step. vs exposes_internal_identifiers: that mode is the user's own data in internal form; this one is information about an order the user cannot see.",
+      "evaluator": "code check (the reply after a not_found or permission_denied result must match the not-found wording), with an LLM judge for paraphrases",
+      "requirement": "AUTH-2, RESP-4.",
+      "merged_from": [],
+      "annotations": [
+        "amuc2icun3ium",
+        "amuc4kb779dzd"
+      ],
+      "positives": [
+        "e066a9364114921000898200b8dc5ec1",
+        "f40c900a0ac8c09689d0209842b5bc81",
+        "cb3c7eaf2548dcf19ddc14b014be1af4",
+        "3adc095a8c545ec4c36ab10b78c94300",
+        "791ad08e6b55b2e883e06e4627ab24ce",
+        "8cd95b4b36b1816a0de20b759a22ff34",
+        "e91af0c017ce2a61c16afc4c4b79fbec"
+      ],
+      "close_negatives": [
+        "a1cae7beb645eb6cc760e4f440bceb33",
+        "374b429022d652129d466531393ed005",
+        "f1fc8470edd641646583b7c0fc023e74"
+      ]
+    }
+  ]
+}

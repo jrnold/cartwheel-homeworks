@@ -125,6 +125,17 @@ def test_tool_span_records_allowed_caller(spans) -> None:
     assert "cartwheel.permission_denied.reason" not in attrs
 
 
+def test_raindrop_traits_omit_store_for_shopper() -> None:
+    traits = instrument.raindrop_traits(SHOPPER_1, "abc123")
+    # Absent, not null: a shopper has no store.
+    assert traits == {"role": "shopper", "prompt_version": "abc123"}
+
+
+def test_raindrop_traits_include_merchant_store() -> None:
+    traits = instrument.raindrop_traits(MERCHANT_STORE_2, "abc123")
+    assert traits == {"role": "merchant", "store_id": 2, "prompt_version": "abc123"}
+
+
 def test_tool_span_records_denial_and_store(spans) -> None:
     provider, exporter = spans
     reason = "order belongs to another store"

@@ -110,6 +110,85 @@ def setup_tracing() -> bool:
     return True
 
 
+_raindrop: Any = None
+
+
+def raindrop_traits(ctx: "AuthContext", prompt_version: str) -> dict[str, Any]:
+    """Return the traits that make a Workshop run recognizable.
+
+    These ride along with every run from this caller, so Workshop can group and
+    filter by them. Values must be str, int, bool, or float.
+
+    Contract:
+      - `ctx` is the authenticated caller (see agent/auth.py). `ctx.role` is
+        "shopper", "merchant", or "support"; `ctx.store_id` is set only for
+        merchants and is None otherwise.
+      - `prompt_version` is the short hash from agent.agent.prompt_version().
+      - Return a flat dict. Skip keys whose value is None rather than sending
+        a null.
+
+    Traits attach to the user through `identify()`, not to a single run. Role
+    and store never change for a given user id, so they are stable. The prompt
+    version can change between runs by the same user, so it reflects the
+    latest run; each run's model input still records the prompt actually used.
+    """
+    traits: dict[str, Any] = {
+        "role": ctx.role,
+        "store_id": ctx.store_id,
+        "prompt_version": prompt_version,
+    }
+    return {key: value for key, value in traits.items() if value is not None}
+
+
+def setup_raindrop(
+    *,
+    user_id: str | None = None,
+    convo_id: str | None = None,
+    traits: dict[str, Any] | None = None,
+) -> bool:
+    """Register the Raindrop trace processor with the Agents SDK.
+
+    Raindrop reads the captured run from the Agents SDK's own processor
+    registry, not from the OpenTelemetry provider Langfuse owns, so this adds
+    a second reader rather than a competing tracer provider.
+
+    Call this *after* `setup_tracing()`. `instrument_genai()` installs
+    OpenLLMetry with `replace_existing_processors=True`, which clears the
+    registry; Raindrop appends itself with `add_trace_processor`, so a
+    processor registered first is silently dropped and Workshop stays empty.
+
+    Destination: the SDK mirrors to a local Workshop daemon when
+    RAINDROP_LOCAL_DEBUGGER is set (or when localhost:5899 answers a probe).
+    Mirroring is additive and never replaces a cloud destination.
+    """
+    global _raindrop
+    if _raindrop is not None:
+        return True
+    load_env()
+    from raindrop_openai_agents import create_raindrop_openai_agents
+
+    _raindrop = create_raindrop_openai_agents(
+        api_key=os.environ.get("RAINDROP_WRITE_KEY") or "",
+        user_id=user_id,
+        convo_id=convo_id,
+        # Keep OTEL tracing on: tool spans and the git-SHA metadata come from
+        # this path, and turning it off reduces a run to the bare LLM call.
+        # The endpoint (RAINDROP_ENDPOINT) decides where it exports, so a
+        # local-only setup points it at Workshop rather than the cloud.
+        tracing_enabled=True,
+    )
+    if traits and user_id:
+        _raindrop.identify(user_id, traits=traits)
+    log.info("raindrop tracing enabled; mirroring to the local Workshop daemon")
+    return True
+
+
+def flush_raindrop() -> None:
+    """Send buffered Raindrop events. Safe to call when Raindrop is off."""
+    if _raindrop is not None:
+        _raindrop.flush()
+
+
 def record_tool_result(ctx: "AuthContext", result: dict[str, Any]) -> None:
     """Add authenticated identity and permission attributes to the active tool span.
 
