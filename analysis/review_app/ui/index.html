@@ -82,6 +82,16 @@ h4:first-child { margin-top: 0; }
 .step.assistant { border-left-color: var(--asst); }
 .step.tool_call, .step.tool_result { border-left-color: var(--tool); }
 .step.bad { border-left-color: var(--err); }
+/* An assistant message before the turn's final reply. The server returns only
+   final_output, so the user never sees these; they read as process, like tool
+   steps, and share the tool detail level. */
+.step.interim { border-left-style: dashed; }
+.step.interim .txt { color: #aab3c2; }
+.step.interim .who .toggle { cursor: pointer; color: var(--asst); }
+.step.interim.compact:not(.open) .txt {
+  max-height: 1.45em; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+}
 .step .who {
   font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
   color: var(--faint); margin-bottom: 3px;
@@ -541,7 +551,7 @@ kbd {
   <span id="hdr-pills"></span>
   <div class="grow"></div>
   <button id="helpbtn" title="keyboard shortcuts (?)">?</button>
-  <button id="toolbtn" title="tool detail: compact, full, off (t)">tools: compact</button>
+  <button id="toolbtn" title="tool and interim-message detail: compact, full, off (t)">tools: compact</button>
   <button id="prev">&larr;</button>
   <span id="pos" class="id">0 / 0</span>
   <button id="next">&rarr;</button>
@@ -722,7 +732,9 @@ const S = {
   manifest: { batches: [] }, batchOf: {},
   // How much tool activity the conversation shows: "compact" (calls on one
   // line, results as a verdict line), "full" (arguments and result JSON
-  // expanded), "off" (tool steps hidden). Deliberately not persisted: this
+  // expanded), "off" (tool steps hidden). Interim assistant messages (before
+  // a turn's final reply, never shown to the user) follow the same level.
+  // Deliberately not persisted: this
   // interface exists because the stock Langfuse view separated tool calls from
   // replies, so "off" has to be a mode you chose just now, not one you are
   // still in tomorrow without remembering why.
@@ -1159,9 +1171,14 @@ function renderToolBtn(t) {
   let label = `tools: ${S.tools}`;
   if (S.tools === "off" && t) {
     const anns = annotatedKeys(t);
+    const interim = interimSteps(t.steps);
     const kept = (t.steps || []).filter((st, i) =>
       (st.role === "tool_call" || st.role === "tool_result") && anns.has("s" + i)).length;
-    if (kept) label += ` (${kept} kept)`;
+    const hidden = [...interim].filter((i) => anns.has("s" + i)).length;
+    const bits = [];
+    if (kept) bits.push(`${kept} kept`);
+    if (hidden) bits.push(`${hidden} noted interim hidden`);
+    if (bits.length) label += ` (${bits.join(", ")})`;
   }
   $("#toolbtn").textContent = label;
 }
@@ -1258,18 +1275,39 @@ function renderSpec(t) {
   });
 }
 
-function stepHTML(st, key, prior, annotated) {
+// Indexes of a turn's assistant messages that come before its final reply.
+// Only the last assistant message is returned to the user (server/app.py sends
+// final_output), so the earlier ones are the agent talking to itself.
+function interimSteps(steps) {
+  const idx = (steps || []).map((st, i) => (st.role === "assistant" ? i : -1)).filter((i) => i >= 0);
+  return new Set(idx.slice(0, -1));
+}
+
+function stepHTML(st, key, prior, annotated, interim) {
   const role = st.role;
-  const isTool = role === "tool_call" || role === "tool_result";
+  const isTool = role === "tool_call" || role === "tool_result" || interim;
   // "off" never hides a step that carries a note. The anchor lookup in
   // renderConvo silently no-ops when the element is missing, so hiding an
   // annotated step would leave an open code pointing at evidence the reviewer
   // can no longer see, with nothing on screen saying so.
   if (isTool && S.tools === "off" && !annotated) return "";
+  // Interim messages are the exception: the user never sees them, so "off"
+  // hides them even when a note points there. renderToolBtn counts those
+  // notes so their missing anchors are explained.
+  if (interim && S.tools === "off") return "";
   const full = S.tools === "full";
   const cls = ["step", role, prior ? "prior" : ""].join(" ");
   const noteBtn = prior ? "" :
     `<button class="note-btn" data-anchor="${key}">note</button>`;
+  if (interim) {
+    // Same Markdown as the reply, so a quote anchored in it still matches;
+    // "compact" only clips it to one line, and the label expands it.
+    const icls = [cls, "interim", full ? "" : "compact"].join(" ");
+    const toggle = full ? "" : ` <span class="toggle" title="expand">&#9662;</span>`;
+    return `<div class="${icls}" data-key="${key}">
+      <div class="who">interim (not shown to user)${toggle}</div>
+      <div class="txt md annotatable">${md(st.text)}</div>${noteBtn}</div>`;
+  }
   if (role === "user" || role === "assistant") {
     // The user's own message is plain text; the agent's reply is Markdown.
     const body = role === "assistant"
@@ -1327,15 +1365,20 @@ function renderConvo(t) {
       esc(t.session.session_id.slice(0, 12))}</code> — read-only context. Label the current turn below.</div>`;
     prior.forEach((p, pi) => {
       h += `<div class="turnsep">turn ${pi + 1}</div>`;
+      const pInterim = interimSteps(p.steps);
       (p.steps || []).forEach((st, si) => {
         const key = `p${pi}-${si}`;
-        h += stepHTML(st, key, true, anns.has(key));
+        h += stepHTML(st, key, true, anns.has(key), pInterim.has(si));
       });
     });
     h += `<div class="turnsep">turn ${prior.length + 1} &mdash; under review</div>`;
   }
-  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false, anns.has("s" + i))));
+  const tInterim = interimSteps(t.steps);
+  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false, anns.has("s" + i), tInterim.has(i))));
   $("#convo").innerHTML = h;
+  $("#convo").querySelectorAll(".step.interim .toggle").forEach((el) => {
+    el.onclick = () => el.closest(".step").classList.toggle("open");
+  });
 
   $("#convo").querySelectorAll(".summary").forEach((el) => {
     el.onclick = () => document.getElementById(el.dataset.full).classList.toggle("open");
@@ -2988,9 +3031,9 @@ const SHORTCUTS = [
   { group: "Move", key: "m", label: "Map: clusters and coverage; double-click a point to open it",
     run: () => { S.view = "map"; render(); } },
 
-  { group: "Open coding", key: "t", label: "cycle tool detail: compact, full, off",
+  { group: "Open coding", key: "t", label: "cycle tool and interim-message detail: compact, full, off",
     run: () => cycleTools(),
-    note: "“off” keeps any tool step a note is anchored to" },
+    note: "interim = an assistant message before the turn's final reply, which the user never sees; “off” hides every interim message but keeps a tool step a note is anchored to" },
   { group: "Open coding", key: "n", label: "focus the open-code box",
     run: () => $("#note-in").focus() },
   { group: "Open coding", key: "x", label: "record “no failure observed”",

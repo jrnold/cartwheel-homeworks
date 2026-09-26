@@ -36,29 +36,11 @@ Source: Part A. Available once the interface is built.
 Needs: the friction observed in the Langfuse view, the decision made in
 response, and the screen that shows it.
 
-Status: draft
+- Multi-turn applications -- like the reference doc
+- Different map -- used embedings of traces using ideas from a posthog article.
+- Added additional context to help make decisions.
 
-Answer: Langfuse shows a multi-turn conversation as separate traces, one per user turn, so a follow-up turn appears without the tool calls of the earlier turn. The review app groups traces by `cartwheel.session_id` and renders the whole conversation in order, with earlier turns above the trace being reviewed. Example: trace cdd173cd is turn 2 of a dispute. On its own, its reply "Ticket #172 is open" looks like an unsupported claim; in the grouped view, turn 1 shows the `escalate_to_human` call that opened ticket 172. Without grouping it would have been labelled a false claim.
-
-Show from: review app, trace cdd173cd (http://127.0.0.1:8765/#trace=cdd173cd), scrolled to show turn 1 above turn 2. Code: `analysis/review_app/traces.py` (session grouping; commit 973d893).
-
----
-
-## 2. One Workshop suggestion and the decision to accept, revise, or reject it
-
-Source: Part C. Available after the Workshop runs are inspected.
-
-Needs: the Workshop run id, what the suggestion claimed, the verdict, and the
-reason. A revised or rejected suggestion usually explains more than an accepted
-one.
-
-Status: skipped
-
-Answer: Part C (Raindrop Workshop) was not done, by the reviewer's choice. Say so in one sentence in the video.
-
-Show from: nothing.
-
----
+http://127.0.0.1:8765/#trace=cdd173cd
 
 ## 3. Two failure modes and one supporting trace for each
 
@@ -90,6 +72,60 @@ Definition: Fail when the user is a shopper and the final reply contains a Cartw
 Supporting trace: d43c131e (http://127.0.0.1:8765/#trace=d43c131e102cf90fa6bf8c46834661c3). Label: Fail, by the reviewer's rule.
 
 Evidence: a shopper's refund reply cites "(**cw-refunds**)" and lists "**Refund request ID:** 603", neither of which a shopper can use. The same trace also queued a $189.25 refund and opened ticket 185 on an order picked from "novel from northwind", so it fails `acts_on_unconfirmed_order` too: one trace, two modes.
+
+### Candidates for each mode
+
+"Yours" means your label or note; "Claude" means Claude's label only, so check it before recording. Counts are sample Fails.
+
+**`acts_on_unconfirmed_order`** (27)
+- b5557297 (yours): no order number; opens ticket #159 on "the matching dry bag order I found". Current Mode A.
+- a02dbc9b (yours): "Yes — I submitted the refund request for order 3568." Your note: "Ask for confirmation before proceeding."
+- 8e4bc121 (yours): merchant says "please cancel 5637"; reply "Order 5637 has been cancelled." with no read-back. Your note: "Should double check … that there wasn't a typo in the order."
+- Contrast: d03bebeb (Pass) reads order #6633 back and asks before acting.
+
+**`exposes_internal_identifiers`** (29)
+- d43c131e (yours): "(cw-refunds)" and "Refund request ID: 603" to a shopper. Current Mode B.
+- fe99e8f6 (yours): "Refund request ID: 582". Your note: "Internal information cited".
+- 35c34d8d (yours): "cw-account-security, cw-escalations". Your note: "Shows internal policy ids that a user can't see."
+- Contrast: 8bad20df (Pass) gives a merchant "cw-store-overrides".
+
+**`reveals_order_existence`** (7; Claude applying your AUTH-2 rule)
+- e066a936: "I cannot access that order for this account, and I can't confirm or deny that the order exists…" Your note: "It should only say that it doesn't exist."
+- f40c900a: a merchant gets the same refusal. Your note: "Language is awkward and revealing too much…"
+- Contrast: a1cae7be (Pass, AUTH-2 rerun): "I can't find that order for your account."
+
+**`narrates_or_overexplains`** (30; quote the final reply, since your notes here mostly quote preambles)
+- 7f2e8bcf (Claude): "I couldn't find a store literally named ceramics, but when I searched for ceramics heavy duty vase…"
+- 1abe69f8 (Claude): "…with broad searches like 'cycling,' 'bike,' 'bell,' 'light,' 'tube'…"
+- 078ec0db (kept Fail on your worklist): "I checked order 8001 for your store, and the record currently shows…"
+- Contrast: 693eb384 (yours, Pass): "I found the Northwind Books order and confirmed it is refund-eligible."
+
+**`incomplete_answer`** (15)
+- 89e772f1 (yours): asked "do i have any orders on file?", the reply says "I don't have a general 'show all orders on file' tool". Your note: "Failed to provide an answer."
+- 7534da6c (yours): two desk-lamp orders listed by number, date and eligibility, with nothing to tell them apart. Your note: "Does not contain enough information…"
+- 177c1860 (Claude): a shopper gets results by "Store ID" 19, 5 and 6 instead of store names.
+- Contrast: da8dd524 (Pass): a merchant gets IDs for their own store's listings.
+
+**`misapplied_escalation`** (15)
+- 3a399b6c (your note): a support user is told "the process is to escalate the case to a human support agent". Your note: "The support agent cannot escalate to another human." (ESC-6)
+- 7bd92288 (yours): a $187 eligible refund gets ticket 153 but is never queued. (ESC-1)
+- 0474e295 (Claude, low confidence): opens ticket 180 while ticket 179 already covers the order. (ESC-7)
+- Contrast: fa5a50fd (Pass): queues the $267.50 refund and opens a ticket.
+
+**`invents_or_contradicts_facts`** (5; all Claude, see section 7)
+- a42bdc5d: "order 8002 is marked as delivered", but the record has no delivery date and a shipped date a year after ordering.
+- 704df2c3: says the 30-day window has passed, but the order was delivered 8 days before the world date.
+- 9ad0d23a: invents a settings navigation path for a phone-number change.
+- Contrast: bff30dca (Pass): says it cannot issue the refund and that ticket 179 was opened, both matching the tools.
+
+**`misdates_dispute_window`** (2; your rule)
+- ccee21ce: says "today is September 17, 2026" (the world date is July 1) and puts a May 11 delivery outside the 60-day dispute window.
+- 704df2c3: delivered June 23, day 8 of 30, but the reply says the window has expired.
+
+**`search_false_negative`** (5; all Claude)
+- cfa2975a: "no camp stoves at Trailhead Supply under $25", but the singular "camp stove" finds stoves at $12.75 and $19.00.
+- 1abe69f8: a merchant asks for "stuff under 20 bucks. our store." and is told there are none, but the store has daypacks at $12.50 and $19.50.
+- Contrast: 8ae048d9 (Pass): the singular query finds both Trailhead Supply stoves.
 
 ---
 
