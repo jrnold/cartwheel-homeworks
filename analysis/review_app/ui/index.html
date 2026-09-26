@@ -4,12 +4,62 @@
 <meta charset="utf-8">
 <title>Cartwheel review</title>
 <style>
+/* Colors are tokens so one stylesheet serves both themes. Light is the base;
+   dark applies when the OS asks for it (unless the reviewer pinned light) or
+   when the reviewer pinned dark. The theme button cycles auto, light, dark. */
 :root {
-  --bg: #12141a; --panel: #191c24; --panel2: #1f232d; --line: #2c313d;
-  --ink: #e6e9f0; --dim: #949cb0; --faint: #6b7385;
+  color-scheme: light;
+  --bg: #f5f6f8; --panel: #ffffff; --panel2: #eff1f4; --line: #d8dce3; --line2: #e8eaee;
+  --hover: #e4e8ee; --on-bg: #dce7fb; --on-line: #7d9fe0; --focus: #4a78d0;
+  --ink: #1b1f27; --ink2: #2f3541; --dim: #5a6374; --faint: #818899; --ghost: #c5cad3;
+  --strong: #000;
+  --user: #2d6bd3; --asst: #12805a; --tool: #9a6a0c; --err: #c7303f;
+  --floor: #12805a; --llm: #8547b3; --fail: #c7303f; --pass: #1a8551;
+  --fail-bg: #fbe1e4; --fail-line: #e3949c; --pass-bg: #d9f2e5; --pass-line: #67b98f;
+  --warn-line: #eab3b9; --role-line: #b3c9ef; --batch-line: #a9d9c3; --off-line: #e6cf9c;
+  --note-bg: #fdf6e4; --note-line: #ecd8a6; --note-accent: #c2891a;
+  --sugg-bg: #f6effb; --sugg-line: #dcc7ee;
+  --code-bg: #f0f2f5; --code-ink: #85550e;
+  --cur-row: #e6eefc; --selection: #b9d0f7;
+  --shadow: 0 8px 26px rgba(20, 30, 50, .18); --overlay: rgba(30, 35, 45, .35);
+  --toast-bg: #1f2430; --toast-ink: #f2f4f8;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #12141a; --panel: #191c24; --panel2: #1f232d; --line: #2c313d; --line2: #232733;
+    --hover: #2a2f3b; --on-bg: #35507d; --on-line: #4a6ba8; --focus: #4a6ba8;
+    --ink: #e6e9f0; --ink2: #cdd4e2; --dim: #949cb0; --faint: #6b7385; --ghost: #3d4454;
+    --strong: #fff;
+    --user: #6ea8fe; --asst: #7ee0b8; --tool: #e0b96e; --err: #ef7a85;
+    --floor: #7ee0b8; --llm: #c08ce0; --fail: #ef7a85; --pass: #6ee7a8;
+    --fail-bg: #5c2730; --fail-line: #8c3b48; --pass-bg: #1d5038; --pass-line: #2f7a55;
+    --warn-line: #6b3038; --role-line: #2c4470; --batch-line: #2c5a48; --off-line: #6b5730;
+    --note-bg: #221d14; --note-line: #4a3a1c; --note-accent: #d9a441;
+    --sugg-bg: #1e1a26; --sugg-line: #40325c;
+    --code-bg: #14171f; --code-ink: #d3b98a;
+    --cur-row: #232a3a; --selection: #3a5b8c;
+    --shadow: 0 8px 26px rgba(0, 0, 0, .55); --overlay: rgba(8, 10, 14, .72);
+    --toast-bg: #2b3242; --toast-ink: #e6e9f0;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #12141a; --panel: #191c24; --panel2: #1f232d; --line: #2c313d; --line2: #232733;
+  --hover: #2a2f3b; --on-bg: #35507d; --on-line: #4a6ba8; --focus: #4a6ba8;
+  --ink: #e6e9f0; --ink2: #cdd4e2; --dim: #949cb0; --faint: #6b7385; --ghost: #3d4454;
+  --strong: #fff;
   --user: #6ea8fe; --asst: #7ee0b8; --tool: #e0b96e; --err: #ef7a85;
   --floor: #7ee0b8; --llm: #c08ce0; --fail: #ef7a85; --pass: #6ee7a8;
-  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fail-bg: #5c2730; --fail-line: #8c3b48; --pass-bg: #1d5038; --pass-line: #2f7a55;
+  --warn-line: #6b3038; --role-line: #2c4470; --batch-line: #2c5a48; --off-line: #6b5730;
+  --note-bg: #221d14; --note-line: #4a3a1c; --note-accent: #d9a441;
+  --sugg-bg: #1e1a26; --sugg-line: #40325c;
+  --code-bg: #14171f; --code-ink: #d3b98a;
+  --cur-row: #232a3a; --selection: #3a5b8c;
+  --shadow: 0 8px 26px rgba(0, 0, 0, .55); --overlay: rgba(8, 10, 14, .72);
+  --toast-bg: #2b3242; --toast-ink: #e6e9f0;
 }
 * { box-sizing: border-box; }
 body {
@@ -22,36 +72,61 @@ button {
   border: 1px solid var(--line); border-radius: 5px; padding: 3px 9px;
   cursor: pointer;
 }
-button:hover { background: #2a2f3b; }
-button.on { background: #35507d; border-color: #4a6ba8; }
+button:hover { background: var(--hover); }
+button.on { background: var(--on-bg); border-color: var(--on-line); }
+select, input {
+  font: inherit; color: var(--ink); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px;
+}
 code, .mono { font-family: var(--mono); font-size: 12px; }
+a { color: var(--user); }
 
-/* ---- header ---- */
+/* ---- header ----
+   App-level controls only. What belongs to the trace being read (its id,
+   pills, tool detail) sits on the transcript column instead, and the trace
+   navigation shows only on the views it drives. */
 header {
-  display: flex; align-items: center; gap: 12px; padding: 7px 12px;
+  display: flex; align-items: center; gap: 10px; padding: 6px 12px;
   background: var(--panel); border-bottom: 1px solid var(--line); flex: 0 0 auto;
 }
-header .id { font-family: var(--mono); font-size: 12px; color: var(--dim); }
 header .grow { flex: 1; }
+header .id, .tracebar .id { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+#nav { display: flex; align-items: center; gap: 6px; }
+#nav[hidden] { display: none; }
+#filter { max-width: 240px; }
+#themebtn, #helpbtn { padding: 1px 8px; font-size: 12px; }
+.tabs { display: flex; gap: 4px; }
 .pill {
   font-size: 11px; padding: 1px 7px; border-radius: 9px;
   border: 1px solid var(--line); color: var(--dim); white-space: nowrap;
 }
-.pill.role { color: var(--user); border-color: #2c4470; }
-.pill.warn { color: var(--err); border-color: #6b3038; }
+.pill.role { color: var(--user); border-color: var(--role-line); }
+.pill.warn { color: var(--err); border-color: var(--warn-line); }
 /* Sample provenance. A trace either came from a manifest batch or it did not,
    and the reviewer has to be able to tell at a glance: only the first kind
    counts toward the 100, and the second kind is what a depth search returns. */
-.pill.batch { color: var(--asst); border-color: #2c5a48; }
-.pill.off { color: var(--tool); border-color: #6b5730; }
-.tabs { display: flex; gap: 4px; }
+.pill.batch { color: var(--asst); border-color: var(--batch-line); }
+.pill.off { color: var(--tool); border-color: var(--off-line); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 3px 10px; }
 
 /* ---- layout ---- */
-main { flex: 1; display: grid; grid-template-columns: 290px 1fr 330px; overflow: hidden; }
+main { flex: 1; display: grid; grid-template-columns: 280px 1fr 320px; overflow: hidden; min-height: 0; }
 main.wide { grid-template-columns: 1fr; }
-.col { overflow-y: auto; padding: 10px 12px; }
+.col { overflow-y: auto; padding: 10px 12px; min-height: 0; }
 .col.left { background: var(--panel); border-right: 1px solid var(--line); }
 .col.right { background: var(--panel); border-left: 1px solid var(--line); }
+/* The transcript scrolls under a fixed trace bar, so #convo owns its scroll
+   position and a re-render can put it back. */
+.col.mid { padding: 0; display: none; flex-direction: column; overflow: hidden; }
+.col.mid.active { display: flex; }
+.tracebar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--bg);
+}
+.tracebar .grow { flex: 1; }
+#toolbtn { font-size: 11.5px; padding: 1px 8px; }
+#convo { flex: 1; overflow-y: auto; padding: 10px 12px; min-height: 0; }
 .view { display: none; }
 .view.active { display: block; }
 
@@ -61,17 +136,29 @@ h4 {
 }
 h4:first-child { margin-top: 0; }
 
+/* ---- left column sections ---- */
+details.sec { margin-bottom: 12px; }
+details.sec > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 6px;
+  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; margin-bottom: 6px;
+}
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::before { content: "▸"; font-size: 9px; }
+details.sec[open] > summary::before { content: "▾"; }
+.scenline { font-family: var(--mono); font-size: 11.5px; color: var(--ink2); margin-bottom: 4px; word-break: break-word; }
+.expected { font-size: 11.5px; color: var(--ink2); white-space: pre-wrap; margin: 4px 0; }
+.more { margin-top: 4px; }
+.more > summary { cursor: pointer; font-size: 11px; color: var(--faint); }
+
 /* ---- conversation ---- */
 .turnsep {
   display: flex; align-items: center; gap: 8px; margin: 16px 0 10px;
   color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
 }
+.turnsep:first-child { margin-top: 0; }
 .turnsep::before, .turnsep::after {
   content: ""; flex: 1; height: 1px; background: var(--line);
-}
-.ctxbanner {
-  background: #1b2030; border: 1px dashed #36405c; border-radius: 6px;
-  padding: 5px 9px; margin-bottom: 10px; color: var(--dim); font-size: 11px;
 }
 .step {
   position: relative; margin: 0 0 7px; padding: 7px 10px 7px 12px;
@@ -82,29 +169,40 @@ h4:first-child { margin-top: 0; }
 .step.assistant { border-left-color: var(--asst); }
 .step.tool_call, .step.tool_result { border-left-color: var(--tool); }
 .step.bad { border-left-color: var(--err); }
+/* Compact tool steps: the call and its result on one line, no role label.
+   The result keeps its own data-key inside, so a note anchored to it still
+   finds its step. */
+.step.tool_call.pair { padding: 4px 10px 4px 12px; margin-bottom: 5px; }
+.step.pair .call { display: inline; }
+.step.pair .res { display: inline; }
+.step.pair .res .summary { display: inline-flex; margin-left: 6px; }
 /* An assistant message before the turn's final reply. The server returns only
    final_output, so the user never sees these; they read as process, like tool
    steps, and share the tool detail level. */
 .step.interim { border-left-style: dashed; }
-.step.interim .txt { color: #aab3c2; }
+.step.interim .txt { color: var(--dim); }
 .step.interim .who .toggle { cursor: pointer; color: var(--asst); }
+.step.interim.compact { padding-top: 4px; padding-bottom: 4px; }
 .step.interim.compact:not(.open) .txt {
   max-height: 1.45em; overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+  mask-image: linear-gradient(to right, #000 85%, transparent);
 }
 .step .who {
   font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
   color: var(--faint); margin-bottom: 3px;
   display: flex; align-items: center; gap: 7px;
 }
+.step.interim.compact .who { float: left; margin: 0 8px 0 0; line-height: 1.45rem; }
 .step .txt { white-space: pre-wrap; word-break: break-word; }
-.step .txt.mono { font-family: var(--mono); font-size: 11.5px; color: #c6cede; }
+.step .txt.mono { font-family: var(--mono); font-size: 11.5px; color: var(--ink2); }
 .step .note-btn {
-  position: absolute; right: 5px; top: 5px; opacity: 0;
+  position: absolute; right: 5px; top: 4px; opacity: 0;
   font-size: 11px; padding: 1px 7px;
 }
 .step:hover .note-btn { opacity: 1; }
-.step.hasnote { box-shadow: inset 2px 0 0 #d9a441; }
+.step.hasnote { box-shadow: inset 2px 0 0 var(--note-accent); }
+.step.pair .res.hasnote .summary { text-decoration: underline var(--note-accent); }
 
 .summary {
   font-family: var(--mono); font-size: 11.5px; color: var(--dim);
@@ -113,36 +211,52 @@ h4:first-child { margin-top: 0; }
 .summary:hover { color: var(--ink); }
 .summary .ok { color: var(--pass); }
 .summary .no { color: var(--err); }
+.summary .arr { color: var(--faint); }
 .full {
-  display: none; margin-top: 6px; padding: 7px; background: #14171f;
+  display: none; margin-top: 6px; padding: 7px; background: var(--code-bg);
   border-radius: 4px; font-family: var(--mono); font-size: 11px;
   white-space: pre-wrap; word-break: break-all; max-height: 380px; overflow: auto;
-  color: #b9c2d4;
+  color: var(--ink2);
 }
 .full.open { display: block; }
 
 /* ---- spec panel ---- */
 .req { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
 .req .hd {
-  display: flex; align-items: center; gap: 7px; padding: 5px 8px; cursor: pointer;
+  display: flex; align-items: baseline; gap: 7px; padding: 5px 8px; cursor: pointer;
 }
 .req .hd:hover { background: var(--panel2); }
-.req .rid { font-family: var(--mono); font-size: 11.5px; font-weight: 600; }
-.req.floor .rid { color: var(--floor); }
-.req.llm .rid { color: var(--llm); }
+.req .rid, .chip.rid { font-family: var(--mono); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.req.floor .rid, .chip.floor { color: var(--floor); }
+.req.llm .rid, .chip.llm { color: var(--llm); }
 .req .why { font-size: 11px; color: var(--dim); line-height: 1.35; }
-.req .bd {
+.req .bd, .reqbd {
   display: none; padding: 7px 9px; border-top: 1px solid var(--line);
-  font-size: 11.5px; color: #cdd4e2; white-space: pre-wrap;
+  font-size: 11.5px; color: var(--ink2); white-space: pre-wrap;
 }
-.req .bd.open { display: block; }
+.reqbd { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
+.req .bd.open, .reqbd.open { display: block; }
 .src {
   font-size: 9px; letter-spacing: .06em; text-transform: uppercase;
   padding: 0 4px; border-radius: 3px; border: 1px solid var(--line); color: var(--faint);
 }
-table.matrix { width: 100%; border-collapse: collapse; font-size: 11px; }
-table.matrix td { padding: 2px 4px; border-bottom: 1px solid #242936; }
+table.matrix { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; white-space: normal; }
+table.matrix td { padding: 2px 4px; border-bottom: 1px solid var(--line2); }
 table.matrix td:last-child { color: var(--asst); font-family: var(--mono); text-align: right; }
+
+/* ---- chips (spec ids, trace ids) ---- */
+.chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: var(--mono); font-size: 11px; padding: 0 6px; line-height: 18px;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--panel2);
+  cursor: pointer; color: var(--ink2);
+}
+.chip:hover { border-color: var(--dim); }
+.chip.unknown { color: var(--err); border-color: var(--warn-line); }
+.chip .x { border: 0; background: none; padding: 0 0 0 2px; color: var(--faint); font-size: 12px; line-height: 1; }
+.chip .x:hover { color: var(--err); background: none; }
+input.chipadd { font-family: var(--mono); font-size: 11px; width: 150px; padding: 1px 6px; }
 
 /* ---- facts ---- */
 .fact { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; font-size: 11.5px; }
@@ -150,14 +264,22 @@ table.matrix td:last-child { color: var(--asst); font-family: var(--mono); text-
 .fact .v { font-family: var(--mono); text-align: right; word-break: break-all; }
 .fact .v.hot { color: var(--err); }
 
+/* ---- right column ---- */
+.paneseg { display: flex; margin-bottom: 10px; }
+.paneseg button { flex: 1; }
+.paneseg .cnt { font-size: 10.5px; color: var(--faint); margin-left: 4px; }
+.paneseg .cnt.bad { color: var(--err); }
+.pane[hidden] { display: none; }
+.row { display: flex; gap: 5px; margin: 6px 0; }
+
 /* ---- notes ---- */
 .note {
-  background: #221d14; border: 1px solid #4a3a1c; border-left: 3px solid #d9a441;
+  background: var(--note-bg); border: 1px solid var(--note-line); border-left: 3px solid var(--note-accent);
   border-radius: 5px; padding: 7px 9px; margin-bottom: 7px; font-size: 12px;
 }
 .note .quoted {
   font-size: 11px; color: var(--dim); font-style: italic;
-  border-left: 2px solid #d9a441; padding-left: 6px; margin-bottom: 5px;
+  border-left: 2px solid var(--note-accent); padding-left: 6px; margin-bottom: 5px;
 }
 .note .meta {
   font-size: 10px; color: var(--faint); margin-top: 5px;
@@ -165,59 +287,97 @@ table.matrix td:last-child { color: var(--asst); font-family: var(--mono); text-
 }
 .note .meta button { padding: 0 5px; font-size: 10px; }
 .note .meta .acts { display: flex; gap: 4px; }
-.note .rev { color: #b9903f; cursor: help; }
-.note textarea {
-  width: 100%; background: var(--panel2); color: var(--ink); font: inherit;
-  border: 1px solid #4a3a1c; border-radius: 4px; padding: 4px 6px;
-  min-height: 56px; resize: vertical;
-}
+.note .rev { color: var(--note-accent); cursor: help; }
+.note textarea { border-color: var(--note-line); min-height: 56px; }
 .sugg {
-  background: #1e1a26; border: 1px solid #40325c; border-left: 3px solid var(--llm);
+  background: var(--sugg-bg); border: 1px solid var(--sugg-line); border-left: 3px solid var(--llm);
   border-radius: 5px; padding: 7px 9px; margin-bottom: 7px; font-size: 12px;
 }
-.sugg .row { display: flex; gap: 5px; margin-top: 6px; }
+.sugg .row { margin-bottom: 0; }
+.sugg .meta { font-size: 10px; color: var(--faint); margin-top: 4px; }
 textarea {
   width: 100%; background: var(--panel2); color: var(--ink);
   border: 1px solid var(--line); border-radius: 5px; padding: 7px;
   font: inherit; resize: vertical; min-height: 64px;
 }
-.hint { font-size: 11px; color: var(--faint); margin: 5px 0; }
 .empty { color: var(--faint); font-size: 11.5px; font-style: italic; padding: 5px 0; }
 
 /* ---- labels ---- */
 .lbl {
-  display: flex; align-items: center; gap: 6px; padding: 4px 0;
-  border-bottom: 1px solid #232733;
+  display: flex; align-items: center; gap: 4px; padding: 3px 0;
+  border-bottom: 1px solid var(--line2);
 }
-.lbl .nm { flex: 1; font-family: var(--mono); font-size: 11.5px; }
-.lbl button { padding: 1px 8px; font-size: 11px; }
-.lbl button.pass.on { background: #1d5038; border-color: #2f7a55; }
-.lbl button.fail.on { background: #5c2730; border-color: #8c3b48; }
+.lbl .n { width: 14px; color: var(--faint); font-family: var(--mono); font-size: 10.5px; }
+.lbl .nm { flex: 1; font-size: 12px; }
+.lbl button { padding: 0 8px; font-size: 11px; background: none; color: var(--faint); }
+.lbl button.pass.on { background: var(--pass-bg); border-color: var(--pass-line); color: var(--ink); }
+.lbl button.fail.on { background: var(--fail-bg); border-color: var(--fail-line); color: var(--ink); }
 
 /* ---- tables ---- */
 table.grid { border-collapse: collapse; width: 100%; font-size: 11.5px; }
 table.grid th, table.grid td {
   border: 1px solid var(--line); padding: 4px 7px; text-align: left;
 }
-table.grid th { background: var(--panel2); position: sticky; top: 0; font-size: 10px;
+table.grid th { background: var(--panel2); font-size: 10px;
   text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
 table.grid td.c { text-align: center; font-family: var(--mono); }
 td.F { color: var(--fail); font-weight: 600; }
 td.P { color: var(--pass); }
-td.none { color: #3d4454; }
-tr.cur td { background: #232a3a; }
-.bar { height: 7px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+tr.cur td { background: var(--cur-row); }
+.bar { height: 6px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
 .bar > i { display: block; height: 100%; background: var(--asst); }
-.stat { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
-.stat .v { font-family: var(--mono); }
+
+/* ---- labeling view ----
+   One matrix, trace rows by mode columns. Only a Fail is marked; a Pass is an
+   empty cell and an unjudged cell a faint dot, so the pattern of failures is
+   what the eye lands on. Mode names run vertically so nine of them fit
+   without scrolling sideways. */
+.labsum { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 8px; font-size: 12px; }
+.labsum .stat { display: flex; align-items: center; gap: 8px; }
+.labsum .stat .k { color: var(--faint); }
+.labsum .stat .v { font-family: var(--mono); }
+.labsum .bar { width: 160px; }
+.labsum .bad { color: var(--err); }
+.labsum label { display: inline-flex; gap: 5px; align-items: center; color: var(--dim); }
+details.batches { margin-bottom: 10px; font-size: 12px; }
+details.batches > summary { cursor: pointer; color: var(--dim); }
+details.batches table.grid { width: auto; min-width: 420px; margin-top: 6px; }
+details.batches details > summary { cursor: pointer; }
+.pooldims { color: var(--dim); font-size: 11.5px; margin-top: 6px; }
+table.lg { width: auto; }
+table.lg th { position: sticky; top: -10px; z-index: 2; vertical-align: bottom; padding: 6px 4px; }
+table.lg th.mcol { text-transform: none; letter-spacing: 0; font-weight: 500; }
+table.lg th .vh {
+  writing-mode: vertical-rl; transform: rotate(180deg); max-height: 150px;
+  margin: 0 auto; font-family: var(--mono); font-size: 11px; color: var(--ink2);
+  text-align: left;
+}
+table.lg th.short .vh { color: var(--err); }
+table.lg th .cnt { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-top: 4px; text-align: center; }
+table.lg th .cnt b { color: var(--fail); font-weight: 600; }
+table.lg td, table.lg th { border-color: var(--line2); }
+table.lg td:first-child, table.lg th:first-child {
+  position: sticky; left: 0; background: var(--panel); z-index: 1; white-space: nowrap;
+}
+table.lg th:first-child { z-index: 3; background: var(--panel2); }
+table.lg tr.cur td:first-child { background: var(--cur-row); }
+table.lg td.m { width: 34px; min-width: 34px; padding: 0; text-align: center; }
+table.lg td.m.F { background: var(--fail-bg); }
+table.lg td.m.F::after { content: "F"; font-family: var(--mono); font-size: 11px; color: var(--fail); }
+table.lg td.m.none::after { content: "·"; color: var(--ghost); }
+table.lg td.role { color: var(--dim); font-size: 11px; }
+table.lg td.t { color: var(--faint); font-family: var(--mono); font-size: 10.5px; }
+table.lg tbody tr { cursor: pointer; }
+table.lg tbody tr:hover td { background: var(--hover); }
+
 /* ---- rendered markdown ---- */
 .md > *:first-child { margin-top: 0; }
 .md > *:last-child { margin-bottom: 0; }
 .md p { margin: 0 0 7px; }
 .md ul, .md ol { margin: 4px 0 7px; padding-left: 20px; }
 .md li { margin: 1px 0; }
-.md strong { color: #fff; font-weight: 600; }
-.md em { color: #d6dce8; }
+.md strong { color: var(--strong); font-weight: 600; }
+.md em { color: var(--ink2); }
 /* The agent emits GFM tables for product search results, where the reply has
    to be read against what the tool returned. Rendered flat they were a run-on
    paragraph of pipes. */
@@ -230,11 +390,11 @@ tr.cur td { background: #232a3a; }
   font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
 }
 .md code {
-  background: #14171f; border: 1px solid var(--line); border-radius: 3px;
-  padding: 0 4px; font-size: 11.5px; color: #d3b98a;
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 3px;
+  padding: 0 4px; font-size: 11.5px; color: var(--code-ink);
 }
 .md h3, .md h4, .md h5, .md h6 {
-  margin: 8px 0 4px; font-size: 12.5px; color: #fff;
+  margin: 8px 0 4px; font-size: 12.5px; color: var(--strong);
   text-transform: none; letter-spacing: 0; font-weight: 600;
 }
 .md a { color: var(--user); }
@@ -243,7 +403,7 @@ tr.cur td { background: #232a3a; }
 
 /* ---- selection highlights ---- */
 .hl {
-  background: rgba(217, 164, 65, .26); border-bottom: 1px solid #d9a441;
+  background: rgba(217, 164, 65, .26); border-bottom: 1px solid var(--note-accent);
   border-radius: 2px; cursor: pointer;
 }
 .hl:hover { background: rgba(217, 164, 65, .42); }
@@ -251,107 +411,75 @@ tr.cur td { background: #232a3a; }
 .hl.pending {
   background: rgba(110, 168, 254, .34); border-bottom: 1px solid var(--user);
 }
-.annotatable::selection, .annotatable ::selection { background: #3a5b8c; }
+.annotatable::selection, .annotatable ::selection { background: var(--selection); }
 .annotatable { cursor: text; }
 
 #popover {
   position: absolute; z-index: 60; display: none; width: 330px;
-  background: var(--panel); border: 1px solid #4a5570; border-radius: 7px;
-  padding: 9px; box-shadow: 0 8px 26px rgba(0,0,0,.55);
+  background: var(--panel); border: 1px solid var(--on-line); border-radius: 7px;
+  padding: 9px; box-shadow: var(--shadow);
 }
 #popover .q {
   font-size: 11px; color: var(--dim); font-style: italic;
   margin-bottom: 6px; max-height: 52px; overflow: hidden;
-  border-left: 2px solid #d9a441; padding-left: 6px;
+  border-left: 2px solid var(--note-accent); padding-left: 6px;
 }
 #popover textarea { min-height: 54px; }
-#popover .row { display: flex; gap: 5px; margin-top: 6px; align-items: center; }
-#popover .row .sp { flex: 1; }
-#popover .k { font-size: 10px; color: var(--faint); }
+#popover .row { justify-content: flex-end; margin-bottom: 0; }
 
-/* ---- taxonomy authoring ---- */
-.mode { border: 1px solid var(--line); border-radius: 7px; margin-bottom: 12px; }
-.mhd {
-  display: flex; align-items: center; gap: 8px; padding: 7px 9px;
-  background: var(--panel2); border-bottom: 1px solid var(--line);
-  border-radius: 7px 7px 0 0;
+/* ---- taxonomy authoring ----
+   Each mode is a collapsed row until opened: name, counts, status, and the
+   first line of its definition. The open codes it was built from are one
+   line each, with the quoted evidence in the hover text. */
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.toolbar input { max-width: 320px; flex: 1; }
+.toolbar .count { color: var(--faint); font-size: 11.5px; }
+details.mode { border: 1px solid var(--line); border-radius: 7px; margin-bottom: 6px; background: var(--panel); }
+details.mode > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; min-width: 0;
 }
-.mhd .sp { flex: 1; }
-input.mname {
-  font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--asst);
-  background: transparent; border: 1px solid transparent; border-radius: 4px;
-  padding: 2px 5px; min-width: 240px;
-}
-input.mname:hover { border-color: var(--line); }
-input.mname:focus { background: var(--bg); border-color: #4a6ba8; outline: none; }
-.src.gap { color: var(--err); border-color: #6b3038; }
-.src.ok { color: var(--pass); border-color: #2f7a55; }
+details.mode > summary::-webkit-details-marker { display: none; }
+details.mode > summary::before { content: "▸"; color: var(--faint); font-size: 10px; }
+details.mode[open] > summary::before { content: "▾"; }
+details.mode[open] > summary { border-bottom: 1px solid var(--line); background: var(--panel2); border-radius: 7px 7px 0 0; }
+.mode .mn { font-family: var(--mono); font-weight: 600; color: var(--asst); white-space: nowrap; }
+.mode .mdef { flex: 1; min-width: 0; color: var(--dim); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mode .mcnt { font-family: var(--mono); font-size: 11px; color: var(--faint); white-space: nowrap; }
+.mode .mcnt b { color: var(--fail); font-weight: 600; }
+.src.gap { color: var(--err); border-color: var(--warn-line); }
+.src.ok { color: var(--pass); border-color: var(--pass-line); }
 .mbody { padding: 9px 11px; }
 .mbody label {
   display: block; margin-bottom: 8px;
   font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint);
 }
-.mbody textarea, .mbody input, .mbody select {
+.mbody textarea, .mbody > label > input, .mbody .mrow label > input, .mbody select {
   display: block; width: 100%; margin-top: 3px;
   background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
   border-radius: 5px; padding: 5px 7px;
   font: 12.5px/1.45 system-ui, sans-serif; text-transform: none; letter-spacing: 0;
 }
 .mbody textarea { min-height: 42px; resize: vertical; }
-.mbody input { font-family: var(--mono); font-size: 11.5px; }
+.mbody input.mono { font-family: var(--mono); font-size: 11.5px; }
+.mbody .chips { margin-top: 3px; text-transform: none; letter-spacing: 0; }
 .mrow { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 12px; }
-.mbody .note { margin-top: 5px; }
-#ungrouped select, .mbody select { font-size: 11px; }
-#ungrouped .note .meta select {
-  background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
-  border-radius: 4px; padding: 1px 4px;
+.mfoot { display: flex; justify-content: flex-end; margin-top: 6px; }
+.codes { border-top: 1px solid var(--line2); }
+.code {
+  display: flex; align-items: baseline; gap: 8px; padding: 3px 2px;
+  border-bottom: 1px solid var(--line2); font-size: 12px;
 }
-
-/* ---- reference ---- */
-.refbar {
-  position: sticky; top: -10px; z-index: 5; background: var(--panel);
-  padding: 4px 0 8px; display: flex; gap: 10px; align-items: center;
+.code .ct { flex: 1; min-width: 0; }
+.code .ct[title] { cursor: help; }
+.code .cs { font-family: var(--mono); font-size: 10.5px; color: var(--faint); white-space: nowrap; cursor: pointer; }
+.code .cs:hover { color: var(--user); }
+.code button { padding: 0 6px; font-size: 11px; }
+.code select { font-size: 11px; padding: 1px 4px; }
+.grp {
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--faint); margin: 10px 0 4px; font-weight: 600;
 }
-.refbar input {
-  flex: 1; background: var(--panel2); color: var(--ink);
-  border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font: inherit;
-}
-/* minmax(0,1fr) rather than 1fr: a plain 1fr track refuses to shrink below
-   its content's min width, so the wide stores table pushed the second column
-   off screen instead of wrapping inside it. */
-.refcols {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0 22px; align-items: start;
-}
-@media (max-width: 1100px) { .refcols { grid-template-columns: minmax(0, 1fr); } }
-.refcols table.grid { table-layout: fixed; }
-.refcols table.grid td { word-break: break-word; }
-.doc { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
-.doc > .hd {
-  display: flex; gap: 8px; align-items: baseline; padding: 6px 9px; cursor: pointer;
-}
-.doc > .hd:hover { background: var(--panel2); }
-.doc .pid { font-family: var(--mono); font-size: 11.5px; color: var(--asst); font-weight: 600; }
-.doc.store .pid { color: var(--tool); }
-.doc .ttl { flex: 1; font-size: 11.5px; color: var(--dim); }
-.doc .bd { display: none; padding: 8px 10px; border-top: 1px solid var(--line); }
-.doc .bd.open { display: block; }
-.doc.hit { border-color: #4a6ba8; }
-.factgrid {
-  display: grid; grid-template-columns: auto minmax(0, 1fr);
-  gap: 1px 12px; font-size: 11.5px;
-}
-.factgrid .k { color: var(--dim); }
-.factgrid .v {
-  font-family: var(--mono); color: var(--asst); text-align: right;
-  word-break: break-all;
-}
-mark { background: #6b5a1c; color: #ffe9a8; border-radius: 2px; padding: 0 1px; }
-.storehd { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
-.storehd h2 { margin: 0; font-size: 17px; font-weight: 600; }
-td.struck { color: var(--faint); text-decoration: line-through; }
-td.dim { color: var(--dim); }
-.refcols tr[data-store]:hover td, .refcols tr[data-trace]:hover td { background: #232a3a; }
 
 /* ---- map ----
    A port of the static trace map (analysis/trace_map/ui), scoped under #tm so
@@ -374,7 +502,7 @@ td.dim { color: var(--dim); }
 #tm .small { font-size: 11px; }
 #tm h4 .aside { text-transform: none; letter-spacing: 0; color: var(--faint); font-weight: 400; }
 #tm .runmeta { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-#tm .pill.live { color: var(--tool); border-color: #6b5a30; }
+#tm .pill.live { color: var(--tool); border-color: var(--off-line); }
 #tm #tm-search {
   width: 100%; margin-bottom: 10px; font: inherit; color: var(--ink); background: var(--panel2);
   border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px;
@@ -400,26 +528,23 @@ td.dim { color: var(--dim); }
 #tm .maptools { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 #tm .maptools label { display: inline-flex; align-items: center; gap: 4px; }
 #tm .maptools .kinds { display: flex; gap: 8px; margin-left: 6px; padding-left: 8px; border-left: 1px solid var(--line); flex-wrap: wrap; }
-#tm .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
-#tm .seg button { border: 0; border-radius: 0; padding: 3px 9px; }
-#tm .seg button.on { background: #35507d; }
 #tm #tm-mode { font: inherit; font-size: 12px; color: var(--ink); background: var(--panel2);
   border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; max-width: 260px; }
 #tm .cl .cov .f { color: var(--fail); }
-#tm .pill.fail { color: var(--fail); border-color: #6b3a40; }
+#tm .pill.fail { color: var(--fail); border-color: var(--warn-line); }
 #tm .legend {
   position: absolute; bottom: 8px; left: 8px; display: flex; gap: 12px; flex-wrap: wrap;
-  background: rgba(25,28,36,.9); border: 1px solid var(--line); border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); border-radius: 6px;
   padding: 4px 9px; font-size: 11px; color: var(--dim); max-width: calc(100% - 16px);
 }
 #tm .legend span { display: inline-flex; align-items: center; gap: 5px; }
 #tm .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 #tm .legend i.ring { border: 1.5px solid var(--point); }
-#tm .legend i.cur { border: 1.2px dashed #fff; }
+#tm .legend i.cur { border: 1.2px dashed var(--ink); }
 #tm #tm-tip {
   position: absolute; pointer-events: none; display: none; max-width: 320px;
-  background: #0d0f14; border: 1px solid var(--line); border-radius: 6px;
-  padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.45); z-index: 3;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 9px; font-size: 12px; box-shadow: var(--shadow); z-index: 3;
 }
 #tm #tm-tip .t { font-weight: 600; margin-bottom: 2px; }
 #tm .empty {
@@ -497,23 +622,18 @@ td.dim { color: var(--dim); }
 /* ---- shortcut help ---- */
 #help {
   position: fixed; inset: 0; z-index: 90; display: none;
-  background: rgba(8, 10, 14, .72); align-items: center; justify-content: center;
+  background: var(--overlay); align-items: center; justify-content: center;
 }
 #help.open { display: flex; }
 #help .card {
-  background: var(--panel); border: 1px solid #3b4558; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   padding: 18px 22px; max-width: 620px; width: calc(100% - 40px);
-  max-height: 84vh; overflow-y: auto; box-shadow: 0 18px 50px rgba(0,0,0,.6);
+  max-height: 84vh; overflow-y: auto; box-shadow: var(--shadow);
 }
-#help h3 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
-#help .sub { color: var(--faint); font-size: 11.5px; margin-bottom: 14px; }
-#help .grp {
-  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
-  color: var(--faint); margin: 13px 0 5px; font-weight: 600;
-}
-#help .row { display: flex; gap: 11px; align-items: baseline; padding: 2.5px 0; }
-#help .row .lbl { flex: 1; font-size: 12.5px; }
-#help .row .tip { color: var(--faint); font-size: 11px; }
+#help h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+#help .row { align-items: baseline; gap: 2px 11px; padding: 2.5px 0; margin: 0; flex-wrap: wrap; }
+#help .row .desc { flex: 1; font-size: 12.5px; }
+#help .row .tip { color: var(--faint); font-size: 11px; flex-basis: 100%; padding-left: 44px; }
 kbd {
   font-family: var(--mono); font-size: 11px; min-width: 22px; text-align: center;
   background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px;
@@ -524,11 +644,10 @@ kbd {
   border-left: 2px solid var(--line); padding-left: 8px;
 }
 #help .modes code { color: var(--asst); }
-#helpbtn { padding: 1px 8px; font-size: 12px; }
 
 #toast {
   position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
-  background: #2b3242; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--toast-bg); color: var(--toast-ink); border-radius: 6px;
   padding: 7px 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
   font-size: 12px; z-index: 50;
 }
@@ -542,108 +661,109 @@ kbd {
     <button id="tab-review" class="on">Review</button>
     <button id="tab-tax">Taxonomy</button>
     <button id="tab-label">Labeling</button>
-    <button id="tab-prog">Progress</button>
     <button id="tab-map">Map</button>
-    <button id="tab-ref">Reference</button>
   </div>
   <div class="grow"></div>
-  <span id="hdr-meta" class="id"></span>
-  <span id="hdr-pills"></span>
-  <div class="grow"></div>
+  <!-- Trace navigation, shown only on the views it drives (Review, Labeling). -->
+  <div id="nav">
+    <button id="prev" title="previous trace (k)">&larr;</button>
+    <span id="pos" class="id">0 / 0</span>
+    <button id="next" title="next trace (j)">&rarr;</button>
+    <select id="filter">
+      <!-- Sample scope, filled from the manifest by fillScopeFilter(). Batches 4
+           and 5 are drawn only after the taxonomy exists, so the batch options
+           cannot be written here; they have to appear as soon as a batch does. -->
+      <optgroup id="filter-scope" label="scope"></optgroup>
+      <optgroup label="review state">
+      <option value="unreviewed">unreviewed</option>
+      <option value="reviewed">reviewed</option>
+      <option value="unlabeled">incomplete labels</option>
+      </optgroup>
+      <optgroup label="trace properties">
+      <option value="shopper">role: shopper</option>
+      <option value="merchant">role: merchant</option>
+      <option value="support">role: support</option>
+      <option value="challenge">group: challenge</option>
+      <option value="coverage">group: coverage</option>
+      <option value="write">wrote something</option>
+      <option value="toolerr">tool error</option>
+      <option value="denied">permission denied</option>
+      <option value="dq">injected data defect</option>
+      </optgroup>
+    </select>
+  </div>
+  <button id="themebtn" title="theme: auto, light, dark"></button>
   <button id="helpbtn" title="keyboard shortcuts (?)">?</button>
-  <button id="toolbtn" title="tool and interim-message detail: compact, full, off (t)">tools: compact</button>
-  <button id="prev">&larr;</button>
-  <span id="pos" class="id">0 / 0</span>
-  <button id="next">&rarr;</button>
-  <select id="filter" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px">
-    <!-- Sample scope, filled from the manifest by fillScopeFilter(). Batches 4
-         and 5 are drawn only after the taxonomy exists, so the batch options
-         cannot be written here; they have to appear as soon as a batch does. -->
-    <optgroup id="filter-scope" label="scope"></optgroup>
-    <optgroup label="review state">
-    <option value="unreviewed">unreviewed</option>
-    <option value="reviewed">reviewed</option>
-    <option value="unlabeled">incomplete labels</option>
-    </optgroup>
-    <optgroup label="trace properties">
-    <option value="shopper">role: shopper</option>
-    <option value="merchant">role: merchant</option>
-    <option value="support">role: support</option>
-    <option value="challenge">group: challenge</option>
-    <option value="coverage">group: coverage</option>
-    <option value="write">wrote something</option>
-    <option value="toolerr">tool error</option>
-    <option value="denied">permission denied</option>
-    <option value="dq">injected data defect</option>
-    </optgroup>
-  </select>
 </header>
 
 <main id="main">
   <!-- ============ REVIEW ============ -->
   <div class="col left view active" data-view="review">
-    <h4>Scenario</h4>
-    <div id="scen"></div>
-    <h4>Evidence pointers</h4>
-    <div id="facts"></div>
-    <h4>Specification <span id="specn" class="src"></span></h4>
-    <div class="hint">Green = from tool activity. Purple = model-suggested. Both point you at what to check; neither is a verdict.</div>
-    <div id="spec"></div>
+    <details class="sec" id="sec-scen" open>
+      <summary>Scenario</summary>
+      <div id="scen"></div>
+    </details>
+    <details class="sec" id="sec-facts" open>
+      <summary>Evidence</summary>
+      <div id="facts"></div>
+    </details>
+    <details class="sec" id="sec-spec" open>
+      <summary>Specification</summary>
+      <div id="spec"></div>
+    </details>
   </div>
 
   <div class="col mid view active" data-view="review">
+    <div class="tracebar">
+      <span id="hdr-meta" class="id"></span>
+      <span id="hdr-pills"></span>
+      <span class="grow"></span>
+      <button id="toolbtn" title="tool and interim-message detail: compact, full, off (t)">tools: compact</button>
+    </div>
     <div id="convo"></div>
   </div>
 
+  <!-- Open coding and structured labeling are separate passes, so the panel
+       shows one at a time. -->
   <div class="col right view active" data-view="review">
-    <h4>Open code</h4>
-    <div class="hint">Describe the <b>first</b> failure in your own words, then stop. No mode names yet.</div>
-    <textarea id="note-in" placeholder="What went wrong? Cite the evidence…"></textarea>
-    <div style="display:flex;gap:5px;margin:6px 0">
-      <button id="note-save">Save note</button>
-      <button id="note-clean">No failure observed</button>
+    <div class="seg paneseg">
+      <button id="pane-code-btn" title="open code (o)">Open code<span id="code-cnt" class="cnt"></span></button>
+      <button id="pane-label-btn" title="labels (l)">Labels<span id="label-cnt" class="cnt"></span></button>
     </div>
-    <div id="notes"></div>
-
-    <!-- Hidden until a depth search actually proposes something for this
-         trace. An always-visible "none for this trace" is dead space on a
-         panel the reviewer reads 100+ times. -->
-    <div id="suggs-block" hidden>
-      <h4>AI suggestions</h4>
-      <div class="hint">Proposals from a search, not labels. Accepting one records it as your own open code.</div>
-      <div id="suggs"></div>
+    <div class="pane" id="pane-code">
+      <textarea id="note-in" placeholder="Open code"></textarea>
+      <div class="row">
+        <button id="note-save">Save note</button>
+        <button id="note-clean">No failure observed</button>
+      </div>
+      <div id="notes"></div>
+      <div id="suggs-block" hidden>
+        <h4>AI suggestions</h4>
+        <div id="suggs"></div>
+      </div>
     </div>
-
-    <h4>Labels</h4>
-    <div class="hint">Structured pass. Every trace gets one judgment per final mode.</div>
-    <div id="labels"></div>
+    <div class="pane" id="pane-label" hidden>
+      <div id="labels"></div>
+    </div>
   </div>
 
   <!-- ============ TAXONOMY ============ -->
   <div class="col view" data-view="tax" style="grid-column:1/-1">
     <datalist id="req-ids"></datalist>
-    <div class="refbar">
-      <input id="new-mode-name" placeholder="new mode name, snake_case (e.g. unconfirmed_write)"
-             style="max-width:380px">
+    <div class="toolbar">
+      <input id="new-mode-name" placeholder="new mode name">
       <button id="new-mode">+ add mode</button>
-      <span id="tax-count" class="hint" style="margin:0"></span>
+      <span id="tax-count" class="count"></span>
     </div>
-    <div class="hint">Each mode needs a binary definition, 3+ positives, 3+ close negatives, a boundary against its nearest neighbour, an evaluator type, and a SPEC requirement or recorded revision. Merge two groups when one product change would correct both; split when they need different ones.</div>
     <div id="tax"></div>
-    <h4>Open codes not yet grouped</h4>
+    <h4>Ungrouped open codes</h4>
     <div id="ungrouped"></div>
   </div>
 
   <!-- ============ LABELING ============ -->
   <div class="col view" data-view="label" style="grid-column:1/-1">
-    <h4>Trace &times; mode judgments</h4>
-    <div class="hint">F = failure present, P = failure absent, blank = no judgment yet. Click a row to open that trace.</div>
+    <div id="labsum"></div>
     <div id="lblgrid"></div>
-  </div>
-
-  <!-- ============ PROGRESS ============ -->
-  <div class="col view" data-view="prog" style="grid-column:1/-1">
-    <div id="prog"></div>
   </div>
 
   <!-- ============ MAP ============ -->
@@ -651,7 +771,7 @@ kbd {
     <section class="tmcol tmleft">
       <div class="runmeta" id="tm-runmeta"></div>
       <input id="tm-search" type="search" placeholder="Search titles, goals, tools">
-      <h4>Clusters <span class="aside">· click to select, up to 3 colored</span></h4>
+      <h4>Clusters</h4>
       <div id="tm-clusters"></div>
     </section>
     <section class="mapwrap" id="tm-wrap">
@@ -671,58 +791,40 @@ kbd {
       <div class="empty" id="tm-empty" hidden></div>
     </section>
     <section class="tmcol tmright" id="tm-detail">
-      <p class="muted">Click a point to read the trace, double-click to open it in Review.
-        Nearby points had similar summaries.</p>
-      <p class="muted">Click a cluster's number on the map, or its row on the left, to
-        read what the cluster shares. Shift-click a point to select its cluster.
-        Up to three clusters are colored at once.</p>
-      <p class="muted">“Reference items” adds policies, stores, tools and spec items as
-        hollow shapes, embedded the same way but not clustered. Click one to see the
-        traces nearest to it.</p>
-      <p class="muted">“Color: review” colors points by review coverage: coded, sampled
-        but not yet coded, and the rest of the pool. “Color: mode” marks one failure
-        mode's Fail labels.</p>
-      <p class="faint small">Drag to pan, scroll to zoom. <kbd>0</kbd> resets,
-        <kbd>esc</kbd> clears.</p>
+      <p class="muted">Select a point or cluster.</p>
     </section>
-  </div>
-
-  <!-- ============ REFERENCE ============ -->
-  <div class="col view" data-view="ref" style="grid-column:1/-1">
-    <div class="refbar">
-      <input id="ref-q" placeholder="Search requirements, policies, stores, facts…  (/ to focus)">
-      <span id="ref-count" class="hint" style="margin:0"></span>
-    </div>
-    <div id="ref"></div>
   </div>
 </main>
 
 <div id="help"><div class="card">
   <h3>Keyboard shortcuts</h3>
-  <div class="sub">Press <kbd>?</kbd> any time. <kbd>esc</kbd> or click outside to close.</div>
   <div id="help-body"></div>
 </div></div>
 
 <div id="popover">
   <div class="q" id="pop-quote"></div>
-  <textarea id="pop-note" placeholder="What went wrong here?"></textarea>
+  <textarea id="pop-note" placeholder="Open code"></textarea>
   <div class="row">
-    <span class="k">&#8984;&#9166; save &middot; esc cancel</span>
-    <span class="sp"></span>
     <button id="pop-cancel">cancel</button>
     <button id="pop-save">save</button>
   </div>
 </div>
 
 <div id="toast"></div>
-
 <script>
 "use strict";
 
 const S = {
   pool: [], spec: {}, ann: [], modes: [], suggs: [], labels: {},
   idx: 0, filter: "sample", view: "review", byId: {}, keepScroll: null,
-  ref: null, refQ: "", refOpen: null,
+  // Which pass the right panel shows: "code" (open coding) or "label"
+  // (structured labeling). They are separate passes, so only one is on screen.
+  pane: pref("pane", "code"),
+  // Taxonomy cards the reviewer has opened, by mode name. Held here because
+  // polling re-renders the list, which would otherwise close them every tick.
+  taxOpen: new Set(),
+  // Labeling grid: show only traces with at least one Fail.
+  failOnly: false,
   // The sampling design from analysis/state/sample_manifest.json, and the
   // trace_id -> batch name map derived from it. The map is single valued
   // because sample_batches.py asserts no trace is drawn into two batches.
@@ -751,6 +853,16 @@ const S = {
   sig: {}, writes: 0, inflight: 0, stale: false,
 };
 const TOOL_LEVELS = ["compact", "full", "off"];
+
+// Per-browser conveniences (theme, which pane, which sections are open).
+// Storage can be missing or throw in a private window, so every access is
+// guarded and the app works the same without it.
+function pref(k, dflt) {
+  try { return localStorage.getItem("review." + k) ?? dflt; } catch (e) { return dflt; }
+}
+function setPref(k, v) {
+  try { localStorage.setItem("review." + k, v); } catch (e) { /* not persisted */ }
+}
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -962,7 +1074,7 @@ async function load() {
   S.spec = spec;
   applyLive({ ann, pat, suggs, labels, manifest });
   S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
-  $("#specn").textContent = "sha " + (spec.digest || "?").slice(0, 8);
+  $("#sec-spec > summary").title = "SPEC.md sha " + (spec.digest || "?").slice(0, 8);
   // Autocomplete for a mode's requirement source, so the id is picked from
   // SPEC.md rather than typed from memory.
   $("#req-ids").innerHTML = Object.keys(spec.requirements || {})
@@ -1048,7 +1160,6 @@ async function poll() {
     const i = visible().findIndex((t) => t.trace_id === keep);
     if (i >= 0) S.idx = i;
   }
-  if (S.view === "ref") return; // the Reference tab reads none of this
   if (S.view === "review") S.keepScroll = $("#convo").scrollTop;
   render();
 }
@@ -1118,20 +1229,21 @@ function render() {
     el.classList.toggle("active", el.dataset.view === S.view);
   });
   $("#main").classList.toggle("wide", S.view !== "review");
-  ["review", "tax", "label", "prog", "map", "ref"].forEach((v) =>
+  ["review", "tax", "label", "map"].forEach((v) =>
     $("#tab-" + v).classList.toggle("on", S.view === v));
+  $("#nav").hidden = !(S.view === "review" || S.view === "label");
+  const v = visible();
+  $("#pos").textContent = v.length ? `${Math.min(S.idx, v.length - 1) + 1} / ${v.length}` : "0 / 0";
 
   if (S.view === "review") renderReview();
   else if (S.view === "tax") renderTax();
   else if (S.view === "label") renderGrid();
-  else if (S.view === "ref") renderRef();
-  else if (S.view === "map") renderMap();
-  else renderProg();
+  else renderMap();
 }
 
 function renderReview() {
-  const v = visible(), t = cur();
-  $("#pos").textContent = v.length ? `${S.idx + 1} / ${v.length}` : "0 / 0";
+  const t = cur();
+  renderPane();
   if (!t) {
     $("#convo").innerHTML = '<div class="empty">No traces match this filter.</div>';
     ["#scen", "#facts", "#spec", "#notes", "#suggs", "#labels"].forEach(
@@ -1141,6 +1253,35 @@ function renderReview() {
   }
   renderHeader(t); renderScenario(t); renderFacts(t);
   renderSpec(t); renderConvo(t); renderNotes(t); renderSuggs(t); renderLabels(t);
+}
+
+// The pane buttons carry the other pane's state in a few characters, so the
+// hidden pass is not forgotten: how many open codes, and how many Fails or
+// missing judgments.
+function renderPane() {
+  const code = S.pane === "code";
+  $("#pane-code").hidden = !code;
+  $("#pane-label").hidden = code;
+  $("#pane-code-btn").classList.toggle("on", code);
+  $("#pane-label-btn").classList.toggle("on", !code);
+  const t = cur();
+  const n = t ? notesFor(t.trace_id).length : 0;
+  $("#code-cnt").textContent = n ? String(n) : "";
+  const lc = $("#label-cnt");
+  lc.className = "cnt";
+  lc.textContent = "";
+  if (t && S.modes.length) {
+    const miss = missingLabels(t.trace_id).length;
+    const fails = S.modes.filter((m) => ((S.labels[m.name] || {})[t.trace_id] || {}).label === 1).length;
+    if (miss) { lc.textContent = `${miss} left`; lc.classList.add("bad"); }
+    else if (fails) lc.textContent = `${fails} F`;
+  }
+}
+
+function setPane(p) {
+  if (S.pane === p) return;
+  S.pane = p; setPref("pane", p);
+  renderPane();
 }
 
 function renderHeader(t) {
@@ -1189,35 +1330,45 @@ function cycleTools() {
   render();
 }
 
+// The tuple fields that most change what the right behavior is. The rest of
+// the tuple, and the trace metadata, sit behind "all fields".
+const SCEN_LINE = ["intent", "record_state", "applicable_policy"];
+
 function renderScenario(t) {
   const sc = t.scenario;
+  const lf = t.langfuse;
   if (!sc) { $("#scen").innerHTML = '<div class="empty">no scenario join</div>'; return; }
-  const row = (k, v) =>
-    `<div class="fact"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;
-  // The full tuple, in the scenario file's order: each dimension is one reason
-  // the expected behavior differs, so the trace is read against all of them,
-  // not just the role.
-  let h = "";
-  if (sc.tuple) Object.entries(sc.tuple).forEach(([k, v]) => { h += row(k, v ?? "—"); });
-  else h += `<div class="hint">Tuple missing from this pool. Run
-    <code>uv run python -m analysis.review_app.traces --rejoin-scenarios</code>.</div>`;
-  h += row("group", sc.scenario_group);
-  if (sc.data_quality_case_id)
-    h += `<div class="fact"><span class="k">defect</span><span class="v hot">${esc(sc.data_quality_case_id)}</span></div>`;
-  const ev = (sc.expected || {}).evaluation;
-  if (ev) h += `<div class="fact"><span class="k">evaluation</span><span class="v">${esc(ev)}</span></div>`;
-  if (sc.followups && sc.followups.length)
-    h += `<div class="fact"><span class="k">followups</span><span class="v">${sc.followups.length}</span></div>`;
+  const row = (k, v, hot) =>
+    `<div class="fact"><span class="k">${esc(k)}</span><span class="v${hot ? " hot" : ""}">${esc(v)}</span></div>`;
+  const tup = sc.tuple || {};
+  const line = SCEN_LINE.map((k) => tup[k]).filter(Boolean);
+  let h = line.length
+    ? `<div class="scenline">${line.map(esc).join(" · ")}</div>`
+    : '<div class="empty">no scenario tuple</div>';
+  if (sc.data_quality_case_id) h += row("defect", sc.data_quality_case_id, true);
   const exp = sc.expected || {};
   const detail = exp.objective || exp.human_judgment || exp.criteria || exp.notes;
   if (detail)
-    h += `<h4>Expected</h4><div style="font-size:11.5px;color:#cdd4e2;white-space:pre-wrap">${
-      esc(typeof detail === "string" ? detail : JSON.stringify(detail, null, 1))}</div>`;
+    h += `<div class="expected">${esc(typeof detail === "string" ? detail : JSON.stringify(detail, null, 1))}</div>`;
+
+  // The full tuple, in the scenario file's order: each dimension is one reason
+  // the expected behavior differs, so it stays one click away.
+  let all = "";
+  Object.entries(tup).forEach(([k, v]) => { all += row(k, v ?? "—"); });
+  all += row("group", sc.scenario_group);
+  if (exp.evaluation) all += row("evaluation", exp.evaluation);
+  if (sc.followups && sc.followups.length) all += row("followups", sc.followups.length);
+  all += row("turns", (lf.features || {}).turn_count ?? "?");
+  all += row("model", (lf.models || [])[0] || "?");
+  all += row("prompt", lf.prompt_version || "?");
+  h += `<details class="more" id="scen-more"${pref("scenMore", "") ? " open" : ""}>
+    <summary>all fields</summary>${all}</details>`;
   $("#scen").innerHTML = h;
+  $("#scen-more").addEventListener("toggle", (e) => setPref("scenMore", e.target.open ? "1" : ""));
 }
 
 function renderFacts(t) {
-  const d = t.derived, lf = t.langfuse, rows = [];
+  const d = t.derived, rows = [];
   const add = (k, v, hot) =>
     rows.push(`<div class="fact"><span class="k">${esc(k)}</span><span class="v${hot ? " hot" : ""}">${esc(v)}</span></div>`);
   add("tools", d.tools_used.join(", ") || "none");
@@ -1228,50 +1379,62 @@ function renderFacts(t) {
   if (d.escalation_ticket) add("ticket", d.escalation_ticket);
   d.tool_errors.forEach((e) => add(`${e.tool} err`, e.error, true));
   if (d.policy_ids_retrieved.length) {
-    // Clickable: the commonest next question after "which policy did it use?"
-    // is "what does that policy actually say?".
-    const links = d.policy_ids_retrieved.map((p) =>
-      `<a href="#" data-policy="${esc(p)}" style="color:var(--tool)">${esc(p)}</a>`).join(", ");
-    rows.push(`<div class="fact"><span class="k">policy retrieved</span><span class="v">${links}</span></div>`);
+    add("policy retrieved", d.policy_ids_retrieved.join(", "));
     add("policy cited", d.policy_ids_cited.join(", ") || "none",
       d.policy_ids_cited.length < d.policy_ids_retrieved.length);
   }
-  add("turns", (lf.features || {}).turn_count ?? "?");
-  add("model", (lf.models || [])[0] || "?");
-  add("prompt", lf.prompt_version || "?");
   $("#facts").innerHTML = rows.join("");
-  $("#facts").querySelectorAll("[data-policy]").forEach((a) => {
-    a.onclick = (e) => { e.preventDefault(); openDoc(a.dataset.policy); };
-  });
 }
 
+// A requirement attached only because its tool ran ("`get_order` ran in this
+// trace") repeats what the transcript shows, so it is a chip; the text opens
+// below the chips on click. Everything else is a card whose full text, and
+// access matrix, open on click. Green ids come from tool activity, purple ids
+// are model-suggested.
 function renderSpec(t) {
   const all = [...(t.spec.floor || []), ...(t.spec.suggested || [])];
   if (!all.length) { $("#spec").innerHTML = '<div class="empty">nothing attached</div>'; return; }
-  $("#spec").innerHTML = all.map((r, i) => {
+  const bodyOf = (r) => {
     const def = (S.spec.requirements || {})[r.id] || {};
-    const isFloor = r.source === "tool_activity";
     let body = esc(def.text || "");
     if (def.contract) {
       body += `\n\nOn success: ${esc(def.contract.on_success || "")}` +
               `\nOn failure: ${esc(def.contract.on_failure || "")}`;
     }
-    let matrix = "";
     if (r.access_rows && r.access_rows.length) {
-      matrix = `<table class="matrix">${r.access_rows.map((row) =>
+      body += `<table class="matrix">${r.access_rows.map((row) =>
         `<tr><td>${esc(row.capability)}</td><td>${esc(row.permission)}</td></tr>`).join("")}</table>`;
     }
-    return `<div class="req ${isFloor ? "floor" : "llm"}">
+    return body;
+  };
+  const kind = (r) => (r.source === "tool_activity" ? "floor" : "llm");
+  const who = (r) => (r.source === "tool_activity" ? "from tool activity" : "model-suggested");
+  const isChip = (r) => r.source === "tool_activity" &&
+    !(r.access_rows && r.access_rows.length) && /ran in this trace/.test(r.why || "");
+  const chips = all.filter(isChip), cards = all.filter((r) => !isChip(r));
+  let h = "";
+  if (chips.length) {
+    h += `<div class="chips">${chips.map((r, i) =>
+      `<span class="chip rid ${kind(r)}" data-chip="${i}" title="${esc(r.why)}">${esc(r.id)}</span>`).join("")}</div>
+      ${chips.map((r, i) => `<div class="reqbd" id="chipbd-${i}">${bodyOf(r)}</div>`).join("")}`;
+  }
+  h += cards.map((r, i) => `<div class="req ${kind(r)}">
       <div class="hd" data-req="${i}">
-        <span class="rid">${esc(r.id)}</span>
-        <span class="src">${isFloor ? "tool" : "ai"}</span>
+        <span class="rid" title="${who(r)}">${esc(r.id)}</span>
+        <span class="why">${esc(r.why)}</span>
       </div>
-      <div style="padding:0 8px 6px"><div class="why">${esc(r.why)}</div>${matrix}</div>
-      <div class="bd" id="bd-${i}">${body}</div>
-    </div>`;
-  }).join("");
+      <div class="bd" id="bd-${i}">${bodyOf(r)}</div>
+    </div>`).join("");
+  $("#spec").innerHTML = h;
   $("#spec").querySelectorAll(".hd").forEach((hd) => {
     hd.onclick = () => $("#bd-" + hd.dataset.req).classList.toggle("open");
+  });
+  $("#spec").querySelectorAll("[data-chip]").forEach((c) => {
+    c.onclick = () => {
+      const bd = $("#chipbd-" + c.dataset.chip), open = !bd.classList.contains("open");
+      $("#spec").querySelectorAll(".reqbd").forEach((x) => x.classList.remove("open"));
+      bd.classList.toggle("open", open);
+    };
   });
 }
 
@@ -1305,7 +1468,7 @@ function stepHTML(st, key, prior, annotated, interim) {
     const icls = [cls, "interim", full ? "" : "compact"].join(" ");
     const toggle = full ? "" : ` <span class="toggle" title="expand">&#9662;</span>`;
     return `<div class="${icls}" data-key="${key}">
-      <div class="who">interim (not shown to user)${toggle}</div>
+      <div class="who" title="an assistant message before the final reply; the user never sees it">interim${toggle}</div>
       <div class="txt md annotatable">${md(st.text)}</div>${noteBtn}</div>`;
   }
   if (role === "user" || role === "assistant") {
@@ -1317,17 +1480,31 @@ function stepHTML(st, key, prior, annotated, interim) {
       <div class="who">${role}</div>${body}${noteBtn}</div>`;
   }
   if (role === "tool_call") {
-    // Arguments are never truncated, at either level. A quote anchored inside
-    // them has to keep matching, and clipped text would silently stop being
-    // findable. "full" only changes the indentation.
-    const args = st.arguments || {};
-    const body = full ? JSON.stringify(args, null, 2) : JSON.stringify(args);
     return `<div class="${cls}" data-key="${key}">
       <div class="who">call</div>
-      <div class="txt mono annotatable">${esc(st.name)}(${esc(body)})</div>
+      <div class="txt mono annotatable">${callText(st, full)}</div>
       ${noteBtn}</div>`;
   }
-  // tool_result: collapse the JSON to a verdict line, expand on click.
+  const r = resultParts(st, key, full);
+  return `<div class="${cls}${r.ok ? "" : " bad"}" data-key="${key}">
+    <div class="who">result</div>
+    <div class="summary" data-full="full-${key}">
+      <span class="${r.ok ? "ok" : "no"}">${r.ok ? "ok" : "fail"}</span>
+      <span>${esc(st.name)}</span>${r.gist}<span class="arr">&#9662;</span>
+    </div>${r.full}
+    ${noteBtn}</div>`;
+}
+
+// Arguments are never truncated, at any level. A quote anchored inside them
+// has to keep matching, and clipped text would silently stop being findable.
+// "full" only changes the indentation.
+function callText(st, full) {
+  const args = st.arguments || {};
+  return `${esc(st.name)}(${esc(full ? JSON.stringify(args, null, 2) : JSON.stringify(args))})`;
+}
+
+// A tool result as a verdict line, with the JSON behind a click.
+function resultParts(st, key, full) {
   const c = st.content || {};
   const ok = c.ok !== false;
   let gist = "";
@@ -1339,16 +1516,47 @@ function stepHTML(st, key, prior, annotated, interim) {
   else if (c.policy_id) gist = esc(c.policy_id);
   else if (c.ticket_id) gist = `ticket ${esc(c.ticket_id)}`;
   else if (c.order) gist = `order ${esc(c.order.order_id)} ${esc(c.order.status)}`;
-  const bad = !ok ? " bad" : "";
-  return `<div class="${cls}${bad}" data-key="${key}">
-    <div class="who">result</div>
-    <div class="summary" data-full="full-${key}">
-      <span class="${ok ? "ok" : "no"}">${ok ? "ok" : "fail"}</span>
-      <span>${esc(st.name)}</span><span>${gist}</span><span style="color:#5a6273">&#9662;</span>
-    </div>
-    <div class="full annotatable${full ? " open" : ""}" id="full-${key}">${
-      esc(JSON.stringify(c, null, 2))}</div>
-    ${noteBtn}</div>`;
+  return {
+    ok,
+    gist: gist ? `<span>${gist}</span>` : "",
+    full: `<div class="full annotatable${full ? " open" : ""}" id="full-${key}">${
+      esc(JSON.stringify(c, null, 2))}</div>`,
+  };
+}
+
+// "compact": a call and the result that follows it share one row. The result
+// keeps its own data-key on an inner element, so a note anchored to either
+// step, and the quote inside it, still finds its block.
+function pairHTML(call, callKey, res, resKey, prior) {
+  const r = resultParts(res, resKey, false);
+  const cls = ["step", "tool_call", "pair", prior ? "prior" : "", r.ok ? "" : "bad"].join(" ");
+  const noteBtn = prior ? "" :
+    `<button class="note-btn" data-anchor="${callKey}">note</button>`;
+  return `<div class="${cls}" data-key="${callKey}">
+    <div class="call txt mono annotatable">${callText(call, false)}</div>
+    <div class="res" data-key="${resKey}">
+      <span class="summary" data-full="full-${resKey}">
+        <span class="arr">&rarr;</span><span class="${r.ok ? "ok" : "no"}">${r.ok ? "ok" : "fail"}</span>${r.gist}<span class="arr">&#9662;</span>
+      </span>${r.full}
+    </div>${noteBtn}</div>`;
+}
+
+// One turn's steps. keyOf(i) gives each step's anchor key.
+function turnHTML(steps, keyOf, prior, anns) {
+  const interim = interimSteps(steps);
+  const list = steps || [];
+  let h = "";
+  for (let i = 0; i < list.length; i++) {
+    const st = list[i], nx = list[i + 1];
+    if (S.tools === "compact" && st.role === "tool_call" && nx &&
+        nx.role === "tool_result" && nx.name === st.name) {
+      h += pairHTML(st, keyOf(i), nx, keyOf(i + 1), prior);
+      i++;
+      continue;
+    }
+    h += stepHTML(st, keyOf(i), prior, anns.has(keyOf(i)), interim.has(i));
+  }
+  return h;
 }
 
 // Anchors of this trace's notes, so "off" can keep the steps they point at.
@@ -1357,24 +1565,21 @@ function annotatedKeys(t) {
 }
 
 function renderConvo(t) {
+  // Re-rendering the trace already on screen (a label, a note, a poll) keeps
+  // the reader's place; only moving to another trace starts at the top.
+  const keep = S.keepScroll ?? (S.convoFor === t.trace_id ? $("#convo").scrollTop : 0);
+  S.keepScroll = null; S.convoFor = t.trace_id;
   let h = "";
   const anns = annotatedKeys(t);
   const prior = (t.session.prior_trace_ids || []).map((id) => S.byId[id]).filter(Boolean);
   if (prior.length) {
-    h += `<div class="ctxbanner">Earlier turns of session <code>${
-      esc(t.session.session_id.slice(0, 12))}</code> — read-only context. Label the current turn below.</div>`;
     prior.forEach((p, pi) => {
-      h += `<div class="turnsep">turn ${pi + 1}</div>`;
-      const pInterim = interimSteps(p.steps);
-      (p.steps || []).forEach((st, si) => {
-        const key = `p${pi}-${si}`;
-        h += stepHTML(st, key, true, anns.has(key), pInterim.has(si));
-      });
+      h += `<div class="turnsep">turn ${pi + 1} &middot; context</div>`;
+      h += turnHTML(p.steps, (si) => `p${pi}-${si}`, true, anns);
     });
-    h += `<div class="turnsep">turn ${prior.length + 1} &mdash; under review</div>`;
+    h += `<div class="turnsep">turn ${prior.length + 1} &middot; under review</div>`;
   }
-  const tInterim = interimSteps(t.steps);
-  (t.steps || []).forEach((st, i) => (h += stepHTML(st, "s" + i, false, anns.has("s" + i), tInterim.has(i))));
+  h += turnHTML(t.steps, (i) => "s" + i, false, anns);
   $("#convo").innerHTML = h;
   $("#convo").querySelectorAll(".step.interim .toggle").forEach((el) => {
     el.onclick = () => el.closest(".step").classList.toggle("open");
@@ -1385,6 +1590,7 @@ function renderConvo(t) {
   });
   $("#convo").querySelectorAll(".note-btn").forEach((b) => {
     b.onclick = () => {
+      setPane("code");
       $("#note-in").dataset.anchor = b.dataset.anchor;
       $("#note-in").focus();
       toast("note anchored to step " + b.dataset.anchor);
@@ -1400,17 +1606,16 @@ function renderConvo(t) {
   $("#convo").querySelectorAll(".hl").forEach((el) => {
     el.onclick = (e) => {
       e.stopPropagation();
+      setPane("code");
       const card = $("#notes").querySelector(`[data-note="${el.dataset.item}"]`);
       if (card) {
         card.scrollIntoView({ block: "center", behavior: "smooth" });
-        card.style.outline = "1px solid #d9a441";
+        card.style.outline = "1px solid var(--note-accent)";
         setTimeout(() => (card.style.outline = ""), 1200);
       }
     };
   });
-  // Annotating should not throw the reviewer back to the top of a long trace.
-  if (S.keepScroll != null) { $("#convo").scrollTop = S.keepScroll; S.keepScroll = null; }
-  else $("#convo").scrollTop = 0;
+  $("#convo").scrollTop = keep;
 }
 
 // Which note card is open for editing, by annotation id. Held in S so a
@@ -1419,7 +1624,7 @@ function renderConvo(t) {
 function noteBody(a, i) {
   if (S.editing === annId(a)) {
     return `<textarea data-edit="${i}">${esc(a.note)}</textarea>
-      <div class="meta"><span>&#8984;&#8629; save &middot; esc cancel</span>
+      <div class="meta"><span></span>
         <span class="acts">
           <button data-save="${i}">save</button>
           <button data-cancel="${i}">cancel</button>
@@ -1620,12 +1825,12 @@ function renderSuggs(t) {
   $("#suggs").innerHTML = mine.length ? mine.map((s, i) => {
     if (s.verdict) {
       return `<div class="sugg"><div>${esc(s.text)}</div>
-        <div class="meta" style="font-size:10px;color:var(--faint);margin-top:5px">
+        <div class="meta">
         ${esc(s.verdict)}${s.reason ? " — " + esc(s.reason) : ""}</div></div>`;
     }
     return `<div class="sugg">
       <div>${esc(s.text)}</div>
-      <div style="font-size:10px;color:var(--faint);margin-top:4px">${esc(s.origin || "ai")}</div>
+      <div class="meta">${esc(s.origin || "ai")}</div>
       <div class="row">
         <button data-acc="${i}">accept as open code</button>
         <button data-rej="${i}">reject</button>
@@ -1658,14 +1863,16 @@ function renderSuggs(t) {
 
 function renderLabels(t) {
   if (!S.modes.length) {
-    $("#labels").innerHTML = '<div class="empty">no modes yet — define them in Taxonomy</div>';
+    $("#labels").innerHTML = '<div class="empty">no modes yet</div>';
     return;
   }
-  $("#labels").innerHTML = S.modes.map((m) => {
+  // The number is the mode's digit key (N = Fail, shift+N = Pass).
+  $("#labels").innerHTML = S.modes.map((m, i) => {
     const rec = (S.labels[m.name] || {})[t.trace_id];
     const v = rec ? rec.label : null;
     return `<div class="lbl">
-      <span class="nm" title="${esc(m.definition || "")}">${esc(m.name)}</span>
+      <span class="n">${i < 9 ? i + 1 : ""}</span>
+      <span class="nm" title="${esc(m.name)}\n\n${esc(m.definition || "")}">${esc(modeLabel(m.name))}</span>
       <button class="pass ${v === 0 ? "on" : ""}" data-m="${esc(m.name)}" data-v="0">P</button>
       <button class="fail ${v === 1 ? "on" : ""}" data-m="${esc(m.name)}" data-v="1">F</button>
     </div>`;
@@ -1674,6 +1881,9 @@ function renderLabels(t) {
     b.onclick = () => setLabel(b.dataset.m, +b.dataset.v);
   });
 }
+
+// snake_case mode names read as prose in the panel and the grid headers.
+function modeLabel(name) { return String(name).replace(/_/g, " "); }
 
 async function setLabel(mode, label) {
   const t = cur(); if (!t) return;
@@ -1696,6 +1906,30 @@ function idList(s) {
   return String(s || "").split(/[\s,]+/).filter(Boolean);
 }
 
+// A trace id as its scenario, with the turn when the session has several, so
+// "support-0062" can be read and clicked instead of a 32-character hash.
+function traceName(id) {
+  const t = S.byId[id];
+  if (!t) return id.slice(0, 10);
+  const s = t.session || {};
+  return t.langfuse.scenario_id + (s.turn_count > 1 ? ` t${s.turn_index + 1}` : "");
+}
+
+function traceChips(i, field, ids) {
+  return `<div class="chips">${ids.map((id) =>
+    `<span class="chip${S.byId[id] ? "" : " unknown"}" data-open="${esc(id)}" title="${esc(id)}">${
+      esc(traceName(id))}<button class="x" data-m="${i}" data-rm="${field}" data-id="${esc(id)}" title="remove">&times;</button></span>`).join("")}
+    <input class="chipadd" data-m="${i}" data-add="${field}" placeholder="+ trace id"></div>`;
+}
+
+// One line per open code: the note, with its quoted evidence in the hover
+// text, and the trace it came from.
+function codeLine(a, tail) {
+  const q = a.quote ? ` title="${esc("“" + a.quote + "”")}"` : "";
+  return `<div class="code"><span class="ct"${q}>${esc(a.note)}</span>
+    <span class="cs" data-open="${esc(a.trace_id || "")}">${esc(traceName(a.trace_id || ""))}</span>${tail}</div>`;
+}
+
 function renderTax() {
   // Which open codes already belong to a mode. Used for real now: the
   // "not yet grouped" list is the reviewer's remaining work queue, so
@@ -1716,27 +1950,28 @@ function renderTax() {
     if (!m.boundary) gaps.push("boundary");
     if (!m.evaluator) gaps.push("evaluator type");
     if (!m.requirement) gaps.push("SPEC requirement");
+    const status = gaps.length
+      ? `<span class="src gap" title="missing: ${esc(gaps.join(", "))}">${gaps.length} missing</span>`
+      : "";
 
     const mine = (m.annotations || []).map((id) => byId[id]).filter(Boolean);
-    return `<div class="mode">
-      <div class="mhd">
-        <input class="mname" data-m="${i}" data-f="name" value="${esc(m.name)}">
-        <span class="src">${f} fail / ${p} pass</span>
-        ${gaps.length
-          ? `<span class="src gap">missing: ${esc(gaps.join(", "))}</span>`
-          : `<span class="src ok">complete</span>`}
-        <span class="sp"></span>
-        <button data-del-mode="${i}">delete</button>
-      </div>
+    const open = S.taxOpen.has(m.name) ? " open" : "";
+    return `<details class="mode" data-name="${esc(m.name)}"${open}>
+      <summary>
+        <span class="mn">${esc(m.name)}</span>
+        <span class="mcnt"><b>${f}</b> F / ${p} P</span>
+        ${status}
+        <span class="mdef">${esc((m.definition || "").split("\n")[0])}</span>
+      </summary>
       <div class="mbody">
+        <label>Name
+          <input class="mono" data-m="${i}" data-f="name" value="${esc(m.name)}"></label>
         <label>Binary definition
-          <textarea data-m="${i}" data-f="definition"
-            placeholder="Another reviewer must be able to apply this to a trace and get the same answer.">${esc(m.definition || "")}</textarea></label>
-        <label>Boundary against the nearest neighbouring mode
-          <textarea data-m="${i}" data-f="boundary"
-            placeholder="What looks like this mode but is not it, and why.">${esc(m.boundary || "")}</textarea></label>
+          <textarea data-m="${i}" data-f="definition">${esc(m.definition || "")}</textarea></label>
+        <label>Boundary
+          <textarea data-m="${i}" data-f="boundary">${esc(m.boundary || "")}</textarea></label>
         <div class="mrow">
-          <label>Likely evaluator
+          <label>Evaluator
             <select data-m="${i}" data-f="evaluator">
               <option value=""${!m.evaluator ? " selected" : ""}>—</option>
               <option value="code check"${m.evaluator === "code check" ? " selected" : ""}>code check</option>
@@ -1744,62 +1979,46 @@ function renderTax() {
             </select></label>
           <label>Requirement source
             <input data-m="${i}" data-f="requirement" list="req-ids"
-              placeholder="RESP-2, or a recorded SPEC revision"
               value="${esc(m.requirement || "")}"></label>
         </div>
         <div class="mrow">
-          <label>Confirmed positive traces
-            <input data-m="${i}" data-f="positives" placeholder="trace ids, space separated"
-              value="${esc((m.positives || []).join(" "))}"></label>
-          <label>Close negative traces
-            <input data-m="${i}" data-f="close_negatives" placeholder="trace ids, space separated"
-              value="${esc((m.close_negatives || []).join(" "))}"></label>
+          <label>Positives (${(m.positives || []).length})
+            ${traceChips(i, "positives", m.positives || [])}</label>
+          <label>Close negatives (${(m.close_negatives || []).length})
+            ${traceChips(i, "close_negatives", m.close_negatives || [])}</label>
         </div>
-        <div class="grp">From ${mine.length} open code${mine.length === 1 ? "" : "s"}</div>
-        ${mine.length ? mine.map((a) => `
-          <div class="note">
-            ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 110))}&rdquo;</div>` : ""}
-            <div>${esc(a.note)}</div>
-            <div class="meta">
-              <span>${esc(a.scenario_id || "")} &middot; ${esc((a.trace_id || "").slice(0, 10))}</span>
-              <button data-unlink="${i}" data-aid="${esc(annId(a))}">unlink</button>
-            </div>
-          </div>`).join("")
-        : '<div class="empty">none yet — assign from the list below</div>'}
+        <div class="grp">Open codes (${mine.length})</div>
+        <div class="codes">${mine.length ? mine.map((a) => codeLine(a,
+          `<button data-unlink="${i}" data-aid="${esc(annId(a))}" title="unlink">&times;</button>`)).join("")
+          : '<div class="empty">none</div>'}</div>
+        <div class="mfoot"><button data-del-mode="${i}">delete mode</button></div>
       </div>
-    </div>`;
-  }).join("") : '<div class="empty">No modes yet. Open coding comes first, then group the codes below.</div>';
+    </details>`;
+  }).join("") : '<div class="empty">no modes yet</div>';
 
   // Only codes that describe a failure and are not already grouped.
   const un = S.ann.filter((a) =>
     a.note && !/^no failure observed/i.test(a.note) && !grouped.has(annId(a)));
   const opts = S.modes.map((m, i) =>
     `<option value="${i}">${esc(m.name)}</option>`).join("");
-  $("#ungrouped").innerHTML = un.length ? un.map((a) => `
-    <div class="note">
-      ${a.quote ? `<div class="quoted">&ldquo;${esc(clip(a.quote, 130))}&rdquo;</div>` : ""}
-      <div>${esc(a.note)}</div>
-      <div class="meta">
-        <span>${esc(a.scenario_id || "")} &middot; ${esc((a.trace_id || "").slice(0, 10))}</span>
-        ${S.modes.length
-          ? `<select data-assign="${esc(annId(a))}">
-               <option value="">assign to…</option>${opts}</select>`
-          : '<span class="tip">create a mode to group this</span>'}
-      </div>
-    </div>`).join("")
-    : `<div class="empty">${
-        S.ann.length ? "every open code is grouped" : "no open codes yet"}</div>`;
+  $("#ungrouped").innerHTML = un.length ? `<div class="codes">${un.map((a) => codeLine(a,
+    S.modes.length ? `<select data-assign="${esc(annId(a))}"><option value="">assign to…</option>${opts}</select>` : ""
+  )).join("")}</div>` : '<div class="empty">none</div>';
 
   $("#tax-count").textContent =
-    `${S.modes.length} modes · ${un.length} codes ungrouped · ${grouped.size} grouped`;
+    `${S.modes.length} modes · ${un.length} ungrouped · ${grouped.size} grouped`;
 
   // -- wiring ---------------------------------------------------------
+  $("#tax").querySelectorAll("details.mode").forEach((d) => {
+    d.addEventListener("toggle", () => {
+      if (d.open) S.taxOpen.add(d.dataset.name); else S.taxOpen.delete(d.dataset.name);
+    });
+  });
   $("#tax").querySelectorAll("[data-f]").forEach((el) => {
     el.onchange = async () => {
       const m = S.modes[+el.dataset.m];
       const f = el.dataset.f;
-      if (f === "positives" || f === "close_negatives") m[f] = idList(el.value);
-      else if (f === "name") {
+      if (f === "name") {
         const old = m.name, next = el.value.trim();
         if (!next) { el.value = old; return; }
         if (old !== next && S.labels[old]) {
@@ -1809,9 +2028,29 @@ function renderTax() {
             `for "${next}". Rename anyway?`)) { el.value = old; return; }
         }
         m.name = next;
+        if (S.taxOpen.delete(old)) S.taxOpen.add(next);
       } else m[f] = el.value;
       await saveModes(); render();
     };
+  });
+  $("#tax").querySelectorAll("[data-add]").forEach((el) => {
+    el.onchange = async () => {
+      const m = S.modes[+el.dataset.m], f = el.dataset.add;
+      const cur = m[f] || [];
+      m[f] = [...cur, ...idList(el.value).filter((id) => !cur.includes(id))];
+      await saveModes(); render();
+    };
+  });
+  $("#tax").querySelectorAll("[data-rm]").forEach((b) => {
+    b.onclick = async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const m = S.modes[+b.dataset.m], f = b.dataset.rm;
+      m[f] = (m[f] || []).filter((id) => id !== b.dataset.id);
+      await saveModes(); render();
+    };
+  });
+  document.querySelectorAll("#tax [data-open], #ungrouped [data-open]").forEach((el) => {
+    el.onclick = (e) => { if (e.target.closest("button")) return; e.preventDefault(); openInReview(el.dataset.open); };
   });
   $("#tax").querySelectorAll("[data-del-mode]").forEach((b) => {
     b.onclick = async () => {
@@ -1819,6 +2058,7 @@ function renderTax() {
       if (!confirm(`Delete mode "${m.name}"?\n\nAny labels already saved under ` +
         `it stay in labels/${m.name}.jsonl.`)) return;
       S.modes.splice(+b.dataset.delMode, 1);
+      S.taxOpen.delete(m.name);
       await saveModes(); render();
     };
   });
@@ -1858,113 +2098,101 @@ async function newMode() {
   toast(`added ${clean}`);
 }
 
-// ---------------------------------------------------------------- grid
-function renderGrid() {
-  if (!S.modes.length) {
-    $("#lblgrid").innerHTML = '<div class="empty">Define modes first.</div>'; return;
-  }
-  const v = visible();
-  const head = `<tr><th>scenario</th><th>role</th>${
-    S.modes.map((m) => `<th>${esc(m.name)}</th>`).join("")}<th>notes</th></tr>`;
-  const rows = v.map((t, i) => {
-    const cells = S.modes.map((m) => {
-      const rec = (S.labels[m.name] || {})[t.trace_id];
-      if (!rec) return `<td class="c none">·</td>`;
-      return rec.label === 1 ? `<td class="c F">F</td>` : `<td class="c P">P</td>`;
-    }).join("");
-    return `<tr data-i="${i}" class="${t === cur() ? "cur" : ""}">
-      <td class="mono">${esc(t.langfuse.scenario_id)}</td>
-      <td>${esc(t.langfuse.user_role)}</td>${cells}
-      <td class="c">${notesFor(t.trace_id).length || ""}</td></tr>`;
-  }).join("");
-  $("#lblgrid").innerHTML = `<table class="grid">${head}${rows}</table>`;
-  $("#lblgrid").querySelectorAll("tr[data-i]").forEach((tr) => {
-    tr.onclick = () => { S.idx = +tr.dataset.i; S.view = "review"; render(); };
-  });
-}
+// ---------------------------------------------------------------- labeling
+// Progress and the trace-by-mode matrix on one page. Counts in the column
+// headers are over the traces the scope filter shows, so with "in sample"
+// selected the judged count can never exceed the sample. (The old Progress
+// table divided every label on file, sample or not, by the sample size.)
+const HW5_MIN = 30;
 
-// ---------------------------------------------------------------- progress
-function renderProg() {
-  // The denominator is the drawn sample, not the pool. Counting against 267
-  // would describe work nobody asked for, and it would contradict the
-  // sample-fraction warning further down: the review set is stratified on
-  // purpose, so the pool is not the thing being worked through.
+function renderLabSum() {
   const total = sampleSize();
   const codedIds = new Set(S.ann.map((a) => a.trace_id));
   const coded = S.pool.filter((t) => inSample(t) && codedIds.has(t.trace_id)).length;
   const offCoded = S.pool.filter((t) => !inSample(t) && codedIds.has(t.trace_id)).length;
   const pct = total ? Math.round((coded / total) * 100) : 0;
-  let h = `<h4>Open coding</h4>
-    <div class="stat"><span>sample reviewed</span><span class="v">${coded} / ${total}</span></div>
-    <div class="bar"><i style="width:${pct}%"></i></div>
-    <div class="stat"><span>off-manifest coded</span><span class="v">${offCoded}</span></div>
-    <div class="stat"><span>pool</span><span class="v">${S.pool.length}</span></div>`;
-
-  h += `<h4>Batches</h4>`;
-  if (!S.manifest.batches.length) h += '<div class="empty">no manifest batches</div>';
-  else {
-    h += `<table class="grid"><tr><th>batch</th><th>reviewed</th><th>size</th></tr>`;
-    S.manifest.batches.forEach((b) => {
-      const ids = (b.picks || []).map((p) => p.trace_id);
-      const done = ids.filter((id) => codedIds.has(id)).length;
-      h += `<tr><td class="mono">${esc(b.name)}</td><td class="c">${done}</td>
-        <td class="c">${ids.length}</td></tr>`;
-    });
-    h += `</table>`;
-    if (total < 100) {
-      h += `<div class="hint">${100 - total} more traces to draw before the review
-        set reaches the required 100.</div>`;
-    }
-  }
-
-  h += `<h4>Structured labeling</h4>`;
-  if (!S.modes.length) h += '<div class="empty">no modes yet</div>';
-  else {
-    h += `<table class="grid"><tr><th>mode</th><th>fail</th><th>pass</th><th>judged</th><th>sample fraction</th></tr>`;
-    S.modes.forEach((m) => {
-      const live = Object.values(S.labels[m.name] || {});
-      const f = live.filter((r) => r.label === 1).length;
-      const p = live.filter((r) => r.label === 0).length;
-      const frac = live.length ? ((f / live.length) * 100).toFixed(1) + "%" : "—";
-      h += `<tr><td class="mono">${esc(m.name)}</td><td class="c F">${f}</td>
-        <td class="c P">${p}</td><td class="c">${live.length} / ${total}</td>
-        <td class="c">${frac}</td></tr>`;
-    });
-    h += `</table><div class="hint">Sample fractions, not prevalence estimates — the review set was deliberately stratified.</div>`;
-    const short = S.modes.filter((m) => {
-      const live = Object.values(S.labels[m.name] || {});
-      return live.filter((r) => r.label === 1).length < 30 ||
-             live.filter((r) => r.label === 0).length < 30;
-    });
-    if (short.length) {
-      h += `<div class="hint" style="color:var(--err)">Below the HW5 minimum of 30 pass + 30 fail: ${
-        esc(short.map((m) => m.name).join(", "))}</div>`;
-    }
-  }
-
-  h += `<h4>Suggestions</h4>`;
   const acc = S.suggs.filter((s) => s.verdict === "accepted").length;
   const rej = S.suggs.filter((s) => s.verdict === "rejected").length;
   const pend = S.suggs.filter((s) => !s.verdict).length;
-  h += `<div class="stat"><span>accepted</span><span class="v">${acc}</span></div>
-        <div class="stat"><span>rejected</span><span class="v">${rej}</span></div>
-        <div class="stat"><span>pending</span><span class="v">${pend}</span></div>`;
-  if (!rej) h += `<div class="hint" style="color:var(--err)">The saved state must contain at least one rejected suggestion.</div>`;
+  const stat = (k, v, title) =>
+    `<span class="stat"${title ? ` title="${esc(title)}"` : ""}><span class="k">${k}</span><span class="v">${v}</span></span>`;
 
-  h += `<h4>Pool composition</h4>`;
-  const by = (fn) => {
-    const c = {};
-    S.pool.forEach((t) => { const k = fn(t) ?? "—"; c[k] = (c[k] || 0) + 1; });
-    return c;
-  };
-  const roles = by((t) => t.langfuse.user_role);
-  const groups = by((t) => (t.scenario || {}).scenario_group);
-  h += `<table class="grid"><tr><th>dimension</th><th>values</th></tr>
-    <tr><td>role</td><td class="mono">${esc(JSON.stringify(roles))}</td></tr>
-    <tr><td>group</td><td class="mono">${esc(JSON.stringify(groups))}</td></tr>
-    <tr><td>sessions</td><td class="mono">${new Set(S.pool.map((t) => t.session.session_id)).size}</td></tr>
-    </table>`;
-  $("#prog").innerHTML = h;
+  let h = `<div class="labsum">
+    ${stat("open-coded", `${coded} / ${total}${total < 100 ? ` <span class="bad" title="the review set needs 100">(${100 - total} to draw)</span>` : ""}`)}
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    ${stat("off-manifest", offCoded)}
+    ${stat("suggestions", `${acc} accepted · <span class="${rej ? "" : "bad"}" title="${rej ? "" : "the saved state needs at least one rejected suggestion"}">${rej} rejected</span> · ${pend} pending`)}
+    <span class="grow" style="flex:1"></span>
+    <label><input type="checkbox" id="failonly"${S.failOnly ? " checked" : ""}> rows with a Fail</label>
+  </div>`;
+
+  // Batches collapse, and the worklists (wl-*) collapse again inside them:
+  // they are the long tail of the manifest and rarely what you came for.
+  if (S.manifest.batches.length) {
+    const row = (b) => {
+      const ids = (b.picks || []).map((p) => p.trace_id);
+      const done = ids.filter((id) => codedIds.has(id)).length;
+      return `<tr><td class="mono"><a href="#batch=${encodeURIComponent(b.name)}">${esc(b.name)}</a></td>
+        <td class="c">${done} / ${ids.length}</td></tr>`;
+    };
+    const main = S.manifest.batches.filter((b) => !b.name.startsWith("wl-"));
+    const wl = S.manifest.batches.filter((b) => b.name.startsWith("wl-"));
+    const by = (fn) => {
+      const c = {};
+      S.pool.forEach((t) => { const k = fn(t) ?? "—"; c[k] = (c[k] || 0) + 1; });
+      return Object.entries(c).map(([k, v]) => `${esc(k)} ${v}`).join(", ");
+    };
+    h += `<details class="batches"><summary>Batches (${S.manifest.batches.length}) and pool</summary>
+      <table class="grid"><tr><th>batch</th><th>coded</th></tr>${main.map(row).join("")}</table>
+      ${wl.length ? `<details><summary>worklists (${wl.length})</summary>
+        <table class="grid"><tr><th>worklist</th><th>coded</th></tr>${wl.map(row).join("")}</table></details>` : ""}
+      <div class="pooldims">pool ${S.pool.length} traces · ${
+        new Set(S.pool.map((t) => t.session.session_id)).size} sessions · role: ${
+        by((t) => t.langfuse.user_role)} · group: ${by((t) => (t.scenario || {}).scenario_group)}</div>
+    </details>`;
+  }
+  $("#labsum").innerHTML = h;
+  $("#failonly").onchange = (e) => { S.failOnly = e.target.checked; renderGrid(); };
+}
+
+function renderGrid() {
+  renderLabSum();
+  if (!S.modes.length) {
+    $("#lblgrid").innerHTML = '<div class="empty">no modes yet</div>'; return;
+  }
+  const v = visible();
+  const labelOf = (m, t) => ((S.labels[m.name] || {})[t.trace_id] || {}).label;
+  const head = S.modes.map((m, i) => {
+    const judged = v.filter((t) => labelOf(m, t) != null).length;
+    const f = v.filter((t) => labelOf(m, t) === 1).length;
+    // The HW5 minimum counts every label on file, not just this scope.
+    const all = Object.values(S.labels[m.name] || {});
+    const af = all.filter((r) => r.label === 1).length, ap = all.filter((r) => r.label === 0).length;
+    const short = af < HW5_MIN || ap < HW5_MIN;
+    const tip = `${m.name} (key ${i + 1})\n${f} fail of ${judged} judged in this scope` +
+      (short ? `\nbelow the HW5 minimum: ${af} fail, ${ap} pass on file; needs ${HW5_MIN} of each` : "");
+    return `<th class="mcol${short ? " short" : ""}" title="${esc(tip)}">
+      <div class="vh">${esc(modeLabel(m.name))}</div><div class="cnt"><b>${f}</b>/${judged}</div></th>`;
+  }).join("");
+  const c = cur();
+  const rows = v.map((t, i) => ({ t, i })).filter(({ t }) =>
+    !S.failOnly || S.modes.some((m) => labelOf(m, t) === 1)).map(({ t, i }) => {
+    const cells = S.modes.map((m) => {
+      const l = labelOf(m, t);
+      return `<td class="m${l === 1 ? " F" : l == null ? " none" : ""}"></td>`;
+    }).join("");
+    const n = notesFor(t.trace_id).length;
+    return `<tr data-i="${i}" class="${t === c ? "cur" : ""}">
+      <td class="mono">${esc(traceName(t.trace_id))}</td>
+      <td class="role">${esc(t.langfuse.user_role)}</td>${cells}
+      <td class="t" title="open codes">${n || ""}</td></tr>`;
+  }).join("");
+  $("#lblgrid").innerHTML = `<table class="grid lg"><thead><tr>
+    <th>trace</th><th>role</th>${head}<th title="open codes">codes</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+  $("#lblgrid").querySelectorAll("tr[data-i]").forEach((tr) => {
+    tr.onclick = () => { S.idx = +tr.dataset.i; S.view = "review"; render(); };
+  });
 }
 
 // ---------------------------------------------------------------- map
@@ -2211,7 +2439,7 @@ const TM = (() => {
       const [x, y] = toScreen(cp);
       ctx.save(); ctx.setLineDash([3, 3]);
       ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
-      ctx.lineWidth = 1.2; ctx.strokeStyle = "#fff"; ctx.stroke(); ctx.restore();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = cssv("--ink"); ctx.stroke(); ctx.restore();
     }
     for (const [id, r, w] of [[M.hover, 7, 1.5], [M.selected, 8, 2.5]]) {
       const p = id && M.byId.get(id);
@@ -2297,7 +2525,7 @@ const TM = (() => {
       const w = ctx.measureText(text).width + 8;
       M.badges.push({ c: c.cluster, x: x - w / 2, y: y - 8, w, h: 16 });
       ctx.globalAlpha = focus && !M.highlight.includes(c.cluster) ? 0.35 : 0.95;
-      ctx.fillStyle = "#0d0f14"; ctx.strokeStyle = cssv("--line"); ctx.lineWidth = 1;
+      ctx.fillStyle = cssv("--panel"); ctx.strokeStyle = cssv("--line"); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.roundRect(x - w / 2, y - 8, w, 16, 4); ctx.fill(); ctx.stroke();
       ctx.fillStyle = cssv("--ink"); ctx.fillText(text, x, y + 0.5);
     }
@@ -2738,256 +2966,6 @@ const TM = (() => {
   };
 })();
 
-// ---------------------------------------------------------------- reference
-// Every source of truth in one searchable place. Checking a reply against the
-// document it cites is the commonest thing a reviewer does, and leaving the
-// interface to do it is the friction this replaces.
-function hl(text, q) {
-  const e = esc(text);
-  if (!q) return e;
-  return e.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"),
-    "<mark>$1</mark>");
-}
-
-// One store, with its settings placed beside the platform defaults they
-// replace. Reviewing a return-window claim means knowing both numbers and
-// which one governs; the effective value alone hides that comparison.
-function renderStore(slug) {
-  const R = S.ref;
-  const s = R.stores.find((x) => x.slug === slug);
-  if (!s) { S.refStore = null; renderRef(); return; }
-  const doc = s.policy_id && R.policies.find((p) => p.policy_id === s.policy_id);
-
-  // Which reviewed traces touched this store. Scanning the pool beats a join
-  // on the server: the reviewer wants the traces where a claim about THIS
-  // store could have been made, and that is a text question, not a schema one.
-  const needle = `"store_id": ${s.store_id}`;
-  const touching = S.pool.filter((t) => {
-    const blob = JSON.stringify(t.steps);
-    return blob.includes(needle) || blob.includes(s.name);
-  });
-
-  let h = `<div class="storehd">
-    <button id="ref-back">&larr; all stores</button>
-    <h2>${esc(s.name)}</h2>
-    <span class="pill">#${s.store_id}</span>
-    <span class="pill">${esc(s.slug)}</span>
-    <span class="pill">${esc(s.category || "")}</span>
-    ${s.customized ? '<span class="pill warn">customized</span>'
-                   : '<span class="pill">platform defaults</span>'}
-  </div>
-  <div class="hint">${s.counts.orders ?? 0} orders &middot; ${
-    s.counts.products ?? 0} products &middot; ${touching.length} reviewed traces mention this store</div>`;
-
-  h += `<div class="refcols"><div>`;
-
-  h += `<h4>Policy settings vs. platform default</h4>
-    <table class="grid">
-      <colgroup><col style="width:24%"><col style="width:36%"><col style="width:40%"></colgroup>
-      <tr><th>setting</th><th>platform default</th><th>this store</th></tr>`;
-  h += s.overrides.map((o) => `<tr>
-      <td>${esc(o.field)}</td>
-      <td class="${o.differs ? "struck" : ""}">${esc(o.platform)}</td>
-      <td class="${o.differs ? "F" : "dim"}">${esc(o.store)}${
-        o.note ? `<div class="hint" style="margin:2px 0 0">${esc(o.note)}</div>` : ""}</td>
-    </tr>`).join("") + `</table>`;
-  h += `<div class="hint">Constants: ${
-    s.overrides.flatMap((o) => o.facts).map((f) => `<code>${esc(f)}</code>`).join(", ")
-  }. A store override takes precedence over the platform default.</div>`;
-
-  h += `<h4>Governing platform policy</h4>`;
-  h += R.override_governance.map((pid) => {
-    const p = R.policies.find((x) => x.policy_id === pid);
-    return p ? `<div class="doc">
-      <div class="hd" data-doc="${esc(pid)}">
-        <span class="pid">${esc(pid)}</span><span class="ttl">${esc(p.title)}</span>
-      </div>
-      <div class="bd" id="doc-${esc(pid)}"><div class="md">${md(p.body)}</div></div>
-    </div>` : "";
-  }).join("");
-
-  h += `</div><div>`;
-
-  h += `<h4>This store's policy document</h4>`;
-  if (doc) {
-    h += `<div class="doc store"><div class="hd" data-doc="${esc(doc.policy_id)}">
-        <span class="pid">${esc(doc.policy_id)}</span>
-        <span class="ttl">${esc(doc.title)}</span></div>
-      <div class="bd open" id="doc-${esc(doc.policy_id)}">
-        <div class="md">${md(doc.body)}</div>
-        <div class="hint" style="margin-top:6px">${esc(doc.path)}</div>
-      </div></div>`;
-  } else if (s.customized) {
-    h += `<div class="note" style="border-left-color:var(--err)">
-      This store departs from the platform default but has no policy document.
-      <code>facts.yaml</code> sets
-      <code>store_overrides.must_be_visible_in_store_policy_doc: true</code>,
-      so this is a gap in the corpus rather than an agent failure &mdash; an
-      agent cannot cite a document that does not exist.</div>`;
-  } else {
-    h += `<div class="empty">No store-specific document. Platform policy applies unchanged.</div>`;
-  }
-
-  h += `<h4>Reviewed traces mentioning this store</h4>`;
-  h += touching.length ? `<table class="grid">
-      <tr><th>scenario</th><th>role</th><th>tools</th></tr>` +
-    touching.slice(0, 40).map((t) => `<tr data-trace="${esc(t.trace_id)}" style="cursor:pointer">
-        <td class="mono">${esc(t.langfuse.scenario_id)}</td>
-        <td>${esc(t.langfuse.user_role)}</td>
-        <td style="font-size:10.5px">${esc((t.derived.tools_used || []).join(", "))}</td>
-      </tr>`).join("") + `</table>${
-      touching.length > 40 ? `<div class="hint">showing 40 of ${touching.length}</div>` : ""}`
-    : '<div class="empty">none in the review pool</div>';
-
-  h += `</div></div>`;
-  $("#ref").innerHTML = h;
-  $("#ref-count").textContent = `${s.name} · store #${s.store_id}`;
-
-  $("#ref-back").onclick = () => { S.refStore = null; renderRef(); };
-  $("#ref").querySelectorAll("[data-doc]").forEach((hd) => {
-    hd.onclick = () => document.getElementById("doc-" + hd.dataset.doc)
-      ?.classList.toggle("open");
-  });
-  $("#ref").querySelectorAll("[data-trace]").forEach((tr) => {
-    tr.onclick = () => {
-      const i = visible().findIndex((t) => t.trace_id === tr.dataset.trace);
-      if (i < 0) { toast("that trace is hidden by the current filter"); return; }
-      S.idx = i; S.view = "review"; render();
-    };
-  });
-}
-
-function renderRef() {
-  const R = S.ref;
-  if (!R) { $("#ref").innerHTML = '<div class="empty">loading…</div>'; return; }
-  if (S.refStore) { renderStore(S.refStore); return; }
-  const q = (S.refQ || "").trim();
-  const ql = q.toLowerCase();
-  const match = (...parts) => !ql || parts.join(" ").toLowerCase().includes(ql);
-
-  const reqs = R.spec.requirements.filter((r) => match(r.id, r.text));
-  const pol = R.policies.filter((p) => match(p.policy_id, p.title, p.body));
-  const stores = R.stores.filter((s) =>
-    match(s.name, s.slug, s.category, s.policy_id || "", String(s.return_window_days)));
-  const facts = Object.entries(R.facts).filter(([k, v]) =>
-    match(k, JSON.stringify(v)));
-
-  $("#ref-count").textContent = q
-    ? `${reqs.length} requirements · ${pol.length} policies · ${stores.length} stores · ${facts.length} facts`
-    : `${R.spec.requirements.length} requirements · ${R.policies.length} policies · ${R.stores.length} stores`;
-
-  const docHTML = (id, title, scope, body, extra) => `
-    <div class="doc ${scope}" ${S.refOpen === id ? 'data-open="1"' : ""}>
-      <div class="hd" data-doc="${esc(id)}">
-        <span class="pid">${hl(id, q)}</span>
-        <span class="ttl">${hl(title, q)}</span>
-        <span class="src">${scope}</span>
-      </div>
-      <div class="bd ${S.refOpen === id ? "open" : ""}" id="doc-${esc(id)}">
-        ${extra || ""}<div class="md">${md(body)}</div>
-      </div>
-    </div>`;
-
-  let left = `<h4>Specification &mdash; ${esc(R.spec.digest)}</h4>`;
-  left += reqs.length ? reqs.map((r) => {
-    let extra = "";
-    if (r.contract && r.contract.on_success) {
-      extra = `<div style="font-size:11.5px;margin-bottom:6px">
-        <b>On success.</b> ${hl(r.contract.on_success, q)}<br>
-        <b>On failure.</b> ${hl(r.contract.on_failure || "", q)}</div>`;
-    }
-    if (r.id === "AUTH-1") {
-      extra += `<table class="matrix" style="margin-bottom:6px">` +
-        R.spec.access_matrix.map((row) => `<tr>${
-          Object.values(row).map((c, i) =>
-            `<td${i ? "" : ' style="color:var(--dim)"'}>${hl(c, q)}</td>`).join("")
-        }</tr>`).join("") + `</table>`;
-    }
-    return docHTML(r.id, r.section, "platform", r.text, extra);
-  }).join("") : '<div class="empty">no match</div>';
-
-  left += `<h4>Platform facts</h4><div class="factgrid">` +
-    (facts.length ? facts.map(([k, v]) =>
-      `<span class="k">${hl(k, q)}</span><span class="v">${
-        hl(typeof v === "object" ? JSON.stringify(v) : String(v), q)}</span>`).join("")
-      : '<span class="empty">no match</span>') + `</div>`;
-
-  let right = `<h4>Help-center policies</h4>`;
-  const plat = pol.filter((p) => p.scope === "platform");
-  const st = pol.filter((p) => p.scope === "store");
-  right += plat.length ? plat.map((p) =>
-    docHTML(p.policy_id, p.title, "platform", p.body,
-      p.audience && p.audience !== "all"
-        ? `<div class="hint">audience: ${esc(p.audience)}</div>` : "")
-  ).join("") : '<div class="empty">no match</div>';
-
-  const odd = R.stores.filter((s) => s.undocumented_override);
-  right += `<h4>Stores &amp; overrides</h4>
-    <div class="hint">A store override takes precedence over the platform default, and must be visible in the store's own policy doc.${
-      odd.length ? ` <b style="color:var(--err)">${odd.length} undocumented.</b>`
-                 : " All overrides are documented."}</div>
-    <table class="grid">
-      <colgroup><col style="width:8%"><col><col style="width:20%"><col style="width:18%"></colgroup>
-      <tr><th>#</th><th>store</th><th>window</th><th>restock</th></tr>`;
-  right += stores.map((s) => {
-    // The doc id is always store-<slug>-policy, so showing the whole thing in
-    // a narrow column wastes the width. The store name already identifies it.
-    const doc = s.policy_id
-      ? `<a href="#" data-goto="${esc(s.policy_id)}" title="${esc(s.policy_id)}" style="color:var(--tool)">&#9656; policy</a>`
-      : (s.undocumented_override
-          ? '<span style="color:var(--err)" title="override with no policy doc">undocumented</span>'
-          : "");
-    return `<tr data-store="${esc(s.slug)}" style="cursor:pointer" title="open store page">
-      <td class="c">${s.store_id}</td>
-      <td>${hl(s.name, q)} ${doc}</td>
-      <td class="c${s.overrides_platform_window ? " F" : ""}">${s.return_window_days}d${
-        s.overrides_platform_window ? " *" : ""}</td>
-      <td class="c">${s.restocking_fee_opt_in ? "yes" : "—"}</td>
-    </tr>`;
-  }).join("") + `</table>`;
-
-  right += `<h4>Store policies</h4>`;
-  right += st.length ? st.map((p) =>
-    docHTML(p.policy_id, p.title, "store", p.body)).join("")
-    : '<div class="empty">no match</div>';
-
-  $("#ref").innerHTML = `<div class="refcols"><div>${left}</div><div>${right}</div></div>`;
-
-  $("#ref").querySelectorAll("[data-doc]").forEach((hd) => {
-    hd.onclick = () => {
-      const bd = document.getElementById("doc-" + hd.dataset.doc);
-      if (bd) bd.classList.toggle("open");
-    };
-  });
-  $("#ref").querySelectorAll("[data-goto]").forEach((a) => {
-    a.onclick = (e) => { e.preventDefault(); openDoc(a.dataset.goto); };
-  });
-  $("#ref").querySelectorAll("[data-store]").forEach((tr) => {
-    tr.onclick = (e) => {
-      if (e.target.closest("[data-goto]")) return; // the policy link wins
-      S.refStore = tr.dataset.store; renderRef();
-    };
-  });
-  if (S.refOpen) {
-    const el = document.getElementById("doc-" + S.refOpen);
-    if (el) { el.classList.add("open"); el.scrollIntoView({ block: "center" }); }
-    S.refOpen = null;
-  }
-}
-
-// Jump straight to a document — used by the policy ids in the evidence panel,
-// so a cited policy is one click from the trace that cited it.
-function openDoc(id) {
-  S.view = "ref"; S.refOpen = id;
-  if (!S.ref) { loadRef().then(render); return; }
-  render();
-}
-
-async function loadRef() {
-  if (!S.ref) S.ref = await api("/api/reference");
-  return S.ref;
-}
-
 // ---------------------------------------------------------------- events
 $("#prev").onclick = () => { if (S.idx > 0) { S.idx--; render(); } };
 $("#next").onclick = () => { if (S.idx < visible().length - 1) { S.idx++; render(); } };
@@ -2995,17 +2973,43 @@ $("#filter").onchange = (e) => { S.filter = e.target.value; S.idx = 0; render();
 $("#tab-review").onclick = () => { S.view = "review"; render(); };
 $("#tab-tax").onclick = () => { S.view = "tax"; render(); };
 $("#tab-label").onclick = () => { S.view = "label"; render(); };
-$("#tab-prog").onclick = () => { S.view = "prog"; render(); };
 $("#tab-map").onclick = () => { S.view = "map"; render(); };
 $("#new-mode").onclick = () => newMode();
 $("#new-mode-name").addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); newMode(); }
 });
-$("#tab-ref").onclick = async () => {
-  S.view = "ref"; render();           // paint the shell immediately
-  await loadRef(); render();          // then fill it once the corpus lands
+$("#pane-code-btn").onclick = () => setPane("code");
+$("#pane-label-btn").onclick = () => setPane("label");
+
+// Left-column sections remember whether they were open.
+["scen", "facts", "spec"].forEach((k) => {
+  const d = $("#sec-" + k);
+  d.open = pref("sec-" + k, "1") === "1";
+  d.addEventListener("toggle", () => setPref("sec-" + k, d.open ? "1" : "0"));
+});
+
+// ---------------------------------------------------------------- theme
+// auto follows the OS; light and dark pin it. The map is a canvas painted from
+// the CSS tokens, so it has to be redrawn when they change.
+const THEMES = { auto: "◐ auto", light: "☀ light", dark: "☾ dark" };
+function applyTheme(th) {
+  if (th === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", th);
+  $("#themebtn").textContent = THEMES[th];
+  $("#themebtn").dataset.theme = th;
+  if (S.view === "map") render();
+}
+$("#themebtn").onclick = () => {
+  const keys = Object.keys(THEMES);
+  const next = keys[(keys.indexOf($("#themebtn").dataset.theme) + 1) % keys.length];
+  setPref("theme", next); applyTheme(next);
 };
-$("#ref-q").oninput = (e) => { S.refQ = e.target.value; renderRef(); };
+try {
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if ($("#themebtn").dataset.theme === "auto" && S.view === "map") render();
+  });
+} catch (e) { /* older browsers: the page still follows the OS on reload */ }
+applyTheme(THEMES[pref("theme", "auto")] ? pref("theme", "auto") : "auto");
 
 $("#note-save").onclick = () => {
   const v = $("#note-in").value.trim();
@@ -3024,18 +3028,21 @@ $("#note-clean").onclick = () => addNote("no failure observed", null);
 const SHORTCUTS = [
   { group: "Move", key: "j", label: "next trace", run: () => $("#next").click() },
   { group: "Move", key: "k", label: "previous trace", run: () => $("#prev").click() },
-  { group: "Move", key: "/", label: "jump to Reference, focus search",
-    run: () => { $("#tab-ref").click(); setTimeout(() => $("#ref-q").focus(), 60); } },
   { group: "Move", key: "r", label: "back to Review",
     run: () => { S.view = "review"; render(); } },
-  { group: "Move", key: "m", label: "Map: clusters and coverage; double-click a point to open it",
+  { group: "Move", key: "m", label: "Map: clusters and coverage",
     run: () => { S.view = "map"; render(); } },
+  { group: "Move", key: "g", label: "Labeling: progress and the trace × mode grid",
+    run: () => { S.view = "label"; render(); } },
 
   { group: "Open coding", key: "t", label: "cycle tool and interim-message detail: compact, full, off",
     run: () => cycleTools(),
     note: "interim = an assistant message before the turn's final reply, which the user never sees; “off” hides every interim message but keeps a tool step a note is anchored to" },
+  { group: "Open coding", key: "o", label: "show the open-code panel",
+    run: () => setPane("code") },
   { group: "Open coding", key: "n", label: "focus the open-code box",
-    run: () => $("#note-in").focus() },
+    run: () => { setPane("code"); $("#note-in").focus(); },
+    note: "describe the first failure in your own words, then stop; no mode names yet" },
   { group: "Open coding", key: "x", label: "record “no failure observed”",
     run: () => $("#note-clean").click() },
   { group: "Open coding", key: "drag", label: "select text in the conversation",
@@ -3043,8 +3050,24 @@ const SHORTCUTS = [
   { group: "Open coding", key: "⌘ ↩", label: "save the note you are typing" },
   { group: "Open coding", key: "esc", label: "cancel the selection popover" },
 
+  { group: "Labeling", key: "l", label: "show the labels panel",
+    run: () => setPane("label") },
   { group: "Labeling", key: "1…9", label: "mark mode N as Fail", modes: true },
-  { group: "Labeling", key: "⇧1…9", label: "mark mode N as Pass" },
+  { group: "Labeling", key: "⇧1…9", label: "mark mode N as Pass",
+    note: "every trace gets one judgment per mode" },
+
+  { group: "Evidence", key: "green", label: "spec item attached from tool activity" },
+  { group: "Evidence", key: "purple", label: "spec item suggested by a model",
+    note: "both point at what to check; neither is a verdict" },
+  { group: "Evidence", key: "AI", label: "suggestions are proposals from a search, not labels",
+    note: "accepting one records it as your own open code" },
+
+  { group: "Map", key: "click", label: "read a trace, or a cluster's profile" },
+  { group: "Map", key: "dbl-click", label: "open the trace in Review" },
+  { group: "Map", key: "⇧ click", label: "select a point's cluster (up to three are colored)" },
+  { group: "Map", key: "drag", label: "pan; scroll to zoom" },
+  { group: "Map", key: "0", label: "reset zoom" },
+  { group: "Map", key: "esc", label: "clear highlights" },
 
   { group: "Help", key: "?", label: "show or hide this list", run: () => toggleHelp() },
 ];
@@ -3071,7 +3094,7 @@ function renderHelp() {
     ${g.rows.map((s) => `
       <div class="row">
         <kbd>${esc(s.key)}</kbd>
-        <span class="lbl">${esc(s.label)}</span>
+        <span class="desc">${esc(s.label)}</span>
         ${s.note ? `<span class="tip">${esc(s.note)}</span>` : ""}
       </div>
       ${s.modes ? modeLegend() : ""}
@@ -3113,7 +3136,7 @@ document.addEventListener("keydown", (e) => {
   const digit = /^Digit([1-9])$/.exec(e.code);
   if (digit) {
     const m = S.modes[+digit[1] - 1];
-    if (m) { e.preventDefault(); setLabel(m.name, e.shiftKey ? 0 : 1); }
+    if (m) { e.preventDefault(); setPane("label"); setLabel(m.name, e.shiftKey ? 0 : 1); }
     else toast("no mode in slot " + digit[1]);
   }
 });

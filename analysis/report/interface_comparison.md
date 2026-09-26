@@ -32,14 +32,13 @@ Langfuse is only updated when a label is saved in the app. `server.py` appends t
 | Trace source | Sample file, fetched per view | Prebuilt, enriched pool (`review_pool.json`) built once from Langfuse, so page loads never wait on the API |
 | Context panel | None | Scenario (opening message, follow-ups, expected behavior, injected data defect), evidence pointers derived from tool activity, and the relevant slice of `SPEC.md` |
 | Specification | Not shown | Requirements attached from the tools that ran (certain) plus LLM-suggested ones (marked separately), each a pointer, not a verdict |
-| Reference corpus | None | Searchable tab of `SPEC.md`, `facts.yaml`, help-center policies and store overrides |
 | Labels | Binary verdict stored on the annotation record | Separate append-only label log per mode (`labels/<mode>.jsonl`); open codes carry no mode, so the observation-to-category sequence stays inspectable |
-| Labeling view | None | Trace × mode grid of Fail/Pass/blank for every final mode |
-| Taxonomy view | Treemap of modes | Editable mode cards with definition, boundary, evaluator, requirement, positives, close negatives, and a checklist of missing fields; ungrouped open codes listed below |
-| Progress view | Treemap and suggestion queue | Reviewed counts per batch, incomplete judgments, per-mode Pass/Fail against the HW5 minimum of 30, suggestion accept/reject counts, pool composition by role and scenario group |
+| Labeling view | None | Trace × mode grid that marks only Fails, with per-mode fail/judged counts for the current scope, modes below the HW5 minimum of 30 flagged, and review progress (sample coded, batches, suggestion accept/reject counts) above it |
+| Taxonomy view | Treemap of modes | Collapsible mode cards with definition, boundary, evaluator, requirement, positive and close-negative traces as chips, and the missing fields; ungrouped open codes listed below |
+| Progress view | Treemap and suggestion queue | Folded into the Labeling view |
 | Sample provenance | Pick reason only | Batches from `sample_manifest.json`, with each trace tagged by batch or as off-sample; worklists for depth searches that add no traces |
 | Map | Canvas of a 2D projection | UMAP of embedded trace summaries with named clusters, cluster profiles (distinctive tools and roles), reference items (policies, stores, spec) as hollow points, and coloring by cluster, review coverage or mode |
 | Filters and navigation | Previous and next, keyboard navigation | Filters by role, scenario group, write actions, tool error, permission denied and data defect; deep links (`#trace=`, `#batch=`); keyboard shortcuts |
 | Rejecting a suggestion | Dismiss | Requires a reason: the boundary that excludes it |
 | Langfuse write | Sync first, local copy as fallback | Local append first, Langfuse score as a mirror |
-| Visual style | Light theme | Dark theme, three-column review layout |
+| Visual style | Light theme | Light and dark themes (follows the OS or pinned), three-column review layout; the right panel shows open coding or labels, one pass at a time |
