@@ -264,6 +264,21 @@ input.chipadd { font-family: var(--mono); font-size: 11px; width: 150px; padding
 .fact .v { font-family: var(--mono); text-align: right; word-break: break-all; }
 .fact .v.hot { color: var(--err); }
 
+/* ---- worklist item ---- */
+#qitem {
+  border: 1px solid var(--on-line); background: var(--on-bg); border-radius: 6px;
+  padding: 7px 9px; margin-bottom: 10px; font-size: 12px;
+}
+#qitem[hidden] { display: none; }
+#qitem .qh { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+#qitem .qn { font-family: var(--mono); font-size: 10.5px; color: var(--dim); flex: 1; }
+#qitem .qr { font-weight: 600; margin-bottom: 4px; }
+#qitem ul { margin: 0; padding-left: 16px; }
+#qitem li { margin: 3px 0; color: var(--ink2); }
+#qitem button { font-size: 11px; padding: 0 8px; }
+#qitem.done { opacity: .65; }
+#qitem.done .qr { text-decoration: line-through; }
+
 /* ---- right column ---- */
 .paneseg { display: flex; margin-bottom: 10px; }
 .paneseg button { flex: 1; }
@@ -726,6 +741,9 @@ kbd {
   <!-- Open coding and structured labeling are separate passes, so the panel
        shows one at a time. -->
   <div class="col right view active" data-view="review">
+    <!-- What to check on this trace, when the scope is a worklist whose picks
+         say why they are there. -->
+    <div id="qitem" hidden></div>
     <div class="seg paneseg">
       <button id="pane-code-btn" title="open code (o)">Open code<span id="code-cnt" class="cnt"></span></button>
       <button id="pane-label-btn" title="labels (l)">Labels<span id="label-cnt" class="cnt"></span></button>
@@ -825,6 +843,9 @@ const S = {
   taxOpen: new Set(),
   // Labeling grid: show only traces with at least one Fail.
   failOnly: false,
+  // Worklist items marked done, from analysis/state/worklist_status.json:
+  // {worklist name: {trace_id: ISO time}}.
+  wlDone: {},
   // The sampling design from analysis/state/sample_manifest.json, and the
   // trace_id -> batch name map derived from it. The map is single valued
   // because sample_batches.py asserts no trace is drawn into two batches.
@@ -1065,14 +1086,14 @@ async function api(path, body) {
 
 // ---------------------------------------------------------------- load
 async function load() {
-  const [pool, spec, ann, pat, suggs, labels, manifest] = await Promise.all([
+  const [pool, spec, ann, pat, suggs, labels, manifest, wl] = await Promise.all([
     api("/api/pool"), api("/api/spec"), api("/api/annotations"),
     api("/api/patterns"), api("/api/suggestions"), api("/api/labels"),
-    api("/api/manifest"),
+    api("/api/manifest"), api("/api/worklist_status"),
   ]);
   S.pool = pool;
   S.spec = spec;
-  applyLive({ ann, pat, suggs, labels, manifest });
+  applyLive({ ann, pat, suggs, labels, wl, manifest });
   S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
   $("#sec-spec > summary").title = "SPEC.md sha " + (spec.digest || "?").slice(0, 8);
   // Autocomplete for a mode's requirement source, so the id is picked from
@@ -1090,7 +1111,7 @@ async function load() {
 const LIVE = [
   ["ann", "/api/annotations"], ["pat", "/api/patterns"],
   ["suggs", "/api/suggestions"], ["labels", "/api/labels"],
-  ["manifest", "/api/manifest"],
+  ["manifest", "/api/manifest"], ["wl", "/api/worklist_status"],
 ];
 const POLL_MS = 2000;
 
@@ -1099,6 +1120,7 @@ function applyLive(d) {
   if ("pat" in d) S.modes = (d.pat && d.pat.modes) || [];
   if ("suggs" in d) S.suggs = Array.isArray(d.suggs) ? d.suggs : [];
   if ("labels" in d) S.labels = d.labels || {};
+  if ("wl" in d) S.wlDone = d.wl && typeof d.wl === "object" && !Array.isArray(d.wl) ? d.wl : {};
   if ("manifest" in d) {
     const m = d.manifest;
     S.manifest = m && Array.isArray(m.batches) ? m : { batches: [] };
@@ -1108,8 +1130,8 @@ function applyLive(d) {
       // batch to list a trace keeps it, so no trace counts toward two batches.
       (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] ??= b.name; });
     });
-    fillScopeFilter();
   }
+  if ("manifest" in d || "wl" in d) fillScopeFilter();
   Object.entries(d).forEach(([k, v]) => { S.sig[k] = JSON.stringify(v); });
 }
 
@@ -1174,8 +1196,11 @@ function fillScopeFilter() {
   const n = sampleSize();
   const opts = [`<option value="sample">in sample (${n})</option>`];
   S.manifest.batches.forEach((b) => {
+    const n = (b.picks || []).length;
+    const done = Object.keys(S.wlDone[b.name] || {}).length;
+    const count = b.worklist && done ? `${done}/${n} done` : n;
     opts.push(`<option value="batch:${esc(b.name)}">&nbsp;&nbsp;${
-      esc(b.name)} (${(b.picks || []).length})</option>`);
+      esc(b.name)} (${count})</option>`);
   });
   opts.push(`<option value="offsample">off-manifest (${S.pool.length - n})</option>`);
   opts.push(`<option value="all">all traces (${S.pool.length})</option>`);
@@ -1195,10 +1220,10 @@ function visible() {
   if (f === "offsample") return S.pool.filter((t) => !inSample(t));
   if (f.startsWith("batch:")) {
     const name = f.slice(6);
-    // Every trace the batch lists, including ones counted in an earlier batch.
+    // Every trace the batch lists, including ones counted in an earlier batch,
+    // in the batch's own order: a worklist is ranked, most important first.
     const b = S.manifest.batches.find((x) => x.name === name);
-    const ids = new Set(((b && b.picks) || []).map((p) => p.trace_id));
-    return S.pool.filter((t) => ids.has(t.trace_id));
+    return ((b && b.picks) || []).map((p) => S.byId[p.trace_id]).filter(Boolean);
   }
   return S.pool.filter((t) => {
     const d = t.derived, sc = t.scenario || {};
@@ -1244,6 +1269,7 @@ function render() {
 function renderReview() {
   const t = cur();
   renderPane();
+  renderQueueItem(t);
   if (!t) {
     $("#convo").innerHTML = '<div class="empty">No traces match this filter.</div>';
     ["#scen", "#facts", "#spec", "#notes", "#suggs", "#labels"].forEach(
@@ -1282,6 +1308,59 @@ function setPane(p) {
   if (S.pane === p) return;
   S.pane = p; setPref("pane", p);
   renderPane();
+}
+
+// ---------------------------------------------------------------- worklist items
+// The batch the scope filter is showing, when it is one.
+function activeBatch() {
+  if (!S.filter.startsWith("batch:")) return null;
+  return S.manifest.batches.find((b) => b.name === S.filter.slice(6)) || null;
+}
+
+function isDone(name, id) { return !!(S.wlDone[name] || {})[id]; }
+
+// A worklist pick can say why the trace is on the list ("reason") and what to
+// check ("checks"). Shown only while that worklist is the scope, so the card
+// always answers "why am I looking at this trace".
+function renderQueueItem(t) {
+  const box = $("#qitem"), b = activeBatch();
+  const pick = t && b && (b.picks || []).find((p) => p.trace_id === t.trace_id);
+  if (!pick || !(pick.reason || (pick.checks || []).length)) { box.hidden = true; return; }
+  const done = isDone(b.name, t.trace_id);
+  const n = (b.picks || []).length;
+  const nd = (b.picks || []).filter((p) => isDone(b.name, p.trace_id)).length;
+  box.hidden = false;
+  box.classList.toggle("done", done);
+  box.innerHTML = `<div class="qh"><span class="qn">${esc(b.name)} · ${nd}/${n} done</span>
+      <button id="qdone" class="${done ? "on" : ""}" title="mark reviewed (d)">${done ? "✓ done" : "mark done"}</button></div>
+    ${pick.reason ? `<div class="qr">${esc(pick.reason)}</div>` : ""}
+    ${(pick.checks || []).length ? `<ul>${pick.checks.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}`;
+  $("#qdone").onclick = () => toggleDone();
+}
+
+async function toggleDone() {
+  const t = cur(), b = activeBatch();
+  if (!t || !b) { toast("done applies to a worklist; pick one in the scope filter"); return; }
+  const m = { ...(S.wlDone[b.name] || {}) };
+  if (m[t.trace_id]) delete m[t.trace_id]; else m[t.trace_id] = new Date().toISOString();
+  S.wlDone = { ...S.wlDone, [b.name]: m };
+  try { await api("/api/worklist_status", S.wlDone); }
+  catch (e) { toast("save failed: " + e.message); return; }
+  S.sig.wl = JSON.stringify(S.wlDone);
+  fillScopeFilter();
+  render();
+}
+
+// Next item in the current worklist not yet marked done, wrapping around.
+function nextUndone() {
+  const b = activeBatch();
+  if (!b) { toast("pick a worklist in the scope filter first"); return; }
+  const v = visible();
+  for (let k = 1; k <= v.length; k++) {
+    const i = (S.idx + k) % v.length;
+    if (!isDone(b.name, v[i].trace_id)) { S.idx = i; render(); return; }
+  }
+  toast(`every item in ${b.name} is done`);
 }
 
 function renderHeader(t) {
@@ -3028,6 +3107,8 @@ $("#note-clean").onclick = () => addNote("no failure observed", null);
 const SHORTCUTS = [
   { group: "Move", key: "j", label: "next trace", run: () => $("#next").click() },
   { group: "Move", key: "k", label: "previous trace", run: () => $("#prev").click() },
+  { group: "Move", key: "u", label: "next worklist item not yet done", run: () => nextUndone() },
+  { group: "Move", key: "d", label: "mark the worklist item done, or undo", run: () => toggleDone() },
   { group: "Move", key: "r", label: "back to Review",
     run: () => { S.view = "review"; render(); } },
   { group: "Move", key: "m", label: "Map: clusters and coverage",

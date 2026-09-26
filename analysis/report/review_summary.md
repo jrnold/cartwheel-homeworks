@@ -19,7 +19,7 @@ The depth-search traces (batch 3) and the final 15 (batch 4) were drawn together
 
 ## Open codes and labels
 
-`analysis/state/annotations.json` holds 101 open codes on 80 traces: 55 written by the reviewer and 46 written by Claude. 27 record "no failure observed".
+`analysis/state/annotations.json` holds 64 open codes on 54 traces: 40 written by the reviewer and 24 written by Claude. 6 record "no failure observed". On 2026-09-26 two kinds of code were removed as no longer relevant: Claude's 22 per-mode "No failure observed for <mode>" codes (13 named modes that were later retired), and 14 of the reviewer's notes on narration in messages sent before a tool call, which the final-reply rule no longer judges.
 
 Every trace in the sample has one Pass or Fail judgment on each of the nine final modes (900 judgments), in `analysis/state/labels/<mode>.jsonl`. Label sources:
 
@@ -91,7 +91,7 @@ Each revision states a behavior the reviewer decided the agent should have. Thes
 | ACT-1: confirm an order before cancelling, refunding or opening a ticket about it | amuc2mu6gk53v on b5557297: "Didn't confirm that it is the correct order." |
 | RESP-1, PURPOSE-1: no `cw-*` or refund IDs for shoppers | amuc3vsln1hdn on 35c34d8d: "Shows internal policy ids that a user can't see." |
 | RESP-2: say when no tool can perform an action | amuc3zmilhvvw on 0474e295: "Claimed success, but there is not a process to update existing tickets" |
-| RESP-6: state results, not steps | amuc2m3qsd0oo on b5557297: "Internal process, just do, don't say." |
+| RESP-6: state results, not steps | amudfxl8md7fg on 7f2e8bcf: "These are internal details" (quoting the final reply's "I couldn't find a store literally named ceramics, but when I searched…") |
 | RESP-7: usable identifiers, a reason and a next step | amudflqbsb4je on 7f2e8bcf and amudhtbaa6xq3 on 6a2c2866 |
 | ESC-2: point to account settings first | amudg0e5k509r on 45797b1b: "Tell user where to change their email address" |
 | ESC-5: open a ticket for bad or conflicting data | amuc3j9gdvkap on 1175a6bc: "Proceeds with missing, inconsistent evidence" |
