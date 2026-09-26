@@ -244,12 +244,6 @@ class ReviewHandler(BaseHTTPRequestHandler):
             )
             return
 
-        if path == "/api/reference":
-            from . import reference
-
-            self._send_json(reference.payload())
-            return
-
         if path == "/api/labels":
             self._send_json({mode: _live_labels(mode) for mode in _mode_names()})
             return
