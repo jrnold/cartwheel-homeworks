@@ -1197,7 +1197,9 @@ function fillScopeFilter() {
   const opts = [`<option value="sample">in sample (${n})</option>`];
   S.manifest.batches.forEach((b) => {
     const n = (b.picks || []).length;
-    const done = Object.keys(S.wlDone[b.name] || {}).length;
+    // Count only current picks: worklist_status.json keeps done marks for
+    // traces a regenerated worklist no longer lists.
+    const done = (b.picks || []).filter((p) => isDone(b.name, p.trace_id)).length;
     const count = b.worklist && done ? `${done}/${n} done` : n;
     opts.push(`<option value="batch:${esc(b.name)}">&nbsp;&nbsp;${
       esc(b.name)} (${count})</option>`);
