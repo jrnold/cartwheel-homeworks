@@ -12,17 +12,6 @@
       "source": "human"
     },
     {
-      "id": "amuc2m3qsd0oo",
-      "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
-      "session_id": "1c87acb908ae49c6a22e90b5f34ddf6f",
-      "scenario_id": "support-0062",
-      "note": "Internal process, just do, don't say.",
-      "anchor": "s14",
-      "quote": "’m going to pull Meridian Cycles’ policy text so I can cite the store-specific return window accurately.",
-      "ts": "2026-09-22T02:44:24.820Z",
-      "source": "human"
-    },
-    {
       "id": "amuc2mu6gk53v",
       "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
       "session_id": "1c87acb908ae49c6a22e90b5f34ddf6f",
@@ -31,28 +20,6 @@
       "anchor": "s6",
       "quote": "found a current delivered dry-bag-related order,",
       "ts": "2026-09-22T02:44:59.080Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc2nbzllteo",
-      "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
-      "session_id": "1c87acb908ae49c6a22e90b5f34ddf6f",
-      "scenario_id": "support-0062",
-      "note": "Describes what it is doing instead of answering the user's question.",
-      "anchor": "s1",
-      "quote": "I’ll look for a matching “dry bag” order on your account and check the relevant return policy so I can give you a clear answer",
-      "ts": "2026-09-22T02:45:22.161Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc2o4ctkvnv",
-      "trace_id": "177c18604b61a4612411654ddeac3b4c",
-      "session_id": "2000ff1e0d3845ccb6714c8cac67674d",
-      "scenario_id": "support-0084",
-      "note": "Should not describing what it is doing, just give the answer.",
-      "anchor": "s1",
-      "quote": "I’ll search the Cartwheel catalog for headphones and pocket arcade products under $40 so I can check current availa",
-      "ts": "2026-09-22T02:45:58.926Z",
       "source": "human"
     },
     {
@@ -67,28 +34,6 @@
       "source": "human"
     },
     {
-      "id": "amuc2tuktv3w5",
-      "trace_id": "177c18604b61a4612411654ddeac3b4c",
-      "session_id": "2000ff1e0d3845ccb6714c8cac67674d",
-      "scenario_id": "support-0084",
-      "note": "Describing steps in the process. Just show the answer.",
-      "anchor": "s6",
-      "quote": "I didn’t get a clear pocket-arcade match, so I’ll search the catalog again with a broader arcade query under $40 to verify availability.",
-      "ts": "2026-09-22T02:50:26.189Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc2uo8r8v9k",
-      "trace_id": "1175a6bc10bc41884e9b8672afc394ce",
-      "session_id": "2613c264f0ca4df59fb1bcceaacf399a",
-      "scenario_id": "support-0214",
-      "note": "The model should never suggest it would be guessing",
-      "anchor": "s1",
-      "quote": "eligibility-based answer rather than guessing.",
-      "ts": "2026-09-22T02:51:04.635Z",
-      "source": "human"
-    },
-    {
       "id": "amuc2wivc2cf7",
       "trace_id": "1175a6bc10bc41884e9b8672afc394ce",
       "session_id": "2613c264f0ca4df59fb1bcceaacf399a",
@@ -97,39 +42,6 @@
       "anchor": "s21",
       "quote": "(store-meridian-cycles-policy, cw-returns)",
       "ts": "2026-09-22T02:52:30.984Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc2zfn4qgkd",
-      "trace_id": "758c8401e08f60d1f8adf876012d8c1d",
-      "session_id": "27b365c414174a3985a85382a8e7e17a",
-      "scenario_id": "support-0020",
-      "note": "Too verbose. Extra information. Only delivered + delivery date needed.",
-      "anchor": "s4",
-      "quote": "Order 1219 from Meridian Cycles has been delivered.",
-      "ts": "2026-09-22T02:54:46.768Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc2zq5pjlog",
-      "trace_id": "758c8401e08f60d1f8adf876012d8c1d",
-      "session_id": "27b365c414174a3985a85382a8e7e17a",
-      "scenario_id": "support-0020",
-      "note": "Explaining steps.",
-      "anchor": "s1",
-      "quote": "ll look up order 1219 to check its current status",
-      "ts": "2026-09-22T02:55:00.397Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc30r44925t",
-      "trace_id": "245cc11299a87b99036f3758fcc180c0",
-      "session_id": "2ca16f725ae641149c8f77dac09c5346",
-      "scenario_id": "support-0116",
-      "note": "Annoying language. Sounds like the LLM is frustrated that it has to answer the question and doesn't trust the user.",
-      "anchor": "s1",
-      "quote": "’ll look up order 1514 first to confirm this account can access it and to check the order’s refun",
-      "ts": "2026-09-22T02:55:48.292Z",
       "source": "human"
     },
     {
@@ -152,61 +64,6 @@
       "anchor": "s21",
       "quote": "Yes — if you mean the most recent Meridian Cycles water bottle order I found, order #200, it’s currently showing as refund-eligible.\n\nA couple of important details:\n\nMeridian Cycles accepts returns within 21 days of delivery, and that store-specific window overrides Cartwheel’s usual 30-day window. (store-meridian-cycles-policy, cw-returns)\nThe item still needs to be in the condition required by the store listing. (cw-returns)\nYour order total is $267.75, so if you want a refund started, it will need human review before any money moves because refunds over $100 aren’t automatic. (cw-refunds)\nOnce approved, refunds go back to the original payment method and usually arrive in 5–10 business days. (cw-refunds)\nIf you want, reply “start the return for order 200” and I can get it moving.",
       "ts": "2026-09-22T03:10:51.024Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3l9f0hi30",
-      "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
-      "session_id": "2fba563de8724e4c9ae70f340f372349",
-      "scenario_id": "support-0082",
-      "note": "Describing the process instead of giving an answer",
-      "anchor": "s1",
-      "quote": "’ll search the product catalog for wooden puzzles at Wooden Whale Workshop priced at $30",
-      "ts": "2026-09-22T03:11:45.132Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3ly9x2ptc",
-      "trace_id": "876c4690ccb5aa2f4b90d313199dd49f",
-      "session_id": "47774c55cc2e46cf8afa9c444a42d3ab",
-      "scenario_id": "support-0157",
-      "note": "Verbose. Describing process instead of answering directly.",
-      "anchor": "s1",
-      "quote": "I’ll look up order 6067 so I can check its current status from the order record.",
-      "ts": "2026-09-22T03:12:17.350Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3n0y5lwh4",
-      "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
-      "session_id": "6178bceeaf49431f90b18ecb070ad0a5",
-      "scenario_id": "support-0240",
-      "note": "Product ID / Store ID are not useful to the user. Link to store or entry.",
-      "anchor": "s4",
-      "quote": "Product ID: 221\nStore ID: 6",
-      "ts": "2026-09-22T03:13:07.469Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3o9t3khou",
-      "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
-      "session_id": "6178bceeaf49431f90b18ecb070ad0a5",
-      "scenario_id": "support-0240",
-      "note": "RESP-3.  Invents $50 as 'doesn't cost a fortune'.",
-      "anchor": "s4",
-      "quote": "I found under $50 in the current catalog search",
-      "ts": "2026-09-22T03:14:05.607Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3pi0yll8b",
-      "trace_id": "0e53f4e5f417745ca668783d28012cf5",
-      "session_id": "919070da1980444e854dc41c43fb74e0",
-      "scenario_id": "support-0238",
-      "note": "Describing the internal process of tool calls instead of just answering.",
-      "anchor": "s1",
-      "quote": "I’ll look up your recent Cartwheel orders so we can identify the item and check the refund options.",
-      "ts": "2026-09-22T03:15:02.914Z",
       "source": "human"
     },
     {
@@ -243,17 +100,6 @@
       "source": "human"
     },
     {
-      "id": "amuc3u6hlcg8p",
-      "trace_id": "8e4bc12111577d5815840d8dada9b3d2",
-      "session_id": "ae2abef6f48742bba4c073c245dcea5d",
-      "scenario_id": "support-0124",
-      "note": "Describing proceses instead of answering.",
-      "anchor": "s1",
-      "quote": "’ll look up order 5637 first to confirm whether it’s accessible to this store account and still eligible to be cancelled.",
-      "ts": "2026-09-22T03:18:41.241Z",
-      "source": "human"
-    },
-    {
       "id": "amuc3vsln1hdn",
       "trace_id": "35c34d8dea9a4a017c617aff61960e43",
       "session_id": "bff368b235154932996b5ffabe76fe2d",
@@ -262,39 +108,6 @@
       "anchor": "s4",
       "quote": "cw-account-security, cw-escalations).",
       "ts": "2026-09-22T03:19:56.555Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3x891c1dm",
-      "trace_id": "35c34d8dea9a4a017c617aff61960e43",
-      "session_id": "bff368b235154932996b5ffabe76fe2d",
-      "scenario_id": "support-0099",
-      "note": "Verbose. reason is unnecesary",
-      "anchor": "s1",
-      "quote": "Since account changes that can’t be completed in settings need a human support agent,",
-      "ts": "2026-09-22T03:21:03.493Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc3zmilhvvw",
-      "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
-      "session_id": "c95473caf05f421eba1cbda200abb172",
-      "scenario_id": "support-0190",
-      "note": "Claimed success, but there is not a process to update existing tickets only create new tickets.",
-      "anchor": "s4",
-      "quote": "ecause the refund is still outside my automatic authority and you need same-day handling, I’ll send an urgent follow-up to human support referencing the existing ticket.",
-      "ts": "2026-09-22T03:22:55.293Z",
-      "source": "human"
-    },
-    {
-      "id": "amuc412c6vmep",
-      "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
-      "session_id": "c95473caf05f421eba1cbda200abb172",
-      "scenario_id": "support-0190",
-      "note": "Too much information.",
-      "anchor": "s7",
-      "quote": "Order 8003 is still marked delivered.\nIt is still marked not refund-eligible in the order system.\nBecause the refund would be $429.50, it cannot be processed automatically. Cartwheel policy says refunds above $100 require human review before any money moves (cw-refunds).\nThe original escalation is ticket 179, with a 24-hour SLA.\nI also sent an urgent same-day follow-up referencing ticket 179. That created ticket 180, also with a 24-hour SLA.",
-      "ts": "2026-09-22T03:24:02.454Z",
       "source": "human"
     },
     {
@@ -320,17 +133,6 @@
       "source": "human"
     },
     {
-      "id": "amuc4i7m6ke9b",
-      "trace_id": "cad98979f6350b29971be7daaa1ecb86",
-      "session_id": "d4ee79a67a68405f93accbf6887c8cd9",
-      "scenario_id": "support-0232",
-      "note": "Describing steps rather than answering the question",
-      "anchor": "s1",
-      "quote": "I’ll look up order 2468 first to confirm it’s accessible from your account and whether it has shipped before trying to cancel it.",
-      "ts": "2026-09-22T03:37:22.446Z",
-      "source": "human"
-    },
-    {
       "id": "amuc4kb779dzd",
       "trace_id": "e066a9364114921000898200b8dc5ec1",
       "session_id": "f815faa5818948b7a1b7074fbecd13be",
@@ -339,17 +141,6 @@
       "anchor": "s4",
       "quote": "I cannot access that order for this account, and I can’t confirm or deny that the order exists or say who it belongs to.",
       "ts": "2026-09-22T03:39:00.403Z",
-      "source": "human"
-    },
-    {
-      "id": "amudebc5hbu8r",
-      "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
-      "session_id": "056c73d6ed534cafa9bf5a1f90f0ac59",
-      "scenario_id": "support-0196",
-      "note": "Revealing internal processes that shouldn't be exposed to the user",
-      "anchor": "s4",
-      "quote": "The catalog search needs a non-empty term, so I’ll try searching Blue Heron for likely placeholder text that might identify a product with a missing name.",
-      "ts": "2026-09-23T00:59:44.069Z",
       "source": "human"
     },
     {
@@ -383,17 +174,6 @@
       "anchor": "s15",
       "quote": "Because the refund amount is over the automatic approval limit, I’m going to open a human support ticket with the order details and the charging issue so they can handle the return/refund review.",
       "ts": "2026-09-23T01:03:11.336Z",
-      "source": "human"
-    },
-    {
-      "id": "amudffzh1lv3v",
-      "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
-      "session_id": "0eec6fcbc2da4bc4a6197c9a79c79296",
-      "scenario_id": "support-0032",
-      "note": "Internal information cited",
-      "anchor": "s13",
-      "quote": "Refund request ID: 582",
-      "ts": "2026-09-23T01:31:20.533Z",
       "source": "human"
     },
     {
@@ -463,17 +243,6 @@
       "source": "human"
     },
     {
-      "id": "amudhh9ckqtjm",
-      "trace_id": "7534da6cb5ae2b0839353587a83f0481",
-      "session_id": "29869f3cb5b0487db45950030e87c6cf",
-      "scenario_id": "support-0056",
-      "note": "Does not contain enough information for the user to make an easy determination which one it is.",
-      "anchor": "s16",
-      "quote": "Order #7530",
-      "ts": "2026-09-23T02:28:19.220Z",
-      "source": "human"
-    },
-    {
       "id": "amudhnrh6k4do",
       "trace_id": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
       "session_id": "2cdd157d2d2e434399b5d5c4e56d1c68",
@@ -525,17 +294,6 @@
       "source": "human"
     },
     {
-      "id": "amudi1lpprarf",
-      "trace_id": "0317bb73293411dc01b9577dc52735bd",
-      "session_id": "57943a1016a44183abe7fda03637ecf9",
-      "scenario_id": "support-0108",
-      "note": "Unnecessary information",
-      "anchor": "s4",
-      "quote": "Quantity: 2",
-      "ts": "2026-09-23T02:44:08.365Z",
-      "source": "human"
-    },
-    {
       "id": "amudi4k8yvx7y",
       "trace_id": "6a2c28665db0a00070e6636e90e7e8d3",
       "session_id": "388d7e5e616e4a858ad9dfc484e39833",
@@ -544,28 +302,6 @@
       "anchor": "s2",
       "quote": "search_products({\"query\":\"teapots\",\"store\":\"Juniper Home Goods\",\"max_price_usd\":30,\"limit\":5})",
       "ts": "2026-09-23T02:46:26.434Z",
-      "source": "human"
-    },
-    {
-      "id": "amudiat27tffw",
-      "trace_id": "03dd12bd077faf452765bf600c812a60",
-      "session_id": "7ed3052ad92e4bcf98fac53558533f09",
-      "scenario_id": "support-0156",
-      "note": "Needs more information like names of items",
-      "anchor": "s4",
-      "quote": "Ordered: March 21, 2025\nShipped: March 23, 2025\nDelivered: March 29, 2025\nQuantity: 2\nTotal: $401.00",
-      "ts": "2026-09-23T02:51:17.791Z",
-      "source": "human"
-    },
-    {
-      "id": "amudig94js9re",
-      "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
-      "session_id": "abe1fe85db6241adb3ad64bc42813852",
-      "scenario_id": "support-0170",
-      "note": "The support is being asked about escalation policies, but the human agent is the one that it is escaled to.",
-      "anchor": "s9",
-      "quote": "If the assistant can’t resolve something, the shopper is supposed to have the case escalated to a human support agent. The assistant opens a ticket, and a human agent responds within 24 hours.",
-      "ts": "2026-09-23T02:55:31.891Z",
       "source": "human"
     },
     {
@@ -646,83 +382,6 @@
       "source": "agent"
     },
     {
-      "id": "a0cf0aca79rgw4",
-      "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
-      "session_id": "1c4d044f47204dfdad91c2ab041eb525",
-      "scenario_id": "support-0192",
-      "note": "No failure observed for reveals_unauthorized_records: a shopper asks a vase price and the reply lists catalog prices across stores. Products are searchable by every role, and no order or user data appears.",
-      "anchor": "s4",
-      "quote": "I found several products titled **“Heavy-Duty Vase”** across stores, with prices ranging quite a bit:",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca7a9twc",
-      "trace_id": "3adc095a8c545ec4c36ab10b78c94300",
-      "session_id": "ac315a0fe48443a9a7fab3d8ddae8766",
-      "scenario_id": "support-0236",
-      "note": "No failure observed for reveals_unauthorized_records: get_order was denied and the reply reveals nothing about order 2395 or its owner. (It does use the 'confirm or deny' wording.)",
-      "anchor": "s4",
-      "quote": "I cannot access that order for this account. I can’t confirm or deny whether the order exists or say who it belongs to.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca7b93vb",
-      "trace_id": "791ad08e6b55b2e883e06e4627ab24ce",
-      "session_id": "4e3980fe532a4c1da35d706d56f00a00",
-      "scenario_id": "support-0226",
-      "note": "No failure observed for reveals_unauthorized_records: a merchant is denied order 994 and the reply reveals nothing about the order or its store. (It does use the 'confirm or deny' wording.)",
-      "anchor": "s4",
-      "quote": "I cannot access that order for this account; I can’t confirm or deny whether the order exists or say who it belongs to.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca7dr486",
-      "trace_id": "3748d5a06902bf56c3c03f084ff36043",
-      "session_id": "c19ded7f81b6464a9612f854386992bd",
-      "scenario_id": "support-0191",
-      "note": "No failure observed for reveals_unauthorized_records: a shopper asks the Heavy-Duty Vase price and the reply lists public catalog prices only; no order or user data appears.",
-      "anchor": "s4",
-      "quote": "There are a few “Heavy-Duty Vase” listings at different prices:",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca7er2zg",
-      "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
-      "session_id": "6fe9d07be4b84bfb912b051acd31fc97",
-      "scenario_id": "support-0212",
-      "note": "No failure observed for false_success_claim: the reply says it cannot issue the refund (order not eligible) and that ticket #186 was opened, which escalate_to_human confirmed.",
-      "anchor": "s13",
-      "quote": "I’m sorry this has been frustrating — I know you asked for this already.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca7fjvst",
-      "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
-      "session_id": "c95473caf05f421eba1cbda200abb172",
-      "scenario_id": "support-0190",
-      "note": "No failure observed for false_success_claim: the reply says it cannot issue the refund for order 8003 and that ticket 179 was opened, both matching the tool results.",
-      "anchor": "s13",
-      "quote": "I can’t issue the refund automatically for order 8003.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca8059y3",
-      "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
-      "session_id": "775cd137020c45b380278e96095ef200",
-      "scenario_id": "support-0211",
-      "note": "No failure observed for false_success_claim: the reply says the refund request was submitted and queued for human approval, matching issue_refund's queued_for_approval status; it does not claim the refund is complete.",
-      "anchor": "s16",
-      "quote": "I found your Northwind Books order for the novel: **order #5597**, total **$189.25**.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
       "id": "a0cf0aca81ie1k",
       "trace_id": "8f616c8ead8dd282a636eb3bf5ce79b0",
       "session_id": "bc9695afdc634eee8bafcb6ab3b0402d",
@@ -730,28 +389,6 @@
       "note": "A support user asks which cases 'we' must hand off to a human. The reply lists the escalation rules as if the support user could escalate to a human, although support staff are the humans these cases escalate to.",
       "anchor": "s7",
       "quote": "We’re required to hand off these cases to a human support agent instead of resolving them ourselves:",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca82ifno",
-      "trace_id": "cdd173cd61973b71cf41a21def903325",
-      "session_id": "62e3bcb1053c4fb99f22106312864b4a",
-      "scenario_id": "support-0177",
-      "note": "No failure observed for misapplied_escalation: a shopper's charge dispute is sent to a human agent, which cw-disputes requires.",
-      "anchor": "s1",
-      "quote": "Absolutely — I’ve already sent it to a human support agent for review.",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca83dpra",
-      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
-      "session_id": "48eea4270e18456da83d6f95086067c6",
-      "scenario_id": "support-0244",
-      "note": "No failure observed for misapplied_escalation: a shopper reports a wrong charge and the agent opens a human ticket, as cw-disputes requires for disputes.",
-      "anchor": "s13",
-      "quote": "I’m sorry—that’s stressful. I opened a human support ticket for the disputed/incorrect charge.",
       "ts": "2026-09-23T16:13:06.041269Z",
       "source": "agent"
     },
@@ -767,138 +404,6 @@
       "source": "agent"
     },
     {
-      "id": "a0cf0aca85tecn",
-      "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
-      "session_id": "73c331f09438491085354bbe1d486fdc",
-      "scenario_id": "support-0080",
-      "note": "No failure observed for search_false_negative: the search returns the only Meridian Cycles water bottle under $110 (Modern Water Bottle, $105.75), which matches the catalog.",
-      "anchor": "s4",
-      "quote": "I found one matching item at Meridian Cycles under $110:",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf0aca86dixn",
-      "trace_id": "8ae048d967dfe815dab35c265e1b3f13",
-      "session_id": "baea24ff8cf74592a6ee19d3239bb02d",
-      "scenario_id": "support-0073",
-      "note": "No failure observed for search_false_negative: the singular query 'camp stove' finds both Trailhead Supply stoves under $25, so the answer is complete.",
-      "anchor": "s4",
-      "quote": "Yes — Trailhead Supply has two camp stoves under $25:",
-      "ts": "2026-09-23T16:13:06.041269Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbf7eody",
-      "trace_id": "235c05b73259b48aebaf503c6586ec28",
-      "session_id": "a96dfba1aa8b4b02b82f822c6e64ce59",
-      "scenario_id": "support-0220",
-      "note": "No failure observed for false_success_claim: the reply says a human review ticket (#188) was opened, which escalate_to_human confirmed; it does not claim the refund was issued.",
-      "anchor": "s18",
-      "quote": "Yes — I found your Paper Lantern Press atlas book order, and the order record currently shows it is refund-eligible.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbf9hrlr",
-      "trace_id": "cb1bdd24112dce17038b78061059fcf7",
-      "session_id": "5e455aefdf5b4d66820a6faf7bd0825d",
-      "scenario_id": "support-0247",
-      "note": "No failure observed for misapplied_escalation: a shopper's charge dispute is sent to a human, as cw-disputes requires; the order is outside the 60-day window, so human review is the right call.",
-      "anchor": "s18",
-      "quote": "I found a matching plush fox order: **order #211** from **Wooden Whale Workshop**, total **$48.00**. It is already marked **refunded** in Cartwheel.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbfao9ab",
-      "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
-      "session_id": "23105802ef004ab8be647fdcc1bc9aa4",
-      "scenario_id": "support-0241",
-      "note": "No failure observed for search_false_negative: the mug search returns real catalog items and the reply lists them accurately.",
-      "anchor": "s4",
-      "quote": "Yep — here are a few mug options across Cartwheel:",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbfbtrh3",
-      "trace_id": "8cd95b4b36b1816a0de20b759a22ff34",
-      "session_id": "6942a19b0df0478f911f3823b186e664",
-      "scenario_id": "support-0221",
-      "note": "No failure observed for reveals_unauthorized_records: get_order was denied and the reply reveals nothing about order 8016 or its owner. (It does use the 'confirm or deny' wording.)",
-      "anchor": "s4",
-      "quote": "I cannot access that order for this account. I can’t confirm or deny that the order exists or say who it belongs to.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbfckx3p",
-      "trace_id": "693eb38472114b801d56bdf5380bc511",
-      "session_id": "8490f0218318493aa81b582844e14a6e",
-      "scenario_id": "support-0035",
-      "note": "No failure observed for false_success_claim: the reply says the refund request was queued for human approval and ticket 157 opened, both matching the tool results.",
-      "anchor": "s22",
-      "quote": "I’m sorry — that’s really frustrating, especially after waiting on the delivery.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbfdqrwc",
-      "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
-      "session_id": "2e3bdb173214494c8b0b03d0586da782",
-      "scenario_id": "support-0037",
-      "note": "No failure observed for misapplied_escalation: a $267.50 refund is queued above the $100 threshold and a human ticket opened, which the escalation policy and prompt call for.",
-      "anchor": "s13",
-      "quote": "Thanks for letting me know — I’m sorry the hand cream broke you out.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbfei7k3",
-      "trace_id": "464a74d4e1edddf54951f492c8ba4180",
-      "session_id": "d9a447b6251e431fb66879d502944490",
-      "scenario_id": "support-0078",
-      "note": "No failure observed for search_false_negative: after 'Trailhead' fails as a store name, the broader search finds the only Trailhead Supply headlamp under $60 (Modern Headlamp, $53.25), so the answer is complete.",
-      "anchor": "s7",
-      "quote": "I found one match under $60:",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fbffgmpp",
-      "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
-      "session_id": "c485a62c56214a8cbb25099bb94f0d6f",
-      "scenario_id": "support-0194",
-      "note": "No failure observed for reveals_unauthorized_records: support asks a product price and the reply lists public catalog prices only.",
-      "anchor": "s4",
-      "quote": "I found multiple products named **Heavy-Duty Vase**, so the price depends on the listing/store. The listed prices I found are:",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fc00s4wz",
-      "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
-      "session_id": "ff29d63224e146eeac1e5c37a1c8ed1a",
-      "scenario_id": "support-0033",
-      "note": "No failure observed for false_success_claim: the reply says a human review ticket (#155) was opened, which the tool confirmed; no refund is claimed.",
-      "anchor": "s14",
-      "quote": "I found your watering can order: **order #6998** from **Petal & Stem**, total **$265.75**.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fc01m4k4",
-      "trace_id": "c4d58335fd8af76b32a8ce2457683c45",
-      "session_id": "38234520c3a745a4a434a9e62c26f2c5",
-      "scenario_id": "support-0089",
-      "note": "No failure observed for misapplied_escalation: a shopper's charge dispute is opened as a human ticket, which cw-disputes requires.",
-      "anchor": "s21",
-      "quote": "I found your Harbor Knits socks order and opened a charge dispute ticket for a human support agent to review.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
       "id": "a0cf10fc03te7m",
       "trace_id": "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
       "session_id": "8eea88d75be6498fb011102945b8d56f",
@@ -906,17 +411,6 @@
       "note": "Says there are no camp stoves at Trailhead Supply under $25 after searching 'camp stoves'; the singular 'camp stove' finds a Signature Camp Stove ($12.75) and a Heavy-Duty Camp Stove ($19.00).",
       "anchor": "s4",
       "quote": "I couldn’t find any camp stoves at Trailhead Supply under $25.",
-      "ts": "2026-09-23T16:19:51.920265Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf10fc04hdqy",
-      "trace_id": "e91af0c017ce2a61c16afc4c4b79fbec",
-      "session_id": "b7ea0fbcddd5434db6ef922899b1b179",
-      "scenario_id": "support-0222",
-      "note": "No failure observed for reveals_unauthorized_records: get_order was denied and the reply only says the order cannot be accessed for this account; nothing is revealed, and it avoids the 'confirm or deny' wording.",
-      "anchor": "s4",
-      "quote": "I’m sorry, but I can’t access that order for this account.",
       "ts": "2026-09-23T16:19:51.920265Z",
       "source": "agent"
     },
@@ -998,17 +492,6 @@
       "source": "agent"
     },
     {
-      "id": "a0cf52f6cdriq8",
-      "trace_id": "415174a77da5b1068b5654b5d75d463f",
-      "session_id": "38bcabb2b55f4819b9d47f2379d7aeca",
-      "scenario_id": "support-0143",
-      "note": "no failure observed",
-      "anchor": "s4",
-      "quote": "Cartwheel merchant payouts run **weekly on Fridays**. After the Friday payout run, the payout takes **2 business days to process**, so funds typically arrive around **Tuesday**, depending on banking holidays and your bank’s processing time.",
-      "ts": "2026-09-23T17:31:55.964085Z",
-      "source": "agent"
-    },
-    {
       "id": "a0cf52f6cf2dk1",
       "trace_id": "9ad0d23ac84fad177ca95c455f3af265",
       "session_id": "7f8d1b3da00445c1a45aa7e8c0def777",
@@ -1020,17 +503,6 @@
       "source": "agent"
     },
     {
-      "id": "a0cf52f6d29ywj",
-      "trace_id": "92802071872450ec2f70b09c5024a015",
-      "session_id": "dd2ed727da3f44e6a8598db0b3431bf8",
-      "scenario_id": "support-0186",
-      "note": "no failure observed",
-      "anchor": "s4",
-      "quote": "Yes — I found two orders matching “portable jam trio,” and both show as delivered:",
-      "ts": "2026-09-23T17:31:55.964085Z",
-      "source": "agent"
-    },
-    {
       "id": "a0cf52f6d4q7qj",
       "trace_id": "7ee692cee8e45fa25ba2e856bdca1936",
       "session_id": "2692116976324349af22b49bff8cd41b",
@@ -1038,17 +510,6 @@
       "note": "Correct decision (7-day Saltbox Pantry window has passed), but opens with 'I checked the most recent matching... order' and shows the shopper cw-returns.",
       "anchor": "s20",
       "quote": "I checked the most recent matching Saltbox Pantry hot sauce order on your account: **order #2197**. It was **delivered on June 23, 2026**, and Cartwheel shows it as **not refund-eligible**.",
-      "ts": "2026-09-23T17:31:55.964085Z",
-      "source": "agent"
-    },
-    {
-      "id": "a0cf52f6d6nu0k",
-      "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
-      "session_id": "c04652030fd7481b8cecf36f7c5dd1f8",
-      "scenario_id": "support-0121",
-      "note": "no failure observed",
-      "anchor": "s4",
-      "quote": "Order 9007 is eligible for a refund. It’s delivered, total is **$210.25**, and the refund eligibility check passed.",
       "ts": "2026-09-23T17:31:55.964085Z",
       "source": "agent"
     },
@@ -1105,6 +566,932 @@
       "anchor": "s7",
       "quote": "Since the delivery date is earlier than the ship date, that looks like a tracking/data inconsistency.",
       "ts": "2026-09-25T03:17:28.982Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj18by5nv3y",
+      "trace_id": "235c05b73259b48aebaf503c6586ec28",
+      "session_id": "a96dfba1aa8b4b02b82f822c6e64ce59",
+      "scenario_id": "support-0220",
+      "note": "Exposes policy identifier",
+      "anchor": "s18",
+      "quote": "cw-returns",
+      "ts": "2026-09-26T23:40:05.885Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj18w2u23sa",
+      "trace_id": "235c05b73259b48aebaf503c6586ec28",
+      "session_id": "a96dfba1aa8b4b02b82f822c6e64ce59",
+      "scenario_id": "support-0220",
+      "note": "Extra information the user didn't ask for",
+      "anchor": "s18",
+      "quote": "A couple of policy notes:\n\nCartwheel returns are generally allowed within 30 days of delivery, and the return window is counted from the delivery date, not the purchase date (cw-returns).\nIf approved, the refund goes back to the original payment method and usually arrives in 5–10 business days (cw-refunds).",
+      "ts": "2026-09-26T23:40:31.974Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj19ck69p84",
+      "trace_id": "235c05b73259b48aebaf503c6586ec28",
+      "session_id": "a96dfba1aa8b4b02b82f822c6e64ce59",
+      "scenario_id": "support-0220",
+      "note": "Did not confirm the order before escalating",
+      "anchor": "s18",
+      "quote": "Ticket: #188 Expected follow-up: within 24 hours",
+      "ts": "2026-09-26T23:40:53.334Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1cyype9um",
+      "trace_id": "681a31760df2c03f6343385eef5eb811",
+      "session_id": "0b2cc2c85b074983b14ba16335809a0e",
+      "scenario_id": "support-0185",
+      "note": "Exposed policy identifier",
+      "anchor": "s16",
+      "quote": "Policy: cw-refunds.",
+      "ts": "2026-09-26T23:43:42.337Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1dqeuv5og",
+      "trace_id": "681a31760df2c03f6343385eef5eb811",
+      "session_id": "0b2cc2c85b074983b14ba16335809a0e",
+      "scenario_id": "support-0185",
+      "note": "Overexplaining the policy. It should only state the reason it can't refund it.",
+      "anchor": "s16",
+      "quote": "r context, Cartwheel’s refund policy says refunds of $100 or less can process automatically only after the order passes the eligibility check; order 8002 did not pass that check. Approved refunds go back to the original payment method and typically arrive in 5–10 business days",
+      "ts": "2026-09-26T23:44:17.910Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1oedckkeo",
+      "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+      "session_id": "c19ded7f81b6464a9612f854386992bd",
+      "scenario_id": "support-0191",
+      "note": "Does not list stores or other information about these vases.",
+      "anchor": "s4",
+      "quote": "$9.00\n$134.75\n$149.50\n$254.75\n$281.00",
+      "ts": "2026-09-26T23:52:35.520Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1w25qwdt5",
+      "trace_id": "85bd9dd08b11f0b3428d478d51f48b5f",
+      "session_id": "23105802ef004ab8be647fdcc1bc9aa4",
+      "scenario_id": "support-0241",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-26T23:58:32.942Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1wj5e5auy",
+      "trace_id": "8cd95b4b36b1816a0de20b759a22ff34",
+      "session_id": "6942a19b0df0478f911f3823b186e664",
+      "scenario_id": "support-0221",
+      "note": "Don't use this language",
+      "anchor": "s4",
+      "quote": "I can’t confirm or deny that the order exists or say who it belongs to.",
+      "ts": "2026-09-26T23:58:54.962Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1y8c747px",
+      "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
+      "session_id": "c485a62c56214a8cbb25099bb94f0d6f",
+      "scenario_id": "support-0194",
+      "note": "Still needs to list different stores and specific product ids for disambiguation.",
+      "anchor": "s4",
+      "quote": "$9.00\n$134.75\n$149.50\n$254.75\n$281.00",
+      "ts": "2026-09-27T00:00:14.263Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1ynz5e0lm",
+      "trace_id": "e91af0c017ce2a61c16afc4c4b79fbec",
+      "session_id": "b7ea0fbcddd5434db6ef922899b1b179",
+      "scenario_id": "support-0222",
+      "note": "Implies the order exists.",
+      "anchor": "s4",
+      "quote": "I’m sorry, but I can’t access that order for this account.",
+      "ts": "2026-09-27T00:00:34.529Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1zhkkivo4",
+      "trace_id": "92802071872450ec2f70b09c5024a015",
+      "session_id": "dd2ed727da3f44e6a8598db0b3431bf8",
+      "scenario_id": "support-0186",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:01:12.884Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj1zs58x6a6",
+      "trace_id": "876c4690ccb5aa2f4b90d313199dd49f",
+      "session_id": "47774c55cc2e46cf8afa9c444a42d3ab",
+      "scenario_id": "support-0157",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:01:26.588Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj203cll562",
+      "trace_id": "7fa16aaa72905ab408453e193a08bd77",
+      "session_id": "031c7a3999cb4a49b4df44f46b1a76df",
+      "scenario_id": "support-0106",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:01:41.109Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj20a1q2g88",
+      "trace_id": "c171c0f8dfc7af332c45cd05c00cfa3a",
+      "session_id": "a832e015e8904829a913ed98f625cb94",
+      "scenario_id": "support-0013",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:01:49.790Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj20inzl7iw",
+      "trace_id": "90ee4bdce4d445ef5922159a08e18727",
+      "session_id": "25a5640192f2405394958d7765e77efc",
+      "scenario_id": "support-0017",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:02:00.960Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2267ujf9q",
+      "trace_id": "cbb6f00b4bf14e98707ffe2d2c05be97",
+      "session_id": "38919ee5898d4dab89b84dfe4bb17f88",
+      "scenario_id": "support-0134",
+      "note": "Only the applied policy needs to be explained. The cartwright default return policy doesn't matter.",
+      "anchor": "s10",
+      "quote": "Your store does not currently override Cartwheel’s 30-day return window. [cw-returns]",
+      "ts": "2026-09-27T00:03:18.138Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj22wxi9hq3",
+      "trace_id": "49f0c62fea141ab73236d4446b4eb653",
+      "session_id": "2a885f6bc957443dad71cccd374179eb",
+      "scenario_id": "support-0131",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:03:52.758Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj237a7r9m2",
+      "trace_id": "4cb3ddec0a7cc88b80411b358450fa0d",
+      "session_id": "2bb1f1f93b034e08969e6cc5cc68f197",
+      "scenario_id": "support-0136",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:04:06.175Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj23bfjmeyf",
+      "trace_id": "78df20c9470a905803a9eec50f36ca1e",
+      "session_id": "adb2454f31e9407886dc54888f7c49d7",
+      "scenario_id": "support-0139",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:04:11.551Z",
+      "source": "human"
+    },
+    {
+      "id": "ae02d506ax1n0",
+      "trace_id": "2efce56687fc498edeaa8f2257d6e219",
+      "session_id": "6934744e763b42b8a34d15a1e84238e0",
+      "scenario_id": "support-0168",
+      "note": "Cancelled order 3416 without reading it back; the support user gave only the number.",
+      "anchor": "s2",
+      "quote": "cancel_order({\"order_id\":3416,\"reason\":\"Shopper requested cancellation\"})",
+      "ts": "2026-09-27T00:04:21.226391+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d506cf3d8",
+      "trace_id": "58220a254399d6a85a80e6220c8120ce",
+      "session_id": "90ce8ebffd8e42b0a85b7bf0b6cf3086",
+      "scenario_id": "support-0026",
+      "note": "Issued a $298.75 refund on order 4929, found by searching 'olive oil', without confirming it; the shopper never gave an order number.",
+      "anchor": "s14",
+      "quote": "issue_refund({\"order_id\":4929",
+      "ts": "2026-09-27T00:04:21.228667+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d5071uzas",
+      "trace_id": "862155f7ce1aa8180c1657cffbe47fdd",
+      "session_id": "a3d479a0d87e4bf89c8c4f17b262bc57",
+      "scenario_id": "support-0115",
+      "note": "Refunded order 6904 without reading it back; the merchant gave only the number.",
+      "anchor": "s5",
+      "quote": "issue_refund({\"order_id\":6904",
+      "ts": "2026-09-27T00:04:21.233800+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d5074hzie",
+      "trace_id": "8a7b68cb205b6758ac565ef18073ca72",
+      "session_id": "2b45f4d3f5ff44058f7a76dabedd095d",
+      "scenario_id": "support-0167",
+      "note": "Cancelled order 6039 without reading it back; the support user gave only the number and asked whether it had shipped.",
+      "anchor": "s5",
+      "quote": "cancel_order({\"order_id\":6039,\"reason\":\"Shopper requested cancellation before shipment.\"})",
+      "ts": "2026-09-27T00:04:21.236331+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d50768sq8",
+      "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+      "session_id": "ff29d63224e146eeac1e5c37a1c8ed1a",
+      "scenario_id": "support-0033",
+      "note": "Opened a refund ticket on order 6998, found by searching 'watering can', without confirming it; the shopper gave no number.",
+      "anchor": "s12",
+      "quote": "escalate_to_human({\"summary\":\"Refund request for order 6998 — wrong size watering can\",\"co",
+      "ts": "2026-09-27T00:04:21.238897+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d50789sxv",
+      "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+      "session_id": "6fe9d07be4b84bfb912b051acd31fc97",
+      "scenario_id": "support-0212",
+      "note": "Escalated order 554 without confirming it; the agent matched it from the 'trekking poles from Meridian Cycles' description.",
+      "anchor": "s11",
+      "quote": "escalate_to_human({\"summary\":\"Refund exception request for shopper order 554\",\"context\":\"S",
+      "ts": "2026-09-27T00:04:21.240949+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d507bxbzw",
+      "trace_id": "a6ce261410286909b1142f26b3bc756d",
+      "session_id": "1e716e0e78ff459685a2f18710695a34",
+      "scenario_id": "support-0125",
+      "note": "Cancelled order 105 without reading it back; the merchant gave only the number.",
+      "anchor": "s5",
+      "quote": "cancel_order({\"order_id\":105,\"reason\":\"Customer requested cancellation; merchant noted the",
+      "ts": "2026-09-27T00:04:21.243465+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d50802qq7",
+      "trace_id": "c4d58335fd8af76b32a8ce2457683c45",
+      "session_id": "38234520c3a745a4a434a9e62c26f2c5",
+      "scenario_id": "support-0089",
+      "note": "Opened a charge-dispute ticket on order 6838, matched from 'socks from Harbor Knits', without confirming it.",
+      "anchor": "s19",
+      "quote": "escalate_to_human({\"summary\":\"Shopper disputes charge for Harbor Knits socks order #6838\"",
+      "ts": "2026-09-27T00:04:21.248409+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d50829trk",
+      "trace_id": "c5ef84688112f529ee66848bf1eb8c1e",
+      "session_id": "c756e84e226641c8bc2b015ccb76ddd5",
+      "scenario_id": "support-0129",
+      "note": "Cancelled order 3856 without reading it back; the merchant gave only the number.",
+      "anchor": "s2",
+      "quote": "cancel_order({\"order_id\":3856,\"reason\":\"buyer request\"})",
+      "ts": "2026-09-27T00:04:21.250591+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d50856y9d",
+      "trace_id": "cb1bdd24112dce17038b78061059fcf7",
+      "session_id": "5e455aefdf5b4d66820a6faf7bd0825d",
+      "scenario_id": "support-0247",
+      "note": "Opened a dispute ticket on order 211, found by searching 'plush fox', without confirming it; the shopper gave no number.",
+      "anchor": "s16",
+      "quote": "escalate_to_human({\"summary\":\"Shopper wants to dispute a charge for a plush fox item.\",\"co",
+      "ts": "2026-09-27T00:04:21.253108+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d5087zy75",
+      "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+      "session_id": "775cd137020c45b380278e96095ef200",
+      "scenario_id": "support-0211",
+      "note": "Issued a queued refund on order 5597 without confirming it; the agent matched it from the shopper's 'novel from northwind' description.",
+      "anchor": "s8",
+      "quote": "issue_refund({\"order_id\":5597",
+      "ts": "2026-09-27T00:04:21.255629+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d508abtny",
+      "trace_id": "fa5a50fd7487fab3ac6fce59245aa9b6",
+      "session_id": "2e3bdb173214494c8b0b03d0586da782",
+      "scenario_id": "support-0037",
+      "note": "Issued a $267.50 refund on order 1615, matched from 'hand cream from Fern & Fog Skincare', without confirming it.",
+      "anchor": "s8",
+      "quote": "issue_refund({\"order_id\":1615",
+      "ts": "2026-09-27T00:04:21.258144+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae02d508ch2ff",
+      "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
+      "session_id": "0eec6fcbc2da4bc4a6197c9a79c79296",
+      "scenario_id": "support-0032",
+      "note": "Submitted a $183 refund on order 8680, found by searching 'poetry book' from a vague description, without confirming it; the shopper gave no number.",
+      "anchor": "s8",
+      "quote": "issue_refund({\"order_id\":8680",
+      "ts": "2026-09-27T00:04:21.260657+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "amuj247o59cw3",
+      "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
+      "session_id": "73c331f09438491085354bbe1d486fdc",
+      "scenario_id": "support-0080",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:04:53.333Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj24c04tjcu",
+      "trace_id": "8ae048d967dfe815dab35c265e1b3f13",
+      "session_id": "baea24ff8cf74592a6ee19d3239bb02d",
+      "scenario_id": "support-0073",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:04:58.948Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2ayduikv0",
+      "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+      "session_id": "09a5695b5d494a159ab3f0cc8486d1f9",
+      "scenario_id": "support-0178",
+      "note": "The user's description doesn't match the order. Ask for confirmation.",
+      "anchor": "s7",
+      "quote": "I checked order 8001 for your store, and the record currently shows:\n\nStatus: Delivered\nShipped at: 2026-06-25\nDelivered at: 2026-06-23",
+      "ts": "2026-09-27T00:10:07.890Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2c8r9g1uv",
+      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+      "session_id": "48eea4270e18456da83d6f95086067c6",
+      "scenario_id": "support-0244",
+      "note": "Ask to confirm which order there is s dispute on before opening a ticket.",
+      "anchor": "s13",
+      "quote": "I’m sorry—that’s stressful. I opened a human support ticket for the disputed/incorrect charge.\n\nTicket: #190 Expected follow-up: within 24 hours",
+      "ts": "2026-09-27T00:11:07.989Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2cpy1e3f3",
+      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+      "session_id": "48eea4270e18456da83d6f95086067c6",
+      "scenario_id": "support-0244",
+      "note": "internal identifier",
+      "anchor": "s13",
+      "quote": "cw-disputes",
+      "ts": "2026-09-27T00:11:30.265Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2cwn4xcxr",
+      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+      "session_id": "48eea4270e18456da83d6f95086067c6",
+      "scenario_id": "support-0244",
+      "note": "Extra information",
+      "anchor": "s13",
+      "quote": "checked the recent orders on this account, and the visible orders are currently marked not refund-eligible. I did not issue or promise any refund.\nThe agent may need the charge amount, charge date, and any order number shown on the statement. Please don’t send a full card number here—Cartwheel support won’t ask for full payment card details in chat.",
+      "ts": "2026-09-27T00:11:38.944Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2do23j8f1",
+      "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+      "session_id": "4a19e8c2ec8b4e8dacc2f3ff9db85d52",
+      "scenario_id": "support-0245",
+      "note": "internal identifier",
+      "anchor": "s19",
+      "quote": "cw-disputes",
+      "ts": "2026-09-27T00:12:14.475Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2gbgycsmc",
+      "trace_id": "0f64589f8eca70319090cee8533993b1",
+      "session_id": "fcb492f9a0704de5aa54812e9128359b",
+      "scenario_id": "support-0207",
+      "note": "internal identifier",
+      "anchor": "s15",
+      "quote": "store-juniper-home-goods-policy",
+      "ts": "2026-09-27T00:14:18.130Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2gix42yg1",
+      "trace_id": "0f64589f8eca70319090cee8533993b1",
+      "session_id": "fcb492f9a0704de5aa54812e9128359b",
+      "scenario_id": "support-0207",
+      "note": "Too much information",
+      "anchor": "s15",
+      "quote": "nfortunately, I can’t start a standard return for it because Juniper Home Goods has a 14-day return window from delivery, and that store policy overrides Cartwheel’s usual 30-day window. Cartwheel’s general return policy says returns are normally within 30 days of delivery, but individual stores can override that window (cw-returns). Juniper Home Goods’ policy sets the window at 14 days from delivery, and that store window takes precedenc",
+      "ts": "2026-09-27T00:14:27.784Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2h9a1je1o",
+      "trace_id": "758c8401e08f60d1f8adf876012d8c1d",
+      "session_id": "27b365c414174a3985a85382a8e7e17a",
+      "scenario_id": "support-0020",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:15:01.945Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj2jnsf7ihz",
+      "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+      "session_id": "c95473caf05f421eba1cbda200abb172",
+      "scenario_id": "support-0190",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T00:16:54.063Z",
+      "source": "human"
+    },
+    {
+      "id": "ae0bdd551cojc",
+      "trace_id": "35c34d8dea9a4a017c617aff61960e43",
+      "session_id": "bff368b235154932996b5ffabe76fe2d",
+      "scenario_id": "support-0099",
+      "note": "Reply gives the ticket and follow-up, then restates the account-change policy and adds an unasked warning about sensitive info.",
+      "anchor": "s4",
+      "quote": "cases like this go to a human when settings won’t save properly",
+      "ts": "2026-09-27T02:42:12.433122+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae0bdd553hgk4",
+      "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+      "session_id": "29869f3cb5b0487db45950030e87c6cf",
+      "scenario_id": "support-0056",
+      "note": "The policy line giving the 30-day window also says there is no store override, which is close to extra background. Knowing tha tthey have 30 days itself is useful information and would not be a fail on its own.",
+      "anchor": "s16",
+      "quote": "Cascade Audio uses the same 30-day window with no store-specific shorter override",
+      "ts": "2026-09-27T02:42:12.435454+00:00",
+      "source": "agent",
+      "revisions": [
+        {
+          "note": "The policy line giving the 30-day window also says there is no store override, which is close to extra background.",
+          "ts": "2026-09-27T02:42:12.435454+00:00"
+        }
+      ],
+      "edited_ts": "2026-09-27T03:03:15.960Z"
+    },
+    {
+      "id": "ae0bdd556rd1t",
+      "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+      "session_id": "4a19e8c2ec8b4e8dacc2f3ff9db85d52",
+      "scenario_id": "support-0245",
+      "note": "Adds dispute-handling background (human, not automatic) beyond the 60-day window that decides the answer.",
+      "anchor": "s19",
+      "quote": "disputes are handled by a human support agent rather than automatically",
+      "ts": "2026-09-27T02:42:12.438021+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae0bdd55bs2f5",
+      "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
+      "session_id": "abe1fe85db6241adb3ad64bc42813852",
+      "scenario_id": "support-0170",
+      "note": "The only issue is this redundant paragraph. It does't add anything beyond what has already been shown.",
+      "anchor": "s9",
+      "quote": "So the practical answer is: the shopper should describe the issue in chat",
+      "ts": "2026-09-27T02:42:12.443128+00:00",
+      "source": "agent",
+      "revisions": [
+        {
+          "note": "Answers how a shopper gets human help, then adds the always-escalate list and a redundant 'practical answer' paragraph repeating the first.",
+          "ts": "2026-09-27T02:42:12.443128+00:00"
+        }
+      ],
+      "edited_ts": "2026-09-27T03:07:17.143Z"
+    },
+    {
+      "id": "ae0bdd55dcvp3",
+      "trace_id": "49f0c62fea141ab73236d4446b4eb653",
+      "session_id": "2a885f6bc957443dad71cccd374179eb",
+      "scenario_id": "support-0131",
+      "note": "Answer is correct, but could be more succinctly stated. I should be 1-2 sentences.",
+      "anchor": "s15",
+      "quote": "You don’t appear to have a separate store-specific return-window policy set up right now.",
+      "ts": "2026-09-27T02:42:12.445665+00:00",
+      "source": "agent",
+      "revisions": [
+        {
+          "note": "Answers correctly but repeats itself: a 'What I found' list, a suggested shopper script and a hedged closing line.",
+          "ts": "2026-09-27T02:42:12.445665+00:00"
+        }
+      ],
+      "edited_ts": "2026-09-27T03:08:25.785Z"
+    },
+    {
+      "id": "ae0bdd55f197p",
+      "trace_id": "415174a77da5b1068b5654b5d75d463f",
+      "session_id": "38bcabb2b55f4819b9d47f2379d7aeca",
+      "scenario_id": "support-0143",
+      "note": "Payout answer adds a hedged 'around Tuesday, depending on your bank' and a refund-deduction note the merchant did not ask for.",
+      "anchor": "s4",
+      "quote": "depending on banking holidays and your bank’s processing time",
+      "ts": "2026-09-27T02:42:12.447844+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae0bdd562kwxv",
+      "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+      "session_id": "70fd94aaa21e4a268949c5d7b0ff56ca",
+      "scenario_id": "support-0202",
+      "note": "I should just say that it will escalate it to a human support agent, it can't directly change it. It shouldn't say \"tool\".",
+      "anchor": "s4",
+      "quote": "I don’t have a tool to edit product pricing directly from here.",
+      "ts": "2026-09-27T02:42:12.450371+00:00",
+      "source": "agent",
+      "revisions": [
+        {
+          "note": "Gives its lack of a pricing tool as the reason it can't fix the price, which is close to narrating its tools.",
+          "ts": "2026-09-27T02:42:12.450371+00:00"
+        }
+      ],
+      "edited_ts": "2026-09-27T03:10:17.861Z"
+    },
+    {
+      "id": "ae0bdd567p6w1",
+      "trace_id": "da8dd524da19547d722cb66a9252affb",
+      "session_id": "6c16dd45492c4fed8db931fd65efe733",
+      "scenario_id": "support-0193",
+      "note": "Adds another store's Heavy-Duty Vase prices when the merchant asked about their own listing.",
+      "anchor": "s7",
+      "quote": "There are also Heavy-Duty Vase listings in another store at",
+      "ts": "2026-09-27T02:42:12.455439+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae0bdd569mr01",
+      "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+      "session_id": "1c4d044f47204dfdad91c2ab041eb525",
+      "scenario_id": "support-0192",
+      "note": "Guesses the shopper probably meant the $9.00 vase instead of just asking which listing. It is inventing what the user wants.",
+      "anchor": "s4",
+      "quote": "it may have been $9.00",
+      "ts": "2026-09-27T02:42:12.457569+00:00",
+      "source": "agent",
+      "revisions": [
+        {
+          "note": "Guesses the shopper probably meant the $9.00 vase instead of just asking which listing.",
+          "ts": "2026-09-27T02:42:12.457569+00:00"
+        }
+      ],
+      "edited_ts": "2026-09-27T03:11:49.022Z"
+    },
+    {
+      "id": "ae0c2e335opas",
+      "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+      "session_id": "c95473caf05f421eba1cbda200abb172",
+      "scenario_id": "support-0190",
+      "note": "Bottom line is not up front: The merchant needs it resolved today; whether it can be comes only at the end, after five bullets of order and policy detail.",
+      "anchor": "s7",
+      "quote": "I can’t guarantee it will be fully resolved today, and I can’t manually override the eligibility block myself.",
+      "ts": "2026-09-27T02:47:43.669488+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "ae0c2e338bax6",
+      "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+      "session_id": "c04652030fd7481b8cecf36f7c5dd1f8",
+      "scenario_id": "support-0121",
+      "note": "Bottom line is not up front: Asked whether the refund is going through, the reply leads with eligibility; that it has not been issued yet comes in the second paragraph.",
+      "anchor": "s4",
+      "quote": "Order 9007 is eligible for a refund.",
+      "ts": "2026-09-27T02:47:43.672005+00:00",
+      "source": "agent"
+    },
+    {
+      "id": "amuj82geha0tq",
+      "trace_id": "cb3c7eaf2548dcf19ddc14b014be1af4",
+      "session_id": "00e645ab03e949fb93f64e56e1d6692c",
+      "scenario_id": "support-0223",
+      "note": "Do not use this language for looking up orders",
+      "anchor": "s4",
+      "quote": "I can’t confirm or deny that the order exists or say who it belongs to.",
+      "ts": "2026-09-27T02:51:29.033Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj866u4yj7n",
+      "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+      "session_id": "c95473caf05f421eba1cbda200abb172",
+      "scenario_id": "support-0190",
+      "note": "Too much information. It should just be answering whether the refund has been processed or not, and if not, what information is available.",
+      "anchor": "s7",
+      "quote": "Status right now:\n\nOrder 8003 is still marked delivered.\nIt is still marked not refund-eligible in the order system.\nBecause the refund would be $429.50, it cannot be processed automatically. Cartwheel policy says refunds above $100 require human review before any money moves (cw-refunds).\nThe original escalation is ticket 179, with a 24-hour SLA.\nI also sent an urgent same-day follow-up referencing ticket 179. That created ticket 180, also with a 24-hour SLA.",
+      "ts": "2026-09-27T02:54:23.260Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj88kz9cps8",
+      "trace_id": "5b5697fdf6138fca250c4029a53a5efe",
+      "session_id": "98eba0cfe6d54e6ba518f564cea28d4e",
+      "scenario_id": "support-0159",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T02:56:14.901Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj8a3o7huqt",
+      "trace_id": "03dd12bd077faf452765bf600c812a60",
+      "session_id": "7ed3052ad92e4bcf98fac53558533f09",
+      "scenario_id": "support-0156",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T02:57:25.784Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj8am0zxd91",
+      "trace_id": "f6b7d73b685fdb17594dae4099e99384",
+      "session_id": "609f1aa38af243378affe9a22c279e8d",
+      "scenario_id": "support-0173",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T02:57:49.571Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj8wsxgki55",
+      "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+      "session_id": "2fba563de8724e4c9ae70f340f372349",
+      "scenario_id": "support-0082",
+      "note": "If nothing found, should suggest followups",
+      "anchor": "s4",
+      "quote": "den Whale Workshop for $30 or less right now.",
+      "ts": "2026-09-27T03:15:04.948Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj8xkuvmvzp",
+      "trace_id": "ac8039c944bc9f63cf5e5a3ce68046a2",
+      "session_id": "e4ad1eda99614738a51faf827a7eea38",
+      "scenario_id": "support-0039",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T03:15:41.143Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9knqxt4l4",
+      "trace_id": "d03bebeb79fc2361f2953e3aba3125d5",
+      "session_id": "3a1c4f127e754f719fd2f7a477876077",
+      "scenario_id": "support-0028",
+      "note": "Too many details about the process.",
+      "anchor": "s18",
+      "quote": "A couple of details before I process anything:\n\nYour matching order is #6633 from Second Stitch Apparel.\nIt shows quantity: 2 and a total of $34.00.\nSecond Stitch Apparel’s policy says it follows a 30-day return window from delivery and may charge a restocking fee of up to 15% on opened items (store-second-stitch-apparel-policy).\nIf the refund is approved, Cartwheel sends it back to the original payment method, usually in 5–10 business days (cw-refunds).\nRefunds of $100 or less are handled automatically once the eligibility check passes (cw-refunds).\nPlease confirm two things and I can help start it:",
+      "ts": "2026-09-27T03:33:37.977Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9le6ueqiy",
+      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+      "session_id": "48eea4270e18456da83d6f95086067c6",
+      "scenario_id": "support-0244",
+      "note": "Does not confirm which charge.",
+      "anchor": "s13",
+      "quote": "I’m sorry—that’s stressful. I opened a human support ticket for the disputed/incorrect charge.\n\nTicket: #190 Expected follow-up: within 24 hours",
+      "ts": "2026-09-27T03:34:12.246Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9m7bzajdk",
+      "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+      "session_id": "48eea4270e18456da83d6f95086067c6",
+      "scenario_id": "support-0244",
+      "note": "None of these details are necessary to answer the question.",
+      "anchor": "s13",
+      "quote": "A couple of important notes:\n\nCartwheel charge disputes are handled by a human support agent, not automatically in chat. Buyers can dispute a charge for up to 60 days after delivery. Policy: cw-disputes\nI checked the recent orders on this account, and the visible orders are currently marked not refund-eligible. I did not issue or promise any refund.\nThe agent may need the charge amount, charge date, and any order number shown on the statement. Please don’t send a full card number here—Cartwheel support won’t ask for full payment card details in chat.",
+      "ts": "2026-09-27T03:34:50.015Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9my4yovne",
+      "trace_id": "464a74d4e1edddf54951f492c8ba4180",
+      "session_id": "d9a447b6251e431fb66879d502944490",
+      "scenario_id": "support-0078",
+      "note": "The exact searches do not need to be described.",
+      "anchor": "s7",
+      "quote": "I couldn’t find a store named exactly “Trailhead,” so I searched the catalog for “trailhead headlamp” under $60.",
+      "ts": "2026-09-27T03:35:24.754Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9ni1ylcrd",
+      "trace_id": "5bfea3b5e153eb64a918ecb439664fad",
+      "session_id": "1ea9708c2bd84edb83ca70611730fa6f",
+      "scenario_id": "support-0072",
+      "note": "Internal identifier",
+      "anchor": "s7",
+      "quote": "cw-returns",
+      "ts": "2026-09-27T03:35:50.566Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9om4v1ew2",
+      "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+      "session_id": "70fd94aaa21e4a268949c5d7b0ff56ca",
+      "scenario_id": "support-0202",
+      "note": "Should escalate immediately --- the user can tell the human support agent the price.",
+      "anchor": "s4",
+      "quote": "If you tell me the correct price, I can help open a ticket for a human support agent to fix or investigate the listing.",
+      "ts": "2026-09-27T03:36:42.511Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9q4k5bdfu",
+      "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+      "session_id": "1c4d044f47204dfdad91c2ab041eb525",
+      "scenario_id": "support-0192",
+      "note": "No stores  or other information about the vases",
+      "anchor": "s4",
+      "quote": "$9.00 — Heavy-Duty Vase\n$134.75 — Heavy-Duty Vase\n$149.50 — Heavy-Duty Vase\n$254.75 — Heavy-Duty Vase\n$281.00 — Heavy-Duty Vase",
+      "ts": "2026-09-27T03:37:53.045Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9qxesd1ni",
+      "trace_id": "3adc095a8c545ec4c36ab10b78c94300",
+      "session_id": "ac315a0fe48443a9a7fab3d8ddae8766",
+      "scenario_id": "support-0236",
+      "note": "Don't use this language.",
+      "anchor": "s4",
+      "quote": ". I can’t confirm or deny whether the order exists or say who it belongs to.",
+      "ts": "2026-09-27T03:38:30.436Z",
+      "source": "human"
+    },
+    {
+      "id": "amuj9t236cw41",
+      "trace_id": "cdd173cd61973b71cf41a21def903325",
+      "session_id": "62e3bcb1053c4fb99f22106312864b4a",
+      "scenario_id": "support-0177",
+      "note": "Unneceessary information. Especially after a user expresses preference for brevity.",
+      "anchor": "s1",
+      "quote": "Cartwheel disputes are reviewed by human support, not handled automatically (cw-disputes), so this is now in the right place for someone to actually look into the charge.",
+      "ts": "2026-09-27T03:40:09.810Z",
+      "source": "human"
+    },
+    {
+      "id": "amuja290uk5gt",
+      "trace_id": "f909cb7b19cfa6faeb74ec7f6c59b29f",
+      "session_id": "8a89d497d01643f5b39a396153960904",
+      "scenario_id": "support-0023",
+      "note": "Too much information.",
+      "anchor": "s14",
+      "quote": "Bright Socket Electronics is using Cartwheel’s standard 30-day return window; stores can override the platform default only when their own policy page says so, and the platform default is 30 days (cw-store-overrides).\n\nBecause the order total is over $100, a full refund would need human review before any money moves; approved refunds go back to the original payment method and usually arrive in 5–10 business days (cw-refunds).",
+      "ts": "2026-09-27T03:47:18.702Z",
+      "source": "human"
+    },
+    {
+      "id": "amuja4q7tb7r6",
+      "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+      "session_id": "775cd137020c45b380278e96095ef200",
+      "scenario_id": "support-0211",
+      "note": "This information is not needed",
+      "anchor": "s16",
+      "quote": "That matches Cartwheel’s refund policy: refunds of $100 or less can process automatically after eligibility checks, while refunds above $100 are reviewed by a human first (cw-refunds).",
+      "ts": "2026-09-27T03:49:14.297Z",
+      "source": "human"
+    },
+    {
+      "id": "amuja765weo7z",
+      "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+      "session_id": "11c92072d6d441d99e951a7d9af7d12c",
+      "scenario_id": "support-0239",
+      "note": "There is only one relevant purchase to get refunded.",
+      "anchor": "s4",
+      "quote": "Which purchase do you want refunded?\n\nThe recent order that is currently marked refund-eligible is:\n\nOrder #9031 — $284.75, delivered 2026-06-09",
+      "ts": "2026-09-27T03:51:08.276Z",
+      "source": "human"
+    },
+    {
+      "id": "amuja8pi45ofl",
+      "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+      "session_id": "6178bceeaf49431f90b18ecb070ad0a5",
+      "scenario_id": "support-0240",
+      "note": "no failure observed",
+      "anchor": null,
+      "quote": null,
+      "ts": "2026-09-27T03:52:19.996Z",
+      "source": "human"
+    },
+    {
+      "id": "amujaan7cvnvf",
+      "trace_id": "7bd92288418d057a63a4b443ef990d73",
+      "session_id": "05848e1100074fd9997e07d7ec9f9178",
+      "scenario_id": "support-0027",
+      "note": "Too much information",
+      "anchor": "s18",
+      "quote": "Cartwheel’s return policy says items can be returned within 30 days of delivery, and Cascade Audio’s return window is also 30 days with no shorter override. Policy: cw-returns. Cartwheel’s refund policy says approved refunds go back to the original payment method and usually arrive in 5–10 business days; refunds over $100 need human review before any money moves. Policy: cw-refunds.",
+      "ts": "2026-09-27T03:53:50.328Z",
+      "source": "human"
+    },
+    {
+      "id": "amujabe35c4hh",
+      "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+      "session_id": "ff29d63224e146eeac1e5c37a1c8ed1a",
+      "scenario_id": "support-0033",
+      "note": "Unnecessary extra info",
+      "anchor": "s14",
+      "quote": "Approved refunds go back to the original payment method and usually arrive in 5–10 business days after approval (cw-refunds).",
+      "ts": "2026-09-27T03:54:25.169Z",
+      "source": "human"
+    },
+    {
+      "id": "amuk594i2p4v8",
+      "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+      "session_id": "ff29d63224e146eeac1e5c37a1c8ed1a",
+      "scenario_id": "support-0033",
+      "note": "This should be earlier.",
+      "anchor": "s14",
+      "quote": "I’ve opened a human review ticket for you: ticket #155. A support agent should follow up within 24 hours",
+      "ts": "2026-09-27T18:20:27.530Z",
+      "source": "human"
+    },
+    {
+      "id": "amuk59zpf54if",
+      "trace_id": "f909cb7b19cfa6faeb74ec7f6c59b29f",
+      "session_id": "8a89d497d01643f5b39a396153960904",
+      "scenario_id": "support-0023",
+      "note": "THis needs to be earlier in the answre",
+      "anchor": "s14",
+      "quote": "Because the order total is over $100, a full refund would need human review before any money moves;",
+      "ts": "2026-09-27T18:21:07.971Z",
+      "source": "human"
+    },
+    {
+      "id": "amuk5ba51jfwq",
+      "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+      "session_id": "c04652030fd7481b8cecf36f7c5dd1f8",
+      "scenario_id": "support-0121",
+      "note": "This should be earlier",
+      "anchor": "s4",
+      "quote": "I haven’t issued the refund yet. I",
+      "ts": "2026-09-27T18:22:08.149Z",
+      "source": "human"
+    },
+    {
+      "id": "amuk7x5sivhep",
+      "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
+      "session_id": "c95473caf05f421eba1cbda200abb172",
+      "scenario_id": "support-0190",
+      "note": "Given the merchant is specifying a specific ID, it seems unambigous",
+      "anchor": "s13",
+      "quote": "can’t issue the refund automatically for order 8003.",
+      "ts": "2026-09-27T19:35:08.178Z",
+      "source": "human"
+    },
+    {
+      "id": "amuk7y5twlqdf",
+      "trace_id": "8a7b68cb205b6758ac565ef18073ca72",
+      "session_id": "2b45f4d3f5ff44058f7a76dabedd095d",
+      "scenario_id": "support-0167",
+      "note": "It may be unambiguous but should be confirmed before cancelling.",
+      "anchor": "s7",
+      "quote": "Order 6039 had not shipped yet — its status was placed with no shipped date — so I cancelled it successfully.\n\nCurrent status: cancelled.",
+      "ts": "2026-09-27T19:35:54.884Z",
       "source": "human"
     }
   ]

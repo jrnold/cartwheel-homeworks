@@ -2,33 +2,21 @@
   "modes": [
     {
       "name": "narrates_or_overexplains",
-      "definition": "Fail when the final reply (the only message the user sees) describes the agent's own lookups, tool calls, searches or checks instead of stating the result, or includes facts the user did not ask for and does not need to act on (reasons behind a status beyond a one-line explanation, policy background beyond the decision). Messages the agent sends before a tool call are not shown to the user and are not judged. Internal IDs belong to exposes_internal_identifiers or incomplete_answer, not here.\n\nExamples: \n- \"I couldn't find a store literally named ceramics, but when I searched for ceramics heavy duty vase\" (7f2e8bcf),\n- \"I checked order 8001 for your store, and the record currently shows\" (078ec0db): reporting the check itself fails, even briefly,\n- \"my initial search failed\"\n\nPass when the final reply states the result directly and respectfully, including when refusing, and names sources only in user terms. A brief summary of what was done (\"I found the Northwind Books order and confirmed it is refund-eligible\", 693eb384) and a one-line reason for a status are results, not narration.",
-      "boundary": "Boundary to other modes:\n\n- invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.\n- exposes_internal_policy_identifiers: Citing specific policy numbers to user are their own problem.\n",
+      "definition": "Judge only the final reply (the only message the user sees); messages before a tool call are not shown and are not judged. Fail when the final reply: (N1) narrates the agent's own lookups, searches, checks or tool behaviour instead of stating the result, even briefly (\"I checked order 8001 for your store, and the record shows\", \"I couldn't find a store named exactly ceramics, but when I searched\"); (N2) adds information the user did not ask for and does not need, such as another store's listings; order-detail blocks (status, dates, quantity, total, eligibility) and store, order or product IDs are acceptable for every user (reviewer decision, 2026-09-26); (N3) explains policy beyond a one-line reason for the decision (policy background, refund payment timing, the platform default when a store override applies, generic policy notes); (N4) sounds disrespectful, distrustful or grudging; (N5) offers a guess or hedged value where it should state the record or that the information is missing; or (N6) does not put the bottom line up front: the direct answer to what the user asked (the status, yes or no, done or not done, the matches, the refusal, or a needed choice) is not in the first sentence, after at most one short apology, but comes after details, policy, narration or a \"Here's what I found\" list. A one-line lead-in that directly introduces a list which is itself the answer counts as up front. It fails when the outcome comes after an order-identification line or block, when a choice the user must make comes only at the end, or when the first sentence gives only part of the answer (\"eligible\" when asked whether the refund is going through). Pass when the reply states the result directly and respectfully and every sentence is something the user asked for or needs to act. Always allowed: a short outcome statement of what was done (\"I found your Northwind Books order and confirmed it is refund-eligible\", 693eb384), a one-line reason, information SPEC.md requires in the reply (ESC-1: queued for review, ticket number, follow-up time; a refusal's reason and next step; RESP-3 missing-information disclosure), a next step, a brief apology.",
+      "boundary": "vs exposes_internal_identifiers: cw-* policy IDs and refund IDs belong there. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased. vs incomplete_answer: too little belongs there, too much here; a store number INSTEAD of the name fails there; IDs IN ADDITION to names are acceptable. vs reveals_order_existence: what a refusal for a denied or unknown order says belongs there.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule.",
+      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule; BLUF: the answer comes first, details after (added 2026-09-26).",
       "merged_from": [
         "narrates_internal_process",
         "unnecessary_detail",
         "disrespectful_or_distrustful_tone"
       ],
       "annotations": [
-        "amuc2nbzllteo",
-        "amuc2m3qsd0oo",
-        "amuc2o4ctkvnv",
-        "amuc2tuktv3w5",
-        "amuc3pi0yll8b",
-        "amuc4i7m6ke9b",
-        "amuc3u6hlcg8p",
-        "amuc2zq5pjlog",
-        "amuc3l9f0hi30",
-        "amuc3ly9x2ptc",
-        "amudebc5hbu8r",
         "amudecc1pfoq0",
         "amudfxl8md7fg",
         "a0cf52f6c4mmpz",
         "a0cf52f6d4q7qj",
         "a0cf52f6dbry6q",
-        "amuc3x891c1dm",
         "amuc2zfn4qgkd",
         "amuc3k3o09365",
         "amudeefqwdzu6",
@@ -38,9 +26,7 @@
         "amuc412c6vmep",
         "amuc3n0y5lwh4",
         "a0cf52f6c1bw37",
-        "amuc30r44925t",
-        "amudhpx62pcpo",
-        "amuc2uo8r8v9k"
+        "amudhpx62pcpo"
       ],
       "positives": [
         "b213d9b0f4a0f667e10ebfa8f2521e05",
@@ -58,10 +44,10 @@
     },
     {
       "name": "exposes_internal_identifiers",
-      "definition": "Fail when the user is a shopper and the final reply contains a Cartwheel policy identifier (cw-*) or a refund ID (for example \"Refund ID: 604\", \"Refund request ID: 582\"). Pass for shoppers when neither appears, and always pass for merchant and support users, who should see policy identifiers and can use refund IDs in the approval queue.",
+      "definition": "Fail when the user is a shopper and the final reply contains a policy identifier, Cartwheel (cw-*) or store (store-*-policy), or a refund ID (for example \"Refund ID: 604\", \"Refund request ID: 582\"). Pass for shoppers when none appears, and always pass for merchant and support users, who should see policy identifiers and can use refund IDs in the approval queue.",
       "boundary": "vs narrates_or_overexplains: store, product and ticket IDs are not covered here; whether they help depends on the question and audience, so judge them under narrates_or_overexplains.",
       "evaluator": "code check",
-      "requirement": "RESP-1 (revised: shoppers get plain-language policy without cw- identifiers or refund IDs; merchant and support users get identifiers).",
+      "requirement": "RESP-1 (revised: shoppers get plain-language policy without cw-* or store-*-policy identifiers or refund IDs; merchant and support users get identifiers).",
       "annotations": [
         "amuc2wivc2cf7",
         "amuc3smtmr70o",
@@ -84,15 +70,32 @@
     },
     {
       "name": "acts_on_unconfirmed_order",
-      "definition": "Fail when the agent takes an immediate action on an order (cancel_order, issue_refund, or escalate_to_human opening a ticket about it) without the user first confirming that order: either the order was inferred from a description, or the ID was taken as typed without reading back its details. Pass when the agent confirms the order before acting, or takes no action.",
-      "boundary": "vs invents_or_contradicts_facts: this mode is about acting before confirming WHICH order; that mode is about stating values no tool returned. Asking the user to choose between orders (44b9269f) is a close negative. vs misapplied_escalation: a warranted escalation opened before the user confirmed the order fails here; an escalation the policy does not call for fails there.",
+      "definition": "Fail when the agent cancels an order, issues or queues a refund (any amount), or opens a ticket about a specific order (its ID is the subject of the ticket) that the user has not confirmed, and the order was uncertain: (1) inferred - its ID never appears in the user's own messages (matched from a description, picked from a list, or taken as 'the most recent'), even if only one order matched; (2) several orders matched and the agent chose one, or opened a ticket naming several without asking which; (3) something the user said contradicts the record (status, store, item, date or amount); or (4) a merchant or support user gave only the order number, with no other detail to check it against; or (5) the user disputes a charge or asks for a refund without identifying the order and the agent opens the ticket without asking which order. The order is confirmed when an earlier turn's reply identified it (product or store plus one more detail) and asked, and the user agreed or chose it; confirmation cannot happen within one turn. Pass when every action is on a confirmed order, on a typed ID whose record matches everything else the user said, or on an ID a shopper typed (a shopper reaches only their own orders), or when there is no such action. Human review of a ticket or queued refund does not substitute for confirmation.",
+      "boundary": "vs misapplied_escalation: whether an escalation was called for at all belongs there; whether the order it concerns was settled with the user first belongs here. One trace can fail both. vs invents_or_contradicts_facts: this mode is about acting on an uncertain order; that mode is about stating values no tool returned. vs incomplete_answer: a reply that names the order only by number fails there; acting on it without confirmation, when the order was uncertain, fails here.",
       "evaluator": "LLM judge",
-      "requirement": "ACT-1 (confirm the order before cancelling, refunding or opening a ticket about it; ask when several match; read back typed IDs) and ESC-1 for refunds above the threshold.",
+      "requirement": "ACT-1 (revised 2026-09-26: confirm when the order is inferred, several match, the user's details conflict with the record, or staff gave a bare ID; a typed ID that matches, or a shopper's typed ID, needs no read-back) and ESC-1.",
       "annotations": [
         "amuc2mu6gk53v",
         "amuc3tv6suyrx",
         "amudfpyon75uz",
-        "amudefs2win5d"
+        "amudefs2win5d",
+        "ae02d5065vkus",
+        "ae02d5068bw7q",
+        "ae02d506ax1n0",
+        "ae02d506cf3d8",
+        "ae02d506f8al2",
+        "ae02d5071uzas",
+        "ae02d5074hzie",
+        "ae02d50768sq8",
+        "ae02d50789sxv",
+        "ae02d507bxbzw",
+        "ae02d507didal",
+        "ae02d50802qq7",
+        "ae02d50829trk",
+        "ae02d50856y9d",
+        "ae02d5087zy75",
+        "ae02d508abtny",
+        "ae02d508ch2ff"
       ],
       "positives": [
         "b5557297f306cb7d0d9ca08ea3f70968",
@@ -178,10 +181,10 @@
     },
     {
       "name": "misapplied_escalation",
-      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, explains or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund on an eligible order that is not both queued with issue_refund and given a ticket (ESC-1; a ticket alone, or a queued refund alone, fails), or a bad or conflicting record the agent relied on without opening a ticket to investigate it (ESC-5). Pass when every escalation is called for and every required one is made.",
+      "definition": "Fail when the agent applies the escalation policy wrongly in either direction: (a) it offers, recommends or opens an escalation the policy does not call for or cannot apply (for example a ticket seeking an exception for an order the policy already settles, a duplicate ticket for an order that has one, or escalating on behalf of a support user, or telling a support user to escalate a case to a human, which they cannot do (ESC-6) or opening another ticket for an order that has one (ESC-7)); or (b) it skips an escalation the policy requires: a dispute or a request it cannot resolve without a ticket (ESC-3), an account change the user says settings did not fix (ESC-2), an above-threshold refund on an eligible order that is not both queued with issue_refund and given a ticket (ESC-1; a ticket alone, or a queued refund alone, fails), or a bad or conflicting record the agent relied on, once it is confident the value is bad, without opening a ticket to investigate it, for support users too and without first asking the user for the correct value (ESC-5). Pass when every escalation is called for and every required one is made. For support users, explaining how escalation works when they ask is a pass; the ESC-1 approval ticket for a refund above the threshold and the ESC-5 investigation ticket are opened for them as for anyone else.",
       "boundary": "vs incomplete_answer: the reply answers, but applies the escalation policy wrongly. vs acts_on_unconfirmed_order: an escalation (including the ESC-1 refund ticket) opened before the user confirmed which order it concerns belongs there; this mode is about whether the escalation was called for at all.",
       "evaluator": "LLM judge",
-      "requirement": "ESC-1 to ESC-5 (required escalations, including the ESC-5 investigation ticket for bad data), ESC-6 (not on behalf of support users), ESC-7 (no additional tickets for an order that has one), AUTH-1.",
+      "requirement": "ESC-1 to ESC-5 (ESC-5 revised: ticket once confident the data is bad, for support users too), ESC-6 (revised: no telling support to escalate; explain when asked; ESC-1 and ESC-5 tickets still opened), ESC-7, AUTH-1.",
       "annotations": [
         "amudig94js9re",
         "amudhnrh6k4do",
@@ -189,16 +192,17 @@
         "a0cf52f6cf2dk1"
       ],
       "positives": [
-        "8f616c8ead8dd282a636eb3bf5ce79b0",
         "3a399b6c6f1ad7a4bb9fec0b5a18608c",
-        "9ad0d23ac84fad177ca95c455f3af265"
+        "9ad0d23ac84fad177ca95c455f3af265",
+        "41e68abb1ace115b1d0f88a61213bcc5"
       ],
       "close_negatives": [
         "cdd173cd61973b71cf41a21def903325",
         "948d8c4c22cb53304287ce3b39dd9b26",
         "cb1bdd24112dce17038b78061059fcf7",
         "fa5a50fd7487fab3ac6fce59245aa9b6",
-        "c4d58335fd8af76b32a8ce2457683c45"
+        "c4d58335fd8af76b32a8ce2457683c45",
+        "8f616c8ead8dd282a636eb3bf5ce79b0"
       ]
     },
     {

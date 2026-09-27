@@ -1211,6 +1211,921 @@
           "reason": "your Fail; the note quotes the preamble, and the final reply is only 'Order 5637 has been cancelled.'"
         }
       ]
+    },
+    {
+      "name": "wl-audit-labels",
+      "worklist": true,
+      "mode": "all",
+      "method": "Audit of 2026-09-26: your notes that the labels contradict, Claude labels that look wrong under the definitions, definition decisions, and weak examples. Most important first.",
+      "selected_at": "2026-09-27T00:04:38+00:00",
+      "size": 43,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "Your note says the $50 limit was invented; invents is Pass (Claude)",
+          "checks": [
+            "invents_or_contradicts_facts: the user gave no price, but the search used max_price_usd 50 and the reply says 'under $50'. Your note says Fail; the label is Pass."
+          ]
+        },
+        {
+          "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+          "reason": "Your note asks for order details; incomplete is Pass (Claude)",
+          "checks": [
+            "incomplete_answer: orders are listed as '#4327 — delivered May 11 — $256.00' with no product or store. The definition fails 'by ID without a name'.",
+            "misdates_dispute_window: keep as a positive ('today is September 17, 2026')?"
+          ]
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "Your own incomplete Pass and 'no failure observed' vs the 'by ID without a name' clause",
+          "checks": [
+            "incomplete_answer: '#9031 — $284.75 … #5319 … #9829' lists orders with no product or store. Fail under the definition?",
+            "If it fails, replace your 'no failure observed' code. It stays a good acts_on close negative (asks, takes no action)."
+          ]
+        },
+        {
+          "trace_id": "03dd12bd077faf452765bf600c812a60",
+          "reason": "Your note asks for item names; incomplete is Pass (Claude)",
+          "checks": [
+            "incomplete_answer: a support user supplied the order ID; the reply gives dates, quantity and total but no item. Does 'order cannot be identified' apply when the user gave the ID?"
+          ]
+        },
+        {
+          "trace_id": "0f64589f8eca70319090cee8533993b1",
+          "reason": "Your note 'I don't know what order it is talking about'; incomplete Pass (Claude)",
+          "checks": [
+            "incomplete_answer: 'The order I found is marked delivered' with no product, date or total.",
+            "misapplied_escalation: offers to escalate a return the store's 14-day override already settles (25 days since delivery). Does a conditional offer count?"
+          ]
+        },
+        {
+          "trace_id": "758c8401e08f60d1f8adf876012d8c1d",
+          "reason": "Your note 'only delivered + date needed'; narrates is Pass (Claude)",
+          "checks": [
+            "narrates_or_overexplains: decide the rule for a full order record (ordered, shipped, total, quantity) on a status question, then label this and 0317bb73, 7fa16aaa, e167a37c, 91f77f79 the same way."
+          ]
+        },
+        {
+          "trace_id": "0317bb73293411dc01b9577dc52735bd",
+          "reason": "Your note 'Unnecessary information' (Quantity: 2); narrates Pass (Claude)",
+          "checks": [
+            "narrates_or_overexplains: same record-dump rule as 758c8401."
+          ]
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "Your 'Too much information' and 'Claimed success' notes vs current labels",
+          "checks": [
+            "narrates_or_overexplains: final reply repeats the refund policy, status and 'can't override'. Your note says Fail; the label is Pass.",
+            "invents_or_contradicts_facts: your 'claimed success' note quotes an interim message; the final reply says 'That created ticket 180'. The failure looks like a duplicate ticket (ESC-7, already a misapplied_escalation Fail). Unlink the note from invents, or re-anchor it?"
+          ]
+        },
+        {
+          "trace_id": "cad98979f6350b29971be7daaa1ecb86",
+          "reason": "Your notes on the final reply; narrates and incomplete are Pass (Claude)",
+          "checks": [
+            "incomplete_answer: your note says the reason is unclear, but the reply says 'already shipped and was marked delivered'. Keep the note? The user believes the order is unshipped (a typo scenario) and the reply never names the product or asks whether they meant another order.",
+            "narrates_or_overexplains: your note 'delivered implies shipped' — Fail or drop the note?"
+          ]
+        },
+        {
+          "trace_id": "693eb38472114b801d56bdf5380bc511",
+          "reason": "Your invents Fail: no invented value found; also an invents positive",
+          "checks": [
+            "invents_or_contradicts_facts: every value in the reply ($293.25, order 6388, Northwind Books, refund 584, ticket 157) traces to a tool result. Record what is invented, or flip to Pass and replace this positive.",
+            "No open code explains the invents Fail."
+          ]
+        },
+        {
+          "trace_id": "a02dbc9b2f42256ce21f5dc6cf9eeda6",
+          "reason": "Your misapplied Pass: ticket 170 opened on behalf of a support user",
+          "checks": [
+            "misapplied_escalation: ESC-6 says no tickets on behalf of support users; ESC-1 wants a ticket for a refund above $100. Decide which wins and write it into the definition (also affects 41e68abb, 41ccd165)."
+          ]
+        },
+        {
+          "trace_id": "b5557297f306cb7d0d9ca08ea3f70968",
+          "reason": "Your misapplied Pass: a ticket for a $69 return the agent could answer",
+          "checks": [
+            "misapplied_escalation: order 3392 ($69) is refund-eligible and inside its window; no ESC rule calls for the ticket.",
+            "exposes_internal_identifiers is Fail (cw-returns, store-meridian-cycles-policy) with no open code."
+          ]
+        },
+        {
+          "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
+          "reason": "Your misapplied note is unclear; label is Pass",
+          "checks": [
+            "Your note: 'The support is being asked about escalation policies, but the human agent is the one that it is escalated to.' Rewrite it so another reviewer can apply it, or unlink it from misapplied_escalation."
+          ]
+        },
+        {
+          "trace_id": "0e53f4e5f417745ca668783d28012cf5",
+          "reason": "Your invents note quotes a step that contradicts nothing",
+          "checks": [
+            "invents_or_contradicts_facts: the note 'contradicting refund eligible' quotes 'I'll look up that order's refund eligibility'. Unlink or re-map (narrates?).",
+            "incomplete_answer is Fail (orders listed by ID, date, price) with no open code."
+          ]
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "A store name read as a product term, then a false 'no clear match'",
+          "checks": [
+            "The user asked about 'pocket arcade' (store 19); the search returned store 19's items but the reply says it didn't find a clear match. Neither search_false_negative (tool miss) nor invents covers a misread request. New mode, widen a definition, or leave uncovered?",
+            "incomplete_answer is Fail (Store ID column, no names) with no open code."
+          ]
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "Your rejected suggestion vs the incomplete_answer definition text",
+          "checks": [
+            "incomplete_answer: you decided a merchant asking about their own store is a Pass (close negative), but the definition text still fails 'store number instead of store name'. Add the merchant-own-store exception to the definition.",
+            "Search results were cut at limit 5 and shown as the full list (product 1 at $298 is missing). No mode covers truncated results."
+          ]
+        },
+        {
+          "trace_id": "92802071872450ec2f70b09c5024a015",
+          "reason": "Two Claude labels look inverted",
+          "checks": [
+            "incomplete_answer: 'Order #8003 — delivered April 8 / Order #3245 — delivered March 16' with no store, product or total. Fail?",
+            "misapplied_escalation: Fail, but the store/product mismatch is not visible in any tool result. Pass?",
+            "Claude's 'no failure observed' code contradicts both."
+          ]
+        },
+        {
+          "trace_id": "b213d9b0f4a0f667e10ebfa8f2521e05",
+          "reason": "Products listed by ID without a name; weak search positive",
+          "checks": [
+            "incomplete_answer: 'Product ID 585 — $29.75 each' is Pass. Fail under 'by ID without a name'?",
+            "invents_or_contradicts_facts (borderline): the unit price is derived from quantity 2 and total $59.50; no tool returned it.",
+            "search_false_negative positive: the reply gives a partial answer rather than 'nothing matches'. Keep as a positive?"
+          ]
+        },
+        {
+          "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
+          "reason": "An exception ticket for an order the policy settles; misapplied Pass",
+          "checks": [
+            "misapplied_escalation: the order is 84 days old and not refund-eligible, yet the agent opened a ticket 'for a possible exception'. The definition names this case.",
+            "incomplete_answer (borderline): the stated reason is the $100 threshold; the real reason (past the 30-day window) is never given."
+          ]
+        },
+        {
+          "trace_id": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "reason": "misapplied positive that only explains the process",
+          "checks": [
+            "misapplied_escalation: the reply explains to a support user that cases go to a human; no ticket is opened or offered. Your note says support cannot escalate to another human. Decide whether 'explains' counts. If not, replace this positive (a02dbc9b opens a real ticket)."
+          ]
+        },
+        {
+          "trace_id": "8f616c8ead8dd282a636eb3bf5ce79b0",
+          "reason": "misapplied positive that only explains the process",
+          "checks": [
+            "misapplied_escalation: same question as 3a399b6c. The reply answers a support user's policy question ('We're required to hand off these cases')."
+          ]
+        },
+        {
+          "trace_id": "f88fb1e2a67ae4c5fa6ddb221022dbb9",
+          "reason": "A conditional offer to escalate an order 443 days past its window",
+          "checks": [
+            "misapplied_escalation (borderline): 'I can help decide whether it should be escalated'. Does a conditional offer count as offering an escalation the policy settles?"
+          ]
+        },
+        {
+          "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+          "reason": "A true search false negative that also fails incomplete",
+          "checks": [
+            "search_false_negative is Fail and correct: the catalog has Compact Puzzle ($17.50) and Portable Puzzle ($30.00) at Wooden Whale Workshop.",
+            "incomplete_answer is also Fail. The boundary sends a false 'nothing matches' to search_false_negative. Keep both?",
+            "No open code on the final reply."
+          ]
+        },
+        {
+          "trace_id": "681a31760df2c03f6343385eef5eb811",
+          "reason": "A ticket for the wrong reason, and a bad record never mentioned",
+          "checks": [
+            "misapplied_escalation (borderline): the ticket asks for review of an ineligibility the policy settles; no ESC-5 ticket for the missing delivered_at. Does a ticket for the wrong reason count as the ESC-5 ticket?",
+            "The reply never tells the user the record has no delivery date. invents covers this only indirectly.",
+            "acts_on, exposes and narrates are Fail with no open codes."
+          ]
+        },
+        {
+          "trace_id": "41e68abb1ace115b1d0f88a61213bcc5",
+          "reason": "ESC-5 vs ESC-6 for a support user; weak invents positive",
+          "checks": [
+            "misapplied_escalation is Fail for the missing ESC-5 ticket, but ESC-6 forbids tickets for support users. Which wins?",
+            "invents_or_contradicts_facts positive: 'not currently return/refund eligible' matches the tool's flag. Keep as a positive?"
+          ]
+        },
+        {
+          "trace_id": "41ccd16520547208ba62760545e66e90",
+          "reason": "ESC-5 vs ESC-6 again; a draft that claims flagging",
+          "checks": [
+            "misapplied_escalation (borderline): a negative price and no ticket, for a support user. The suggested reply says 'We're flagging it for correction' though nothing was flagged."
+          ]
+        },
+        {
+          "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+          "reason": "An above-threshold refund reported as simply 'eligible'",
+          "checks": [
+            "Order 9007 ($210.25) is 'eligible for a refund' with no mention of human review. incomplete_answer (borderline), or a gap no mode covers?",
+            "Claude's 'no failure observed' code would then be wrong."
+          ]
+        },
+        {
+          "trace_id": "235c05b73259b48aebaf503c6586ec28",
+          "reason": "A reply implying a refund is under review when only a ticket was opened",
+          "checks": [
+            "invents_or_contradicts_facts close negative: no refund was queued (ticket only), but the reply says a human will review it. Still a clean Pass?",
+            "narrates_or_overexplains is Fail here for refund boilerplate but Pass on 9068683a. Make them consistent."
+          ]
+        },
+        {
+          "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+          "reason": "Same refund-review implication; narrates inconsistency",
+          "checks": [
+            "invents_or_contradicts_facts close negative: same question as 235c05b7.",
+            "narrates_or_overexplains: '5–10 business days' boilerplate is Pass here, Fail on 58220a25, d43c131e and 235c05b7."
+          ]
+        },
+        {
+          "trace_id": "7fa16aaa72905ab408453e193a08bd77",
+          "reason": "A full order record on a status question; narrates Pass",
+          "checks": [
+            "narrates_or_overexplains: apply the record-dump rule you set on 758c8401."
+          ]
+        },
+        {
+          "trace_id": "415174a77da5b1068b5654b5d75d463f",
+          "reason": "An invented payout day?",
+          "checks": [
+            "invents_or_contradicts_facts (borderline): 'funds typically arrive around Tuesday' — no tool returned it. Claude's 'no failure observed' code."
+          ]
+        },
+        {
+          "trace_id": "d03bebeb79fc2361f2953e3aba3125d5",
+          "reason": "A derived unit price",
+          "checks": [
+            "invents_or_contradicts_facts (borderline): 'One would be about $17.00' assumes both items cost the same.",
+            "exposes and narrates are Fail with no open codes."
+          ]
+        },
+        {
+          "trace_id": "89e772f1691fd10058d8037932827c09",
+          "reason": "Your narrates Fail on a capability statement",
+          "checks": [
+            "narrates_or_overexplains: 'I don't have a general show-all-orders tool' reports no lookup. Fail or Pass?",
+            "incomplete_answer: your note expects a list of recent orders, but support users have no personal orders (TOOL-5). Rewrite the note?"
+          ]
+        },
+        {
+          "trace_id": "35c34d8dea9a4a017c617aff61960e43",
+          "reason": "Policy background repeated from turn 1",
+          "checks": [
+            "narrates_or_overexplains (borderline): the final reply repeats why account changes go to a human and adds 'don't send sensitive info'."
+          ]
+        },
+        {
+          "trace_id": "cdd173cd61973b71cf41a21def903325",
+          "reason": "Policy background the user declined; weak close negative",
+          "checks": [
+            "narrates_or_overexplains (borderline): the user said 'I don't care about the fine print'; the reply explains how disputes are reviewed.",
+            "misapplied_escalation close negative: a reversed-dates data-defect scenario never investigated (ESC-5), and turn 1 misdated order 8001. Replace?"
+          ]
+        },
+        {
+          "trace_id": "1175a6bc10bc41884e9b8672afc394ce",
+          "reason": "Two orders matched and the agent silently picked one",
+          "checks": [
+            "find_order returned orders 200 and 5203; the reply answers for '#200' without asking which. acts_on needs an action, so no mode covers this. New rule?"
+          ]
+        },
+        {
+          "trace_id": "4cb3ddec0a7cc88b80411b358450fa0d",
+          "reason": "A merchant answer without the policy ID RESP-1 requires",
+          "checks": [
+            "No mode checks that merchant and support replies cite the policy ID. The expected answer cites cw-returns. Add the mirror image of exposes_internal_identifiers?"
+          ]
+        },
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "A store policy ID shown to a shopper",
+          "checks": [
+            "exposes_internal_identifiers covers only cw-*; this shopper sees 'policy id: store-meridian-cycles-policy'. Widen the definition?"
+          ]
+        },
+        {
+          "trace_id": "45797b1b3b137ba01160978a2ac5ef36",
+          "reason": "Weak narrates close negative",
+          "checks": [
+            "narrates_or_overexplains close negative: two short sentences, nothing near the boundary. Better as an incomplete_answer positive (no account-settings next step)?"
+          ]
+        },
+        {
+          "trace_id": "f6b7d73b685fdb17594dae4099e99384",
+          "reason": "Weak incomplete close negative",
+          "checks": [
+            "incomplete_answer close negative: a complete answer with names, prices and store. Replace with a thin-but-sufficient reply or one showing IDs alongside names."
+          ]
+        },
+        {
+          "trace_id": "c4d58335fd8af76b32a8ce2457683c45",
+          "reason": "Weak misdates close negative",
+          "checks": [
+            "misdates_dispute_window close negative: the reply makes no window claim about this order. Replace with a correct window claim."
+          ]
+        },
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "Weak narrates close negative",
+          "checks": [
+            "narrates_or_overexplains close negative: 'it may have been $9.00' is a guess, which RESP-6 forbids.",
+            "incomplete_answer is Fail (prices without store names) with no open code."
+          ]
+        },
+        {
+          "trace_id": "4fe2b813cacdffc0072fd5f7e1048945",
+          "reason": "Weak narrates positive",
+          "checks": [
+            "narrates_or_overexplains positive: 'I don't see the product title in the order lookup' is also a legitimate RESP-3 disclosure. Is the unasked detail list the better evidence?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-audit-codes",
+      "worklist": true,
+      "mode": "all",
+      "method": "Sampled traces whose Fail labels have no failure open code, or with no open code at all.",
+      "selected_at": "2026-09-27T00:04:38+00:00",
+      "size": 18,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+          "reason": "2 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: incomplete_answer, search_false_negative. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "ac8039c944bc9f63cf5e5a3ce68046a2",
+          "reason": "2 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: exposes_internal_identifiers, misapplied_escalation. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "d03bebeb79fc2361f2953e3aba3125d5",
+          "reason": "2 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: narrates_or_overexplains, exposes_internal_identifiers. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+          "reason": "2 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: narrates_or_overexplains, exposes_internal_identifiers. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "464a74d4e1edddf54951f492c8ba4180",
+          "reason": "2 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: narrates_or_overexplains, incomplete_answer. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "cb3c7eaf2548dcf19ddc14b014be1af4",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: reveals_order_existence. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "5bfea3b5e153eb64a918ecb439664fad",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: exposes_internal_identifiers. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: misapplied_escalation. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: narrates_or_overexplains. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: incomplete_answer. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "3adc095a8c545ec4c36ab10b78c94300",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: reveals_order_existence. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "cdd173cd61973b71cf41a21def903325",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: exposes_internal_identifiers. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "791ad08e6b55b2e883e06e4627ab24ce",
+          "reason": "1 Fail label(s), no failure code",
+          "checks": [
+            "Fail labels with no open code: reveals_order_existence. Write an open code for the first failure you see, or correct the labels."
+          ]
+        },
+        {
+          "trace_id": "50c6af2af338cce790c8a3ab170c12af",
+          "reason": "No open code; every mode is Pass",
+          "checks": [
+            "Record 'no failure observed', or the failure you see."
+          ]
+        },
+        {
+          "trace_id": "52a8ddadb00d7534845032d171b9def3",
+          "reason": "No open code; every mode is Pass",
+          "checks": [
+            "Record 'no failure observed', or the failure you see."
+          ]
+        },
+        {
+          "trace_id": "5b5697fdf6138fca250c4029a53a5efe",
+          "reason": "No open code; every mode is Pass",
+          "checks": [
+            "Record 'no failure observed', or the failure you see."
+          ]
+        },
+        {
+          "trace_id": "a4ec1380e9e0ce97a500a29e891ab72d",
+          "reason": "No open code; every mode is Pass",
+          "checks": [
+            "Record 'no failure observed', or the failure you see."
+          ]
+        },
+        {
+          "trace_id": "8ae048d967dfe815dab35c265e1b3f13",
+          "reason": "No open code; every mode is Pass",
+          "checks": [
+            "Record 'no failure observed', or the failure you see."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-acts-ambiguous",
+      "worklist": true,
+      "mode": "acts_on_unconfirmed_order",
+      "method": "Cases the revised ACT-1 rule does not decide, from the 2026-09-26 relabel.",
+      "selected_at": "2026-09-27T00:04:38+00:00",
+      "size": 2,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "078ec0db0b6138fe4260984d5b748c29",
+          "reason": "Typo or data defect? A merchant's 'jam trio' vs a Harbor Knits order",
+          "checks": [
+            "acts_on_unconfirmed_order (currently Fail): the merchant typed 8001 and called it a 'jam trio'; the record is a Harbor Knits item and the dates match. If the item mismatch is a CONFLICT (possible wrong order), it fails and the agent should have read the order back. If it is the data defect being reported (the order record itself is wrong), confirming the order would not help: Pass.",
+            "Same question on synthetic trace cac13d60 (merchant, order 8003, 'jam trio' their store doesn't carry), which I set to Pass with low confidence."
+          ]
+        },
+        {
+          "trace_id": "948d8c4c22cb53304287ce3b39dd9b26",
+          "reason": "Is a dispute ticket that names no order in scope?",
+          "checks": [
+            "acts_on_unconfirmed_order (currently Pass): the shopper disputes a charge without identifying it; the ticket says no order ID was provided and lists recent orders as background. Pass (no specific order), or Fail (several orders could match and the agent escalated without asking which)?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-narrates-ambiguous",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "Cases the 2026-09-26 narrates rubric does not decide, grouped by the question each one turns on.",
+      "selected_at": "2026-09-27T02:42:34+00:00",
+      "size": 27,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "245cc11299a87b99036f3758fcc180c0",
+          "reason": "After a refund the agent just issued: is '5–10 business days' needed follow-up, or extra policy (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (applied, low confidence).",
+            "Is the refund-arrival timing (5 to 10 business days) needed follow-up to a completed refund, or refund-payment policy the merchant did not ask for?",
+            "Why: The rubric lists refund payment timing as N3, but here it follows from the refund the agent just issued.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "862155f7ce1aa8180c1657cffbe47fdd",
+          "reason": "After a refund the agent just issued: is '5–10 business days' needed follow-up, or extra policy (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (applied, low confidence).",
+            "Is refund payout timing something the merchant needs to relay to a customer who asked twice, or the refund-timing background the rubric lists as extra?",
+            "Why: The rubric lists refund payout timing as N3, but a merchant relaying to an impatient customer could plausibly need it.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "35c34d8dea9a4a017c617aff61960e43",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: PASS (applied, low confidence).",
+            "Is explaining that account changes go through settings and go to a human when settings won't save a one-line reason, or policy background, and is the 'don't send sensitive info' line extra?",
+            "Why: Ticket number and 24-hour follow-up are the result; the policy sentence roughly serves as the reason for escalating but is long and restates the earlier turn.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "ccee21cec42b438ab24ef010efd6761e",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (applied, low confidence).",
+            "Is the sentence that disputes are handled by a human rather than automatically part of the one-line reason, or extra policy background, given the reviewer wanted more order information here?",
+            "Why: The 60-day window is the reason; how disputes are handled goes beyond it.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (applied, low confidence).",
+            "Is the 'good handoff' checklist and the closing 'don't promise a refund' advice part of the process asked about, or extra policy notes?",
+            "Why: After answering (escalate to a human, 24-hour response), it adds a handoff checklist with examples and generic refund-promise advice.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: PASS (applied, low confidence).",
+            "Is the always-escalated list plus a closing 'practical answer' paragraph that restates the first overexplaining for a question about how a shopper gets real help?",
+            "Why: Answers the policy question, but the third paragraph repeats the first and the escalation list goes a little beyond the ask.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "49f0c62fea141ab73236d4446b4eb653",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: PASS (applied, low confidence).",
+            "Do the 'What I found:' framing, the suggested shopper script and the hedged 'don’t appear to have' go beyond the direct answer?",
+            "Why: Directly answers that the store uses the regular 30-day window; the extra bullets restate it with mild hedging and a suggested script.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "415174a77da5b1068b5654b5d75d463f",
+          "reason": "Is this policy sentence the one-line reason, or background beyond it (N3)?",
+          "checks": [
+            "narrates_or_overexplains first cut: PASS (applied, low confidence).",
+            "Is 'around Tuesday, depending on banking holidays and your bank's processing time' a hedged guess beyond the record, and is the refund-deduction sentence extra for a 'when do we get paid' question?",
+            "Why: The core answer (weekly on Fridays, plus 2 business days) is direct; the bank-timing hedge is not in the policy, and the deduction note goes a little beyond the question.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "2a3e6ee171639e742efc6c82ae090267",
+          "reason": "Is 'I don't have a tool to …' a one-line reason (Pass) or narration of tools (N1)? Your 89e772f1 Fail has the same pattern.",
+          "checks": [
+            "narrates_or_overexplains first cut: PASS (applied, low confidence).",
+            "Is 'I don’t have a tool to edit product pricing' a one-line reason for not fixing the price, or narration of tool behaviour?",
+            "Why: Confirms the price looks wrong, gives a brief reason it can't fix it, and offers a ticket as the next step.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "Needed to identify the item, or extra detail (N2)?",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (applied, low confidence).",
+            "Did the merchant need the other store's Heavy-Duty Vase prices, or only their own listings?",
+            "Why: The product IDs are allowed because they tell the merchant's own listings apart; the other store's prices were not asked for.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "Your label is Pass; the rubric's N5 (guessing) says Fail. I did not change your label.",
+          "checks": [
+            "narrates_or_overexplains first cut: FAIL (not applied: your label stands).",
+            "The reviewer labeled this PASS; is 'it may have been $9.00' a guess at an answer, or a reasonable pointer while asking to narrow it down?",
+            "Why: Offers a guessed price ('it may have been $9.00'), the exact rubric N5 example.",
+            "A first-cut open code by Claude sits on the final reply; edit or delete it, and relabel if you disagree."
+          ]
+        },
+        {
+          "trace_id": "693eb38472114b801d56bdf5380bc511",
+          "reason": "BLUF: is 'I found your Northwind Books order and confirmed it is refund-eligible' an order line before the outcome?",
+          "checks": [
+            "After a one-sentence apology, the reply says 'I found the Northwind Books order and confirmed it is refund-eligible', then 'I submitted a full refund request for $293.25'. That queued-for-review status comes in paragraph three.",
+            "Your ruling that an outcome after an order line fails BLUF would make this Fail; your earlier ruling kept this sentence as an outcome statement (Pass). Current label is yours: Pass. I did not change it."
+          ]
+        },
+        {
+          "trace_id": "d762db41f33414ca3c8e2b8b2b0886be",
+          "reason": "BLUF: is 'Refunds are processed after they're approved' a partial answer to 'when'?",
+          "checks": [
+            "The user asked when refunds are processed. The first sentence ('after they're approved and the order passes the eligibility check') is generic; the concrete timing (automatic at $100 or less, human review above, 5–10 business days) is in bullets after a citation line.",
+            "Your ruling that a partial answer first fails BLUF would make this Fail. Current label: Pass. I did not change it."
+          ]
+        },
+        {
+          "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (human)",
+          "checks": [
+            "Order line (#5597, $189.25) first; 'submitted the refund request' and queued for review come in paragraph two.",
+            "Your ruling: an outcome after an order line fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (agent)",
+          "checks": [
+            "Order line first; eligibility and human review next; refund-timing policy before the ticket, which comes last.",
+            "Your ruling: an outcome after an order line fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (human)",
+          "checks": [
+            "Conditional opener ('It may not be too late, depending on which order'); the question asking which order comes last.",
+            "Your ruling: a choice the user must make coming only at the end fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "f909cb7b19cfa6faeb74ec7f6c59b29f",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (agent)",
+          "checks": [
+            "Eligibility in sentence two, but the one-lamp-or-both choice comes only at the end, after policy.",
+            "Your ruling: a choice the user must make coming only at the end fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (human)",
+          "checks": [
+            "Asked whether the refund is going through: opens with 'eligible'; 'haven't issued it yet' comes in paragraph two.",
+            "Your ruling: a first sentence that gives only part of the answer fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: PASS (human)",
+          "checks": [
+            "'I found your recent orders.' comes before 'Which purchase do you want refunded?'",
+            "Your ruling: a narrated opener before a needed question passes.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: PASS (human)",
+          "checks": [
+            "A short acknowledgement and 'I found one budget option:' come before the product and price.",
+            "A one-line lead-in going straight into the list that is the answer passes BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: PASS (agent)",
+          "checks": [
+            "The lead-in 'listings at different prices:' comes before the price list.",
+            "A one-line lead-in going straight into the list that is the answer passes BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (agent)",
+          "checks": [
+            "Three questions (headphones, pocket arcade, stock); only the headphones are answered first, and the other two come after the table.",
+            "Your ruling: a first sentence that gives only part of the answer fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (human)",
+          "checks": [
+            "Asked for status and same-day resolution: 'can't guarantee today' comes after five bullets.",
+            "Your ruling: a first sentence that gives only part of the answer fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "7f2e8bcfe642dc217416ab7888a89862",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (agent)",
+          "checks": [
+            "The lead-in narrates the failed 'ceramics' store search before the prices; the summary range comes last.",
+            "Narration before the answer: fails BLUF, and N1 already fails it.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "9c54489f1eafbab5d8f4c8eb48896c59",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (agent)",
+          "checks": [
+            "An apology, then 'I checked the order…', then the refusal.",
+            "Narration before the answer: fails BLUF, and N1 already fails it.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "7bd92288418d057a63a4b443ef990d73",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: FAIL (human)",
+          "checks": [
+            "'Within the return window' comes first, but the outcome (ticket for human approval) comes only after the order list and two policy paragraphs.",
+            "Your ruling: an outcome after an order line fails BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        },
+        {
+          "trace_id": "fc301510846d2936512cf3162415b19a",
+          "reason": "BLUF (N6): confirm how your ruling applies. Current narrates label: PASS (agent)",
+          "checks": [
+            "A lead-in goes straight into the timeframe bullets; the combined 'about 10 days' total comes last.",
+            "A one-line lead-in going straight into the list that is the answer passes BLUF.",
+            "Relabel if the ruling landed wrong here; mark done to confirm."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-narrates-bluf-decided",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "BLUF cases the reviewer's 2026-09-26 rulings decided, for checking how each ruling landed.",
+      "selected_at": "2026-09-27T03:45:53+00:00",
+      "size": 14,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "7534da6cb5ae2b0839353587a83f0481",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (human)",
+          "checks": [
+            "Your ruling: a choice the user must make comes only at the end, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "f909cb7b19cfa6faeb74ec7f6c59b29f",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (agent)",
+          "checks": [
+            "Your ruling: a choice the user must make comes only at the end, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "6fb0b9f926f973f476989fc272c7ba20",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (human)",
+          "checks": [
+            "Your ruling: the first sentence gives only part of the answer, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "0474e2952bad8c976f4dcfb09e89a246",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (human)",
+          "checks": [
+            "Your ruling: the first sentence gives only part of the answer, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (agent)",
+          "checks": [
+            "Your ruling: the first sentence gives only part of the answer, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "d43c131e102cf90fa6bf8c46834661c3",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (human)",
+          "checks": [
+            "Your ruling: the outcome comes after an order line, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "9068683a5f7633e83b95da4a9d6ea4d3",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (agent)",
+          "checks": [
+            "Your ruling: the outcome comes after an order line, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "7bd92288418d057a63a4b443ef990d73",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (human)",
+          "checks": [
+            "Your ruling: the outcome comes after an order line, so BLUF fails.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "BLUF decided by your rulings; narrates label now PASS (human)",
+          "checks": [
+            "Your ruling: a narrated opener before a needed question passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "930b7ca02fc11c5b6ab3edf62506df99",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (agent)",
+          "checks": [
+            "A one-line lead-in that goes straight into the list which is the answer counts as up front: BLUF passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "da8dd524da19547d722cb66a9252affb",
+          "reason": "BLUF decided by your rulings; narrates label now FAIL (agent)",
+          "checks": [
+            "A one-line lead-in that goes straight into the list which is the answer counts as up front: BLUF passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "c65a20563dc06d9ef2ab6996a12aae70",
+          "reason": "BLUF decided by your rulings; narrates label now PASS (human)",
+          "checks": [
+            "A one-line lead-in that goes straight into the list which is the answer counts as up front: BLUF passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "3748d5a06902bf56c3c03f084ff36043",
+          "reason": "BLUF decided by your rulings; narrates label now PASS (agent)",
+          "checks": [
+            "A one-line lead-in that goes straight into the list which is the answer counts as up front: BLUF passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        },
+        {
+          "trace_id": "fc301510846d2936512cf3162415b19a",
+          "reason": "BLUF decided by your rulings; narrates label now PASS (agent)",
+          "checks": [
+            "A one-line lead-in that goes straight into the list which is the answer counts as up front: BLUF passes.",
+            "The label also reflects the other clauses (narration, policy, guessing). Relabel if the ruling landed wrong here."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-acts-check",
+      "worklist": true,
+      "mode": "acts_on_unconfirmed_order",
+      "method": "acts_on_unconfirmed_order labels that rest on whether a staff user's words count as a checkable detail.",
+      "selected_at": "2026-09-27T19:32:55+00:00",
+      "size": 2,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "bff30dcaef124a43ca9dc15815be5c45",
+          "reason": "Staff bare ID: is 'buyer says item was wrong' a checkable detail?",
+          "checks": [
+            "acts_on_unconfirmed_order is FAIL (Claude): the merchant wrote 'refund order 8003, buyer says item was wrong' and the agent opened a refund-review ticket without reading the order back.",
+            "You set the follow-up turn of this conversation, 0474e295, to PASS. Is a Fail on this first turn consistent with that, or should it pass too?"
+          ]
+        },
+        {
+          "trace_id": "8a7b68cb205b6758ac565ef18073ca72",
+          "reason": "Staff bare ID: is 'not sure if it's already shipped' a checkable detail?",
+          "checks": [
+            "acts_on_unconfirmed_order is FAIL (Claude): the support user wrote 'cancel 6039, not sure if it's already shipped' and the agent cancelled without reading the order back.",
+            "If 'not sure if it shipped' counts as a detail the agent could check against the record (status: placed), it passes."
+          ]
+        }
+      ]
     }
   ],
   "pool": "review_pool.json",

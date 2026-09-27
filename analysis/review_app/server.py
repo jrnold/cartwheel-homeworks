@@ -51,6 +51,8 @@ API_FILES: dict[str, str] = {
     "/api/patterns": "patterns.json",
     "/api/suggestions": "suggestions.json",
     "/api/manifest": "sample_manifest.json",
+    # Which worklist items the reviewer has marked done: {worklist: {trace_id: ts}}.
+    "/api/worklist_status": "worklist_status.json",
 }
 
 # Default document per endpoint, so a fresh checkout serves valid JSON.
@@ -59,6 +61,7 @@ API_DEFAULTS: dict[str, Any] = {
     "/api/patterns": {"modes": []},
     "/api/suggestions": [],
     "/api/manifest": {"batches": []},
+    "/api/worklist_status": {},
 }
 
 _CONTENT_TYPES = {
