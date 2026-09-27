@@ -2,8 +2,8 @@
   "modes": [
     {
       "name": "narrates_or_overexplains",
-      "definition": "Judge only the final reply (the only message the user sees); messages before a tool call are not shown and are not judged. Fail when the final reply: (N1) narrates the agent's own lookups, searches, checks or tool behaviour instead of stating the result, even briefly (\"I checked order 8001 for your store, and the record shows\", \"I couldn't find a store named exactly ceramics, but when I searched\"); (N2) adds information the user did not ask for and does not need, such as another store's listings; order-detail blocks (status, dates, quantity, total, eligibility) and store, order or product IDs are acceptable for every user (reviewer decision, 2026-09-26); (N3) explains policy beyond a one-line reason for the decision (policy background, refund payment timing, the platform default when a store override applies, generic policy notes); (N4) sounds disrespectful, distrustful or grudging; (N5) offers a guess or hedged value where it should state the record or that the information is missing; or (N6) does not put the bottom line up front: the direct answer to what the user asked (the status, yes or no, done or not done, the matches, the refusal, or a needed choice) is not in the first sentence, after at most one short apology, but comes after details, policy, narration or a \"Here's what I found\" list. A one-line lead-in that directly introduces a list which is itself the answer counts as up front. It fails when the outcome comes after an order-identification line or block, when a choice the user must make comes only at the end, or when the first sentence gives only part of the answer (\"eligible\" when asked whether the refund is going through). Pass when the reply states the result directly and respectfully and every sentence is something the user asked for or needs to act. Always allowed: a short outcome statement of what was done (\"I found your Northwind Books order and confirmed it is refund-eligible\", 693eb384), a one-line reason, information SPEC.md requires in the reply (ESC-1: queued for review, ticket number, follow-up time; a refusal's reason and next step; RESP-3 missing-information disclosure), a next step, a brief apology.",
-      "boundary": "vs exposes_internal_identifiers: cw-* policy IDs and refund IDs belong there. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased. vs incomplete_answer: too little belongs there, too much here; a store number INSTEAD of the name fails there; IDs IN ADDITION to names are acceptable. vs reveals_order_existence: what a refusal for a denied or unknown order says belongs there.",
+      "definition": "Judge only the final reply, the only message the user sees; messages written before a tool call are not shown and are not judged. Fail when the final reply does any of the following. (N1) Narrates the agent's own process: its lookups, searches, checks or tool limits instead of the result, even briefly (\"I checked order 8001 for your store, and the record shows\"; \"I couldn't find a store named exactly ceramics, but when I searched\"; \"I don't have a tool to edit product pricing\"). (N2) Adds information the user did not ask for and does not need, such as another store's listings. (N3) Explains policy beyond a one-line reason for the decision: policy background, how store overrides interact with the platform default, generic policy notes, a restatement of policy already given. (N4) Sounds disrespectful, distrustful or grudging. (N5) States a guess or hedged value as the answer. (N6) Does not put the bottom line up front: the direct answer (the status, yes or no, done or not done, the matches, the refusal, or a choice the user must make) is not in the first sentence, after at most one short apology. It fails when the outcome comes after an order-identification line or block, when a choice the user must make comes only at the end, or when the first sentence gives only part of the answer. Pass when the reply states the result first and respectfully, and every sentence is something the user asked for or needs. Always allowed: order-detail blocks (status, dates, quantity, total, eligibility) and store, order or product IDs, for every user; a short outcome statement of what was done (\"I found your Northwind Books order and confirmed it is refund-eligible\"); a one-line reason; what SPEC.md requires in the reply (ESC-1: queued for review, ticket number, follow-up time; a refusal's reason and next step; RESP-3 missing-information disclosure); when a refund was just issued, how and when the money returns; a policy explanation when the user asked about policy; a one-line lead-in that goes straight into a list that is the answer; a narrated opener directly before a question the agent needs answered; a tentative pointer offered while asking the user to narrow down (\"it may have been the $9.00 one — which listing did you see?\"); a brief apology.",
+      "boundary": "vs exposes_internal_identifiers: cw-* policy IDs and refund IDs shown to a shopper belong there; store, order and product IDs are acceptable here. vs invents_or_contradicts_facts: a wrong or unsupported value belongs there however it is phrased; a guess offered as the answer fails here (N5) and there if the value is also wrong. vs incomplete_answer: too little belongs there, too much here; a store number INSTEAD of a name fails there. vs reveals_order_existence: what a refusal for a denied or unknown order says (\"I can't access that order\") belongs there, not here. vs misapplied_escalation: whether an escalation was called for belongs there; how the reply describes it belongs here.",
       "evaluator": "LLM judge",
       "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule; BLUF: the answer comes first, details after (added 2026-09-26).",
       "merged_from": [
@@ -29,17 +29,26 @@
         "amudhpx62pcpo"
       ],
       "positives": [
+        "7f2e8bcfe642dc217416ab7888a89862",
+        "2a3e6ee171639e742efc6c82ae090267",
+        "cbb6f00b4bf14e98707ffe2d2c05be97",
+        "35c34d8dea9a4a017c617aff61960e43",
+        "f88fb1e2a67ae4c5fa6ddb221022dbb9",
         "b213d9b0f4a0f667e10ebfa8f2521e05",
-        "41ccd16520547208ba62760545e66e90",
-        "7ee692cee8e45fa25ba2e856bdca1936",
-        "4fe2b813cacdffc0072fd5f7e1048945",
-        "f909cb7b19cfa6faeb74ec7f6c59b29f"
+        "d43c131e102cf90fa6bf8c46834661c3",
+        "6fb0b9f926f973f476989fc272c7ba20",
+        "7534da6cb5ae2b0839353587a83f0481"
       ],
       "close_negatives": [
-        "fe99e8f6b9c7444acd73f7c1e2caf33d",
-        "c65a20563dc06d9ef2ab6996a12aae70",
         "693eb38472114b801d56bdf5380bc511",
-        "45797b1b3b137ba01160978a2ac5ef36"
+        "44b9269f1ceecfd337c0c8115fd993ce",
+        "245cc11299a87b99036f3758fcc180c0",
+        "3a399b6c6f1ad7a4bb9fec0b5a18608c",
+        "c65a20563dc06d9ef2ab6996a12aae70",
+        "7fa16aaa72905ab408453e193a08bd77",
+        "3748d5a06902bf56c3c03f084ff36043",
+        "8bad20df566b934bcadf23237120e105",
+        "e066a9364114921000898200b8dc5ec1"
       ]
     },
     {
