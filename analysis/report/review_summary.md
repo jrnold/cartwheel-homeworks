@@ -35,7 +35,7 @@ Counts are sample fractions of the 100 reviewed traces, not prevalence estimates
 | Mode | Fail | Sample fraction | Evaluator | Requirement |
 |---|---|---|---|---|
 | `narrates_or_overexplains` | 42 | 0.42 | LLM judge | RESP-6, RESP-5 |
-| `exposes_internal_identifiers` | 28 | 0.28 | Code check | RESP-1 (revised) |
+| `exposes_internal_identifiers` | 29 | 0.29 | Code check | RESP-1 (revised) |
 | `acts_on_unconfirmed_order` | 22 | 0.22 | LLM judge | ACT-1, ESC-1 (revised) |
 | `misapplied_escalation` | 10 | 0.10 | LLM judge | ESC-1 to ESC-7, AUTH-1 |
 | `incomplete_answer` | 13 | 0.13 | LLM judge | RESP-7, RESP-5 |
@@ -53,10 +53,10 @@ Definitions, boundaries, positives, close negatives and originating annotations 
 | Mode | Batches 1 and 2 (60) | Batch 3 (25) | Final 15 |
 |---|---|---|---|
 | `narrates_or_overexplains` | 23 | 10 | 9 |
-| `exposes_internal_identifiers` | 14 | 9 | 5 |
+| `exposes_internal_identifiers` | 14 | 10 | 5 |
 | `acts_on_unconfirmed_order` | 13 | 9 | 0 |
 | `incomplete_answer` | 8 | 4 | 1 |
-| `misapplied_escalation` | 3 | 3 | 4 |
+| `misapplied_escalation` | 3 | 2 | 5 |
 | `reveals_order_existence` | 3 | 4 | 0 |
 | `invents_or_contradicts_facts` | 0 | 1 | 4 |
 | `search_false_negative` | 2 | 2 | 1 |
@@ -104,6 +104,12 @@ Each revision states a behavior the reviewer decided the agent should have. Thes
 | TOOL-3: plurals, approximate store names, keyword-free listing | amudecc1pfoq0 on 708d317f: "Failed initial search" |
 | AUTH-2: reply "I can't find that order for your account" for a denied or unknown order, and never suggest whether it exists or whose it is | amuc4kb779dzd on e066a936: "Describes accessing the order revealing internal process. It should only say that it doesn't exist." |
 | DATE-1: compute windows from `delivered_at` and the world date | Claude's annotation a0cf0805a7j30o on ccee21ce, labeled Fail by the reviewer |
+| RESP-1: no store policy IDs (`store-*-policy`) for shoppers either | reviewer's decision on 9c54489f (2026-09-27) |
+| RESP-2: say the agent cannot do it without describing its tools | reviewer's Fails on 2a3e6ee1 ("I don't have a tool to edit product pricing") and 89e772f1 |
+| RESP-6: bottom line up front; order details and IDs may accompany the answer | reviewer's rulings in `wl-narrates-ambiguous`; Fails on d43c131e, 6fb0b9f9, 7534da6c |
+| ACT-1: ask which order before opening a dispute or refund ticket for an unidentified charge | reviewer's Fail and note on 948d8c4c: "Ask to confirm which order there is a dispute on before opening a ticket" |
+| ESC-5: open the investigation ticket once confident the data is bad, for support users too, without asking the user for the value | reviewer's note on 2a3e6ee1: "Should escalate immediately"; ruling of 2026-09-27 |
+| ESC-6: explain escalation when support asks; do not tell support to escalate; ESC-1 and ESC-5 tickets still opened | reviewer's ruling of 2026-09-27; Pass on a02dbc9b; note on 3a399b6c |
 
 ## Workshop (Part C)
 
@@ -111,4 +117,4 @@ Not done, by the reviewer's choice. There is no `workshop_notes.md`, and no mode
 
 ## Preparing for Homework 5
 
-Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `narrates_or_overexplains` 69 / 43, `exposes_internal_identifiers` 196 / 61, `acts_on_unconfirmed_order` 194 / 63, `invents_or_contradicts_facts` 227 / 30, `incomplete_answer` 224 / 33, `search_false_negative` 225 / 32 meet the minimum of 30 each. Still short: `misapplied_escalation` (28 Fail), `misdates_dispute_window` (7 Fail), `reveals_order_existence` (7 Fail).
+Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `narrates_or_overexplains` 69 / 43, `exposes_internal_identifiers` 191 / 66, `acts_on_unconfirmed_order` 194 / 63, `invents_or_contradicts_facts` 227 / 30, `incomplete_answer` 224 / 33, `search_false_negative` 225 / 32 meet the minimum of 30 each. Still short: `misapplied_escalation` (28 Fail), `misdates_dispute_window` (7 Fail), `reveals_order_existence` (7 Fail).
