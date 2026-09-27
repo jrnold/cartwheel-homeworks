@@ -34,13 +34,13 @@ Counts are sample fractions of the 100 reviewed traces, not prevalence estimates
 
 | Mode | Fail | Sample fraction | Evaluator | Requirement |
 |---|---|---|---|---|
-| `narrates_or_overexplains` | 30 | 0.30 | LLM judge | RESP-6, RESP-5 |
-| `exposes_internal_identifiers` | 29 | 0.29 | Code check | RESP-1 (revised) |
-| `acts_on_unconfirmed_order` | 27 | 0.27 | LLM judge | ACT-1, ESC-1 (revised) |
-| `misapplied_escalation` | 15 | 0.15 | LLM judge | ESC-1 to ESC-7, AUTH-1 |
-| `incomplete_answer` | 14 | 0.14 | LLM judge | RESP-7, RESP-5 |
+| `narrates_or_overexplains` | 42 | 0.42 | LLM judge | RESP-6, RESP-5 |
+| `exposes_internal_identifiers` | 28 | 0.28 | Code check | RESP-1 (revised) |
+| `acts_on_unconfirmed_order` | 22 | 0.22 | LLM judge | ACT-1, ESC-1 (revised) |
+| `misapplied_escalation` | 10 | 0.10 | LLM judge | ESC-1 to ESC-7, AUTH-1 |
+| `incomplete_answer` | 13 | 0.13 | LLM judge | RESP-7, RESP-5 |
 | `reveals_order_existence` | 7 | 0.07 | Code check | AUTH-2 (new), RESP-4 |
-| `invents_or_contradicts_facts` | 6 | 0.06 | LLM judge | RESP-2 (revised), RESP-3, ESC-5 |
+| `invents_or_contradicts_facts` | 5 | 0.05 | LLM judge | RESP-2 (revised), RESP-3, ESC-5 |
 | `search_false_negative` | 5 | 0.05 | Code check | TOOL-3 (revised), RESP-3 |
 | `misdates_dispute_window` | 2 | 0.02 | LLM judge | DATE-1, RESP-3 |
 
@@ -52,13 +52,13 @@ Definitions, boundaries, positives, close negatives and originating annotations 
 
 | Mode | Batches 1 and 2 (60) | Batch 3 (25) | Final 15 |
 |---|---|---|---|
-| `narrates_or_overexplains` | 16 | 8 | 6 |
-| `exposes_internal_identifiers` | 15 | 9 | 5 |
-| `acts_on_unconfirmed_order` | 18 | 9 | 0 |
-| `incomplete_answer` | 8 | 5 | 1 |
-| `misapplied_escalation` | 6 | 4 | 5 |
+| `narrates_or_overexplains` | 23 | 10 | 9 |
+| `exposes_internal_identifiers` | 14 | 9 | 5 |
+| `acts_on_unconfirmed_order` | 13 | 9 | 0 |
+| `incomplete_answer` | 8 | 4 | 1 |
+| `misapplied_escalation` | 3 | 3 | 4 |
 | `reveals_order_existence` | 3 | 4 | 0 |
-| `invents_or_contradicts_facts` | 1 | 1 | 4 |
+| `invents_or_contradicts_facts` | 0 | 1 | 4 |
 | `search_false_negative` | 2 | 2 | 1 |
 | `misdates_dispute_window` | 1 | 0 | 1 |
 
@@ -71,6 +71,10 @@ The first draft had three separate modes: `narrates_internal_process`, `unnecess
 The mode was later narrowed to the final reply. The server returns only `final_output` (`server/app.py`), so the messages the agent writes before a tool call never reach the user. All 112 labeled traces were re-judged on the final reply alone: 63 of Claude's labels changed (61 Fail to Pass, 2 Pass to Fail), and the sample count fell from 85 Fails to 38. The reviewer then coded the 5 own labels whose verdict would change (`wl-check-narrates`): 3 became Pass, and 693eb384 stayed Pass, which set two rules: a brief summary of what was done and a one-line reason for a status are results, and internal IDs belong to other modes. Four more of Claude's labels became Pass under those rules, Nine close cases went to `wl-check-narrates-2`; the reviewer kept all eight of Claude's Fails there, including brief "I checked order 8001…" wording, and changed 8e4bc121 to Pass because its Fail rested on a preamble. The sample now has 30 Fails.
 
 That drop was later reversed. The reviewer's notes on f40c900a and e066a936 ("It should only say that it doesn't exist") had been filed under `narrates_or_overexplains`, and two refusals were failing `incomplete_answer` for giving no next step. The reviewer decided that the refusal itself leaks: "I cannot access that order for this account" tells the user the order exists. Authorization refusals were split back out as `reveals_order_existence`, and AUTH-2 was added to `SPEC.md`: say only that the order cannot be found for the user's account, the same reply as for an order that does not exist. The two notes moved to the new mode, and the two `incomplete_answer` Fails became Passes.
+
+ACT-1 was revised on 2026-09-26. The first version required reading back every order before acting, including an ID the user typed, and it failed merchants and support staff who gave a direct instruction. The reviewer replaced it with a rule keyed to how uncertain the order is. The agent confirms when the order was inferred from a description, when several orders match (a ticket that names several candidates also fails, because it leaves the human reviewer to work out which order it is), when something the user said contradicts the record, or when a merchant or support user gave only the number. It acts without asking when a typed ID matches everything the user said, or when a shopper typed the ID. Human review of a ticket or queued refund does not replace confirmation, because a wrong-order ticket costs the reviewer's time and the user's wait. Claude relabeled all 246 labeled traces whose transcripts are local: 10 labels changed (8 Fail to Pass, 2 Pass to Fail), none of them the reviewer's, and the sample count fell from 27 to 23. Claude added open codes for 17 sampled Fails that had none. The three cases the rule did not decide are in the `wl-acts-ambiguous` worklist (two sampled traces) and noted on synthetic trace cac13d60.
+
+`narrates_or_overexplains` was relabeled on 2026-09-26 against a written rubric built from the reviewer's notes: on a status question only the status and its date are needed (758c8401, 0317bb73); product and store IDs are not useful to a shopper (930b7ca0); only the policy that applies is explained, not the platform default it overrides (cbb6f00b, 681a3176); reporting a check fails even when brief; and tone and guessing fail (f88fb1e2, RESP-6). Claude relabeled the 100 sampled traces: 21 of Claude's labels changed and none of the reviewer's, and the sample count rose from 30 to 52. The reviewer then added a bottom-line-up-front clause (N6): the direct answer comes first, details after; one short apology may precede it, and a one-line lead-in to a list that is the answer counts. It raised the count to 54. The reviewer then ruled that order-detail blocks and store, order and product IDs are acceptable for every user, and that BLUF fails when the outcome follows an order line, a needed choice comes last, or the first sentence gives only part of the answer. 13 Fails that rested only on order detail or IDs became Passes, and the sample count is 42. The remaining cases the rubric does not decide carry a first-cut Claude open code and label and are in the `wl-narrates-ambiguous` worklist, grouped by question (support-user status replies, refund timing after a refund, borderline policy sentences, tool-limit reasons, echoed details, and one reviewer label the rubric disagrees with).
 
 ## Search for additional instances
 
@@ -88,7 +92,7 @@ Each revision states a behavior the reviewer decided the agent should have. Thes
 | Revision | Motivating annotation |
 |---|---|
 | ESC-1: confirm the order, then queue the refund and open one ticket | amudefs2win5d on 7bd92288: "Opened ticket before confirming that it is the correct order" |
-| ACT-1: confirm an order before cancelling, refunding or opening a ticket about it | amuc2mu6gk53v on b5557297: "Didn't confirm that it is the correct order." |
+| ACT-1: confirm an uncertain order (inferred, several matching, contradicting what the user said, or a staff member's bare number) before cancelling, refunding or opening a ticket about it | amuc2mu6gk53v on b5557297: "Didn't confirm that it is the correct order." |
 | RESP-1, PURPOSE-1: no `cw-*` or refund IDs for shoppers | amuc3vsln1hdn on 35c34d8d: "Shows internal policy ids that a user can't see." |
 | RESP-2: say when no tool can perform an action | amuc3zmilhvvw on 0474e295: "Claimed success, but there is not a process to update existing tickets" |
 | RESP-6: state results, not steps | amudfxl8md7fg on 7f2e8bcf: "These are internal details" (quoting the final reply's "I couldn't find a store literally named ceramics, but when I searched…") |
@@ -107,4 +111,4 @@ Not done, by the reviewer's choice. There is no `workshop_notes.md`, and no mode
 
 ## Preparing for Homework 5
 
-Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `exposes_internal_identifiers` 195 / 62, `acts_on_unconfirmed_order` 187 / 70, `incomplete_answer` 222 / 35, `misapplied_escalation` 224 / 33, `search_false_negative` 225 / 32, `invents_or_contradicts_facts` 227 / 30 and `narrates_or_overexplains` 81 / 31 meet the minimum of 30 each. Still short: `misdates_dispute_window` (7 Fail) and `reveals_order_existence` (7 Fail).
+Labels on the 100 sample traces, the synthetic pilot, synthetic batches 2 to 5 and the AUTH-2 rerun (Pass / Fail): `narrates_or_overexplains` 69 / 43, `exposes_internal_identifiers` 196 / 61, `acts_on_unconfirmed_order` 194 / 63, `invents_or_contradicts_facts` 227 / 30, `incomplete_answer` 224 / 33, `search_false_negative` 225 / 32 meet the minimum of 30 each. Still short: `misapplied_escalation` (28 Fail), `misdates_dispute_window` (7 Fail), `reveals_order_existence` (7 Fail).

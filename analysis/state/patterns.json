@@ -2,10 +2,10 @@
   "modes": [
     {
       "name": "narrates_or_overexplains",
-      "definition": "Fail when the final reply (the only message the user sees) describes the agent's own lookups, tool calls, searches or checks instead of stating the result, or includes facts the user did not ask for and does not need to act on (reasons behind a status beyond a one-line explanation, policy background beyond the decision). Messages the agent sends before a tool call are not shown to the user and are not judged. Internal IDs belong to exposes_internal_identifiers or incomplete_answer, not here.\n\nExamples: \n- \"I couldn't find a store literally named ceramics, but when I searched for ceramics heavy duty vase\" (7f2e8bcf),\n- \"I checked order 8001 for your store, and the record currently shows\" (078ec0db): reporting the check itself fails, even briefly,\n- \"my initial search failed\"\n\nPass when the final reply states the result directly and respectfully, including when refusing, and names sources only in user terms. A brief summary of what was done (\"I found the Northwind Books order and confirmed it is refund-eligible\", 693eb384) and a one-line reason for a status are results, not narration.",
-      "boundary": "Boundary to other modes:\n\n- invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased.\n- exposes_internal_policy_identifiers: Citing specific policy numbers to user are their own problem.\n",
+      "definition": "Judge only the final reply (the only message the user sees); messages before a tool call are not shown and are not judged. Fail when the final reply: (N1) narrates the agent's own lookups, searches, checks or tool behaviour instead of stating the result, even briefly (\"I checked order 8001 for your store, and the record shows\", \"I couldn't find a store named exactly ceramics, but when I searched\"); (N2) adds information the user did not ask for and does not need, such as another store's listings; order-detail blocks (status, dates, quantity, total, eligibility) and store, order or product IDs are acceptable for every user (reviewer decision, 2026-09-26); (N3) explains policy beyond a one-line reason for the decision (policy background, refund payment timing, the platform default when a store override applies, generic policy notes); (N4) sounds disrespectful, distrustful or grudging; (N5) offers a guess or hedged value where it should state the record or that the information is missing; or (N6) does not put the bottom line up front: the direct answer to what the user asked (the status, yes or no, done or not done, the matches, the refusal, or a needed choice) is not in the first sentence, after at most one short apology, but comes after details, policy, narration or a \"Here's what I found\" list. A one-line lead-in that directly introduces a list which is itself the answer counts as up front. It fails when the outcome comes after an order-identification line or block, when a choice the user must make comes only at the end, or when the first sentence gives only part of the answer (\"eligible\" when asked whether the refund is going through). Pass when the reply states the result directly and respectfully and every sentence is something the user asked for or needs to act. Always allowed: a short outcome statement of what was done (\"I found your Northwind Books order and confirmed it is refund-eligible\", 693eb384), a one-line reason, information SPEC.md requires in the reply (ESC-1: queued for review, ticket number, follow-up time; a refusal's reason and next step; RESP-3 missing-information disclosure), a next step, a brief apology.",
+      "boundary": "vs exposes_internal_identifiers: cw-* policy IDs and refund IDs belong there. vs invents_or_contradicts_facts: a wrong or unsupported fact belongs there, however it is phrased. vs incomplete_answer: too little belongs there, too much here; a store number INSTEAD of the name fails there; IDs IN ADDITION to names are acceptable. vs reveals_order_existence: what a refusal for a denied or unknown order says belongs there.",
       "evaluator": "LLM judge",
-      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule.",
+      "requirement": "RESP-6 (state results, not steps; no unneeded facts; no doubt or guessing) and RESP-5. Implementation: remove the system prompt's 'explain your reasoning before every tool call' rule; BLUF: the answer comes first, details after (added 2026-09-26).",
       "merged_from": [
         "narrates_internal_process",
         "unnecessary_detail",
@@ -70,15 +70,32 @@
     },
     {
       "name": "acts_on_unconfirmed_order",
-      "definition": "Fail when the agent takes an immediate action on an order (cancel_order, issue_refund, or escalate_to_human opening a ticket about it) without the user first confirming that order: either the order was inferred from a description, or the ID was taken as typed without reading back its details. Pass when the agent confirms the order before acting, or takes no action.",
-      "boundary": "vs invents_or_contradicts_facts: this mode is about acting before confirming WHICH order; that mode is about stating values no tool returned. Asking the user to choose between orders (44b9269f) is a close negative. vs misapplied_escalation: a warranted escalation opened before the user confirmed the order fails here; an escalation the policy does not call for fails there.",
+      "definition": "Fail when the agent cancels an order, issues or queues a refund (any amount), or opens a ticket about a specific order (its ID is the subject of the ticket) that the user has not confirmed, and the order was uncertain: (1) inferred - its ID never appears in the user's own messages (matched from a description, picked from a list, or taken as 'the most recent'), even if only one order matched; (2) several orders matched and the agent chose one, or opened a ticket naming several without asking which; (3) something the user said contradicts the record (status, store, item, date or amount); or (4) a merchant or support user gave only the order number, with no other detail to check it against. The order is confirmed when an earlier turn's reply identified it (product or store plus one more detail) and asked, and the user agreed or chose it; confirmation cannot happen within one turn. Pass when every action is on a confirmed order, on a typed ID whose record matches everything else the user said, or on an ID a shopper typed (a shopper reaches only their own orders), or when there is no such action. Human review of a ticket or queued refund does not substitute for confirmation.",
+      "boundary": "vs misapplied_escalation: whether an escalation was called for at all belongs there; whether the order it concerns was settled with the user first belongs here. One trace can fail both. vs invents_or_contradicts_facts: this mode is about acting on an uncertain order; that mode is about stating values no tool returned. vs incomplete_answer: a reply that names the order only by number fails there; acting on it without confirmation, when the order was uncertain, fails here.",
       "evaluator": "LLM judge",
-      "requirement": "ACT-1 (confirm the order before cancelling, refunding or opening a ticket about it; ask when several match; read back typed IDs) and ESC-1 for refunds above the threshold.",
+      "requirement": "ACT-1 (revised 2026-09-26: confirm when the order is inferred, several match, the user's details conflict with the record, or staff gave a bare ID; a typed ID that matches, or a shopper's typed ID, needs no read-back) and ESC-1.",
       "annotations": [
         "amuc2mu6gk53v",
         "amuc3tv6suyrx",
         "amudfpyon75uz",
-        "amudefs2win5d"
+        "amudefs2win5d",
+        "ae02d5065vkus",
+        "ae02d5068bw7q",
+        "ae02d506ax1n0",
+        "ae02d506cf3d8",
+        "ae02d506f8al2",
+        "ae02d5071uzas",
+        "ae02d5074hzie",
+        "ae02d50768sq8",
+        "ae02d50789sxv",
+        "ae02d507bxbzw",
+        "ae02d507didal",
+        "ae02d50802qq7",
+        "ae02d50829trk",
+        "ae02d50856y9d",
+        "ae02d5087zy75",
+        "ae02d508abtny",
+        "ae02d508ch2ff"
       ],
       "positives": [
         "b5557297f306cb7d0d9ca08ea3f70968",

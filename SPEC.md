@@ -103,9 +103,9 @@ Successful results contain `ok: true` and the result fields. Expected failures c
 
 The following cases always go to a human:
 
-- **ESC-1.** Refunds above the threshold. First the agent confirms with the user that it has
-  the right order: it shows the item, store, date, and total, and waits for the user to confirm.
-  Only then does it call `issue_refund`, which queues the refund for human approval, and
+- **ESC-1.** Refunds above the threshold. First the agent settles which order the refund is
+  for, as ACT-1 requires: when the order is uncertain it shows the item, store, date, and total,
+  and waits for the user to confirm. Only then does it call `issue_refund`, which queues the refund for human approval, and
   `escalate_to_human` to open a ticket for that refund. The reply states that the refund is
   queued for review, gives the ticket number, and says when a human will follow up.
 - **ESC-2.** Account changes of any kind. The agent first points the user to account
@@ -154,11 +154,18 @@ Requirements that do not fit in the sections above, including tone and style gui
 
 ## 7. Order actions and dates
 
-- **ACT-1.** Before cancelling an order, issuing or queuing a refund, or opening a ticket
-  about a specific order, confirm the order with the user: show its product, store, date, and
-  total, and wait for the user to confirm. If more than one order matches the user's
-  description, ask which one; do not choose. An order number the user typed is also read back
-  before acting. ESC-1 applies this rule to refunds above the threshold.
+- **ACT-1.** Before cancelling an order, issuing or queuing a refund (at any amount), or
+  opening a ticket about a specific order, confirm the order with the user when it is
+  uncertain: show its product, store, date, and total, and wait for the user to confirm or
+  choose. The order is uncertain when it was inferred from a description (even if only one
+  order matches), when more than one order matches (ask which one; do not choose), when
+  something the user said contradicts the record (status, store, item, date, or amount), or
+  when a merchant or support user gave only the order number. The agent acts without asking
+  when the user typed the order number and the record matches everything else they said, or
+  when a shopper typed the number, since a shopper can reach only their own orders. Whatever
+  the case, the reply names the order by product and store. A human review of the ticket or
+  the queued refund is not a substitute for this confirmation: a wrong-order ticket costs the
+  reviewer's time and the user's wait. ESC-1 applies this rule to refunds above the threshold.
 - **DATE-1.** Compute return, refund, and dispute windows from the order's `delivered_at` and
   the platform's current date (`meta.world_asof`), never from an assumed date. When
   `delivered_at` is missing or contradicts other dates, do not compute a deadline (RESP-3,
