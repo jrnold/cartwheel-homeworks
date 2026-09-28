@@ -244,7 +244,11 @@ def _run_docetl_map(  # pragma: no cover - requires the docetl extra + a live ke
             "schema": {
                 "critique": "string",
                 "result": "string",
-            }
+            },
+            # A strict JSON-schema response rather than DocETL's default
+            # function tools: OpenAI rejects function tools on chat
+            # completions for gpt-5.6 models at their default reasoning level.
+            "mode": "structured_output",
         },
     )
     pipeline = Pipeline(
