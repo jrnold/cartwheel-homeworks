@@ -97,3 +97,17 @@ Decisions, label changes and judge runs for the `narrates_or_overexplains` judge
 - `narrates_or_overexplains-v6` frozen at 2026-09-28T22:48:11Z, then run once on test (40 traces: 23 Pass, 17 Fail) with `gpt-5.6-terra` at default reasoning. Cost $0.34. Metrics: `analysis/report/test-narrates_or_overexplains-v6.json`.
 - **Test:** TPR 0.91 (95% Wilson 0.73–0.98), TNR 0.71 (0.47–0.87); TP / FN / TN / FP = 21 / 2 / 12 / 5.
 - On dev, v6 scored TPR 1.00 and TNR 0.88. Test TNR is lower: it misses 5 of 17 human Fails, the same lenient direction as its two dev errors.
+
+## 2026-09-28: optional extension, failure prevalence
+
+- Frozen `narrates_or_overexplains-v6` (`gpt-5.6-terra`, default reasoning) run over the 167 unlabeled pool traces (`analysis/state/hw5_store_inputs.json`; 114 shopper, 37 merchant, 16 support). Cost $1.42.
+- Rogan-Gladen correction via the course helper `corrected_prevalence` (bootstrap 95% interval, test TPR 0.913, TNR 0.706). Results in `analysis/report/prevalence-narrates_or_overexplains-v6.json`.
+
+| Slice | n | Raw Fail rate | Corrected failure prevalence (95% CI) |
+|---|---:|---:|---|
+| All | 167 | 0.32 | 0.38 (0.16–0.66) |
+| Shopper | 114 | 0.40 | 0.51 (0.28–0.86) |
+| Merchant | 37 | 0.16 | 0.12 (0.00–0.39) |
+| Support | 16 | 0.13 | 0.06 (0.00–0.40) |
+
+- Caveats: the unlabeled traces are what the non-random HW4 sample left behind, so the estimate describes them, not the whole pool. The interval is wide because TNR rests on 17 test Fails. The helper's stability check passed (TPR + TNR = 1.62).

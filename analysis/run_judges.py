@@ -372,9 +372,62 @@ def resume_test(judge_id: str) -> dict[str, Any]:
     return {"judge_id": judge_id, **metrics}
 
 
+# ---------------------------------------------------------------------------
+# Optional extension: failure prevalence on unlabeled traces
+# ---------------------------------------------------------------------------
+
+STORE_INPUTS_PATH = _state.state_path("hw5_store_inputs.json")
+
+
+def prepare_store_inputs(mode: str = MODE) -> Path:
+    """Judge inputs for every pool trace with no label for ``mode``.
+
+    Same message format as ``prepare_inputs``. The user role goes in the
+    record's ``segments`` (for per-role estimates); the judge reads only the
+    flattened messages, so it never sees it.
+    """
+    labeled = {r["trace_id"] for r in _state.read_jsonl(_state.state_path("labels", f"{mode}.jsonl"))}
+    pool = _state.read_json(_state.state_path("review_pool.json"), default=[])
+    pool = pool if isinstance(pool, list) else pool.get("traces", [])
+    transcripts = _load_transcripts()
+    records = []
+    for rec in pool:
+        tid = rec["trace_id"]
+        if tid in labeled:
+            continue
+        messages: list[dict[str, Any]] = []
+        for prior in _earlier_turns(tid, transcripts):
+            messages += _messages(transcripts[prior]["steps"], earlier=True)
+        messages += _messages(transcripts[tid]["steps"], earlier=False)
+        records.append({"trace_id": tid, "trace": messages,
+                        "segments": {"role": rec["langfuse"]["user_role"]}})
+    _state.write_json(STORE_INPUTS_PATH, records)
+    return STORE_INPUTS_PATH
+
+
+def estimate_prevalence(judge_id: str) -> dict[str, Any]:
+    """Run the frozen judge over the unlabeled inputs and correct the Fail rate."""
+    from datetime import UTC, datetime
+
+    from analysis.helpers import corrected_prevalence, run_judge
+
+    os.environ["CARTWHEEL_JUDGE_TRACE_SOURCE"] = str(STORE_INPUTS_PATH)
+    run_judge(judge_id, split="store", batch_size=10)
+    out = {"all": corrected_prevalence(judge_id)}
+    for role in ("shopper", "merchant", "support"):
+        out[role] = corrected_prevalence(judge_id, trace_filter=f"role:{role}")
+    Path(f"analysis/report/prevalence-{judge_id}.json").write_text(json.dumps(out, indent=2) + "\n")
+    _log_run({"ts": datetime.now(UTC).isoformat(), "judge_id": judge_id, "split": "store",
+              "model": _state.read_json(_state.state_path("judges", f"{judge_id}.json"))["model"],
+              "reasoning_effort": "provider default (unset)", "backend": "docetl",
+              "n": out["all"]["n_unlabeled"], "raw_failure_rate": out["all"]["raw"],
+              "corrected_failure_prevalence": out["all"]["corrected"]})
+    return out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="HW5 judge for narrates_or_overexplains")
-    parser.add_argument("step", choices=["export", "inputs", "split", "dev", "resume-dev", "jev-dev", "test", "resume-test"])
+    parser.add_argument("step", choices=["export", "inputs", "split", "dev", "resume-dev", "jev-dev", "test", "resume-test", "store-inputs", "prevalence"])
     parser.add_argument("--judge", help="judge id for resume-dev")
     parser.add_argument("--prompt", help="prompt file (default: v0 for dev, the Jev question set for jev-dev)")
     parser.add_argument("--model", default="gpt-5.6-sol", help="judge model for the dev step")
@@ -385,6 +438,19 @@ def main() -> None:
         load_env()
         result = run_development(MODE, args.prompt or "analysis/prompts/narrates_or_overexplains-v0.txt", args.model)
         print(json.dumps({k: result.get(k) for k in ("judge_id", "tpr", "tpr_interval", "tnr", "tnr_interval", "tp", "fn", "tn", "fp", "n")}, indent=2))
+        return
+    if args.step == "store-inputs":
+        path = prepare_store_inputs()
+        print(f"wrote {len(json.loads(path.read_text()))} unlabeled judge inputs to {path}")
+        return
+    if args.step == "prevalence":
+        from observability.instrument import load_env
+
+        load_env()
+        out = estimate_prevalence(args.judge)
+        for k, v in out.items():
+            print(f"{k:9} n={v['n_unlabeled']:3} raw Fail {v['raw']:.3f}  corrected {v['corrected']:.3f} "
+                  f"({v['ci_low']:.3f}-{v['ci_high']:.3f}) {v['validity_warning']}")
         return
     if args.step in ("test", "resume-test"):
         from observability.instrument import load_env
