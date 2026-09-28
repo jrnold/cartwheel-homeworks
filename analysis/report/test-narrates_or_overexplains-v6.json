@@ -1,0 +1,35 @@
+{
+  "judge_id": "narrates_or_overexplains-v6",
+  "model": "gpt-5.6-terra",
+  "frozen_at": "2026-09-28T22:48:11.305865+00:00",
+  "class_counts": {
+    "Pass": 23,
+    "Fail": 17
+  },
+  "split": "test",
+  "tpr": 0.913,
+  "tnr": 0.7059,
+  "tpr_interval": [
+    0.732,
+    0.9758
+  ],
+  "tnr_interval": [
+    0.4687,
+    0.8672
+  ],
+  "agreement": 0.825,
+  "tp": 21,
+  "fn": 2,
+  "tn": 12,
+  "fp": 5,
+  "n": 40,
+  "disagreements": [
+    "078ec0db0b6138fe4260984d5b748c29",
+    "0e53f4e5f417745ca668783d28012cf5",
+    "35c34d8dea9a4a017c617aff61960e43",
+    "4cb3ddec0a7cc88b80411b358450fa0d",
+    "4fe2b813cacdffc0072fd5f7e1048945",
+    "cb1bdd24112dce17038b78061059fcf7",
+    "cbb6f00b4bf14e98707ffe2d2c05be97"
+  ]
+}
