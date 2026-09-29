@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Narrates Judge Tradeoffs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #fcfcfb;
+  --panel: #f4f4f1;
+  --ink: #0b0b0b;
+  --ink2: #52514e;
+  --ink3: #7a7975;
+  --rule: #e4e3df;
+  --grid: #ecebe7;
+  --focus: #2a78d6;
+  --sol: #2a78d6;
+  --terra: #eb6834;
+  --luna: #1baf7a;
+  --jev: #eda100;
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #1a1a19; --panel: #222221; --ink: #ffffff; --ink2: #c3c2b7; --ink3: #95948c;
+    --rule: #373734; --grid: #2c2c2a; --focus: #3987e5;
+    --sol: #3987e5; --terra: #d95926; --luna: #199e70; --jev: #c98500;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1a1a19; --panel: #222221; --ink: #ffffff; --ink2: #c3c2b7; --ink3: #95948c;
+  --rule: #373734; --grid: #2c2c2a; --focus: #3987e5;
+  --sol: #3987e5; --terra: #d95926; --luna: #199e70; --jev: #c98500;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 44px; }
+header { display: grid; gap: 12px; max-width: 70ch; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4.2vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.lede { color: var(--ink2); font-size: 16px; }
+code, .mono { font-family: var(--font-mono); font-size: .9em; }
+
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.finding { background: var(--bg); padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.finding .who { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.finding p { color: var(--ink2); font-size: 14px; }
+
+section { display: grid; gap: 14px; }
+.sec-head { display: grid; gap: 6px; max-width: 72ch; }
+.sec-head p { color: var(--ink2); }
+.chart-box { position: relative; background: var(--panel); border-radius: 6px; padding: 8px 8px 4px; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: var(--font-body); }
+.axis-label { fill: var(--ink2); font-size: 12px; }
+.tick { fill: var(--ink3); font-size: 11px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.axisline { stroke: var(--rule); stroke-width: 1; }
+.pt-label { fill: var(--ink); font-size: 12px; font-weight: 500; }
+.pt-sub { fill: var(--ink2); font-size: 11px; font-family: var(--font-mono); }
+.lane-label { fill: var(--ink2); font-size: 11px; font-family: var(--font-mono); }
+.pt { cursor: pointer; }
+.pt:focus { outline: none; }
+.pt:focus .hit, .pt:hover .hit { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 2; }
+.hit { fill: transparent; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--ink2); padding: 4px 4px 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend svg { width: 14px; height: 14px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg { font: 500 13px var(--font-body); color: var(--ink2); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.metric-note { font-size: 13px; color: var(--ink2); min-height: 1.5em; }
+
+.tip { position: absolute; pointer-events: none; background: var(--bg); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.45; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 260px; z-index: 5; }
+.tip b { font-weight: 600; }
+.tip .row { display: flex; justify-content: space-between; gap: 16px; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tip .row span:first-child { color: var(--ink2); font-family: var(--font-body); }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 820px; font-size: 13.5px; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--ink2); font-size: 12px; letter-spacing: .03em; text-transform: uppercase; background: var(--panel); }
+td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .ci { color: var(--ink3); font-size: 11.5px; }
+tr:last-child td { border-bottom: 0; }
+tr.test td { background: var(--panel); }
+.runname { display: flex; align-items: center; gap: 8px; }
+.split { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--rule); color: var(--ink2); white-space: nowrap; }
+.split.test { border-color: var(--ink2); color: var(--ink); }
+
+.notes { font-size: 13px; color: var(--ink2); display: grid; gap: 6px; max-width: 80ch; }
+.notes p { margin: 0; }
+@media (max-width: 560px) {
+  .wrap { padding-inline: 16px; gap: 36px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pt path.mark { transition: opacity .15s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HW5 · narrates_or_overexplains · Pass is the positive class</div>
+    <h1>Which judge for narration and overexplaining?</h1>
+    <p class="lede">Eight judge runs, compared on how often they agree with a human Pass (TPR), how often they catch a human Fail (TNR), F1, and what each run cost. Seven runs are on the 39 dev traces. The last is the frozen v6 judge, run once on the 40 held-out test traces.</p>
+  </header>
+
+  <div class="findings" aria-label="Summary">
+    <div class="finding">
+      <div class="who"><svg width="14" height="14" viewBox="-7 -7 14 14"><path d="" fill="var(--terra)" data-shape="square"></path></svg>terra, prompt v0</div>
+      <p>Best balance on dev: 21 of 23 Passes and all 16 Fails. Chosen as the judge model.</p>
+    </div>
+    <div class="finding">
+      <div class="who"><svg width="14" height="14" viewBox="-7 -7 14 14"><path d="" fill="var(--luna)" data-shape="diamond"></path></svg>luna, prompt v0</div>
+      <p>Same TPR as terra for $0.04 instead of $0.30, but it let 3 of 16 Fails through.</p>
+    </div>
+    <div class="finding">
+      <div class="who"><svg width="14" height="14" viewBox="-7 -7 14 14"><path d="" fill="var(--jev)" data-shape="triangle"></path></svg>Jev</div>
+      <p>Under a cent per run, but it called 7 of 23 good replies failures under both question sets.</p>
+    </div>
+    <div class="finding">
+      <div class="who"><svg width="14" height="14" viewBox="-7 -7 14 14"><path d="" fill="none" stroke="var(--terra)" stroke-width="2" data-shape="square"></path></svg>v6 on test</div>
+      <p>TPR held at 0.91. TNR fell from 0.88 on dev to 0.71 on test: 12 of 17 Fails caught.</p>
+    </div>
+  </div>
+
+  <section id="plane">
+    <div class="sec-head">
+      <h2>Agreement on Passes against catching Fails</h2>
+      <p>Up is fewer good replies wrongly flagged. Right is fewer failures missed. Crossbars are 95% Wilson intervals, and every dev interval overlaps, because each rate rests on 16 to 23 traces.</p>
+    </div>
+    <div class="chart-box" id="planeBox">
+      <svg class="chart" id="planeSvg" role="img" aria-label="Scatter of TNR on the x axis against TPR on the y axis for eight judge runs"></svg>
+      <div class="legend" id="legend1"></div>
+    </div>
+  </section>
+
+  <section id="roc">
+    <div class="sec-head">
+      <h2>Jev across every threshold</h2>
+      <p>Jev returns a probability of Fail for each question, and the runs above called Fail at 0.5. Sweeping that cutoff traces an ROC curve on the 39 dev traces. The six-question score is the highest of its six probabilities, which matches its "Fail if any question is at or above the cutoff" rule. Pass is the positive class, so up is more human Passes kept and right is more human Fails let through.</p>
+    </div>
+    <div class="chart-box" id="rocBox">
+      <svg class="chart" id="rocSvg" role="img" aria-label="ROC curves for the two Jev versions on dev"></svg>
+      <div class="legend" id="legend3"></div>
+    </div>
+    <div class="notes">
+      <p>The 0.5 cutoff sits low on both curves, keeping 16 of 23 Passes. For the one-question version, a cutoff of 0.79 would keep 21 of 23 Passes and still catch 13 of 16 Fails, close to luna's dev result. Any cutoff picked from this chart would be tuned on dev, and Jev never ran on test, so these curves compare the two question sets; they are not a validated judge.</p>
+      <p>AUC intervals are percentile bootstraps over the 39 dev traces with 5,000 resamples. Jev reports probabilities to two decimals, so ties make some steps diagonal.</p>
+    </div>
+  </section>
+
+  <section id="cost">
+    <div class="sec-head">
+      <h2>What each run cost</h2>
+      <p>Cost per run on a log scale. Jev's charge was under a cent and sits in its own lane. The sol run's cost line was lost from the terminal, so it sits in a "not recorded" lane; the pre-run estimate was $0.77 to $2.02.</p>
+    </div>
+    <div class="controls" role="group" aria-label="Metric">
+      <button class="seg" id="m-tpr" data-m="tpr" aria-pressed="false">TPR</button>
+      <button class="seg" id="m-tnr" data-m="tnr" aria-pressed="true">TNR</button>
+      <button class="seg" id="m-f1" data-m="f1" aria-pressed="false">F1 · Pass positive</button>
+      <button class="seg" id="m-f1f" data-m="f1_fail" aria-pressed="false">F1 · Fail positive</button>
+    </div>
+    <p class="metric-note" id="metricNote"></p>
+    <div class="chart-box" id="costBox">
+      <svg class="chart" id="costSvg" role="img" aria-label="Scatter of cost per run against the selected metric"></svg>
+      <div class="legend" id="legend2"></div>
+    </div>
+  </section>
+
+  <section id="table">
+    <div class="sec-head">
+      <h2>All runs</h2>
+      <p>Intervals: Wilson for TPR and TNR; percentile bootstrap with 5,000 resamples for F1.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Run</th><th class="num">TPR</th><th class="num">TNR</th><th class="num">F1 · Pass</th><th class="num">F1 · Fail</th><th class="num">TP / FN / TN / FP</th><th class="num">Cost</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="notes">
+      <p>Judge IDs are <code>narrates_or_overexplains-v0</code> to <code>-v6</code>. The GPT-5.6 models ran at their default reasoning through DocETL with structured output. Jev (<code>jev-latest</code>) was a dev-only comparison through the TypeSafe API.</p>
+      <p>The test row is the only unbiased estimate. The dev rows guided prompt and model choices, so they are optimistic.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const RUNS = [
+  {id:"v0", short:"sol · v0", name:"gpt-5.6-sol · prompt v0", fam:"sol", split:"dev", cost:null, tp:19, fn:4, tn:15, fp:1, tpr:0.826, tpr_ci:[0.629,0.93], tnr:0.938, tnr_ci:[0.717,0.989], f1:0.884, f1_ci:[0.762,0.974], f1_fail:0.857},
+  {id:"v1", short:"terra · v0", name:"gpt-5.6-terra · prompt v0", fam:"terra", split:"dev", cost:0.30, tp:21, fn:2, tn:16, fp:0, tpr:0.913, tpr_ci:[0.732,0.976], tnr:1.0, tnr_ci:[0.806,1.0], f1:0.955, f1_ci:[0.872,1.0], f1_fail:0.941},
+  {id:"v2", short:"luna · v0", name:"gpt-5.6-luna · prompt v0", fam:"luna", split:"dev", cost:0.04, tp:21, fn:2, tn:13, fp:3, tpr:0.913, tpr_ci:[0.732,0.976], tnr:0.812, tnr_ci:[0.57,0.934], f1:0.894, f1_ci:[0.791,0.978], f1_fail:0.839},
+  {id:"v3", short:"Jev · 6 questions", pl:"l", name:"Jev · six questions", fam:"jev", split:"dev", cost:"lt1", tp:16, fn:7, tn:14, fp:2, tpr:0.696, tpr_ci:[0.491,0.844], tnr:0.875, tnr_ci:[0.64,0.965], f1:0.78, f1_ci:[0.621,0.902], f1_fail:0.757},
+  {id:"v4", short:"Jev · 1 question", name:"Jev · one question", fam:"jev", split:"dev", cost:"lt1", tp:16, fn:7, tn:15, fp:1, tpr:0.696, tpr_ci:[0.491,0.844], tnr:0.938, tnr_ci:[0.717,0.989], f1:0.80, f1_ci:[0.647,0.917], f1_fail:0.789},
+  {id:"v5", short:"terra · rev 1", name:"gpt-5.6-terra · revision 1", fam:"terra", split:"dev", cost:0.32, tp:20, fn:3, tn:13, fp:3, tpr:0.87, tpr_ci:[0.679,0.955], tnr:0.812, tnr_ci:[0.57,0.934], f1:0.87, f1_ci:[0.744,0.958], f1_fail:0.812},
+  {id:"v6", short:"terra · rev 2", name:"gpt-5.6-terra · revision 2", fam:"terra", split:"dev", cost:0.34, tp:23, fn:0, tn:14, fp:2, tpr:1.0, tpr_ci:[0.857,1.0], tnr:0.875, tnr_ci:[0.64,0.965], f1:0.958, f1_ci:[0.889,1.0], f1_fail:0.933},
+  {id:"v6", short:"rev 2 · test", name:"gpt-5.6-terra · revision 2, frozen", fam:"terra", split:"test", cost:0.34, tp:21, fn:2, tn:12, fp:5, tpr:0.913, tpr_ci:[0.732,0.976], tnr:0.706, tnr_ci:[0.469,0.867], f1:0.857, f1_ci:[0.735,0.947], f1_fail:0.774},
+];
+const FAMS = [
+  {key:"sol", label:"gpt-5.6-sol", shape:"circle"},
+  {key:"terra", label:"gpt-5.6-terra", shape:"square"},
+  {key:"luna", label:"gpt-5.6-luna", shape:"diamond"},
+  {key:"jev", label:"Jev", shape:"triangle"},
+];
+const SHAPE = Object.fromEntries(FAMS.map(f => [f.key, f.shape]));
+const METRICS = {
+  tpr: {label:"TPR", ci:"tpr_ci", note:"Share of human Passes the judge also called Pass."},
+  tnr: {label:"TNR", ci:"tnr_ci", note:"Share of human Fails the judge also called Fail."},
+  f1: {label:"F1, Pass positive", ci:"f1_ci", note:"2TP / (2TP + FP + FN) with Pass as positive. Missed Fails count only as false positives here."},
+  f1_fail: {label:"F1, Fail positive", ci:null, note:"The same F1 with Fail as the positive class, so missed Fails weigh as much as false alarms. No interval computed."},
+};
+const NS = "http://www.w3.org/2000/svg";
+const fmt = v => v.toFixed(2);
+const costText = r => r.cost === null ? "not recorded" : r.cost === "lt1" ? "< $0.01" : "$" + r.cost.toFixed(2);
+
+function shapePath(shape, s) {
+  const h = s / 2;
+  if (shape === "circle") return `M${-h},0a${h},${h} 0 1,0 ${s},0a${h},${h} 0 1,0 ${-s},0Z`;
+  if (shape === "square") { const q = h * 0.88; return `M${-q},${-q}H${q}V${q}H${-q}Z`; }
+  if (shape === "diamond") { const q = h * 1.2; return `M0,${-q}L${q},0L0,${q}L${-q},0Z`; }
+  const q = h * 1.15; return `M0,${-q}L${q},${q * 0.8}L${-q},${q * 0.8}Z`;
+}
+document.querySelectorAll("path[data-shape]").forEach(p => p.setAttribute("d", shapePath(p.dataset.shape, 11)));
+
+function el(name, attrs = {}, parent) {
+  const e = document.createElementNS(NS, name);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function legend(id) {
+  const box = document.getElementById(id);
+  box.innerHTML = FAMS.map(f => `<span><svg viewBox="-7 -7 14 14"><path d="${shapePath(f.shape, 11)}" fill="var(--${f.key})"/></svg>${f.label}</span>`).join("")
+    + `<span><svg viewBox="-7 -7 14 14"><path d="${shapePath("square", 10)}" fill="none" stroke="var(--ink2)" stroke-width="2"/></svg>hollow = held-out test</span>`;
+}
+legend("legend1"); legend("legend2");
+
+function drawMark(g, r, x, y, size) {
+  const c = `var(--${r.fam})`;
+  const d = shapePath(SHAPE[r.fam], size);
+  if (r.split === "test") el("path", {d, class:"mark", transform:`translate(${x},${y})`, fill:"var(--panel)", stroke:c, "stroke-width":2.5}, g);
+  else el("path", {d, class:"mark", transform:`translate(${x},${y})`, fill:c, stroke:"var(--panel)", "stroke-width":2}, g);
+}
+
+// Greedy vertical de-overlap for labels placed beside points.
+function placeLabels(items, minGap, lo, hi) {
+  items.sort((a, b) => a.y - b.y);
+  for (let i = 0; i < items.length; i++) {
+    items[i].ly = Math.max(items[i].y, lo);
+    if (i && items[i].side === items[i-1].side && Math.abs(items[i].x - items[i-1].x) < 150 && items[i].ly - items[i-1].ly < minGap) items[i].ly = items[i-1].ly + minGap;
+  }
+  for (let i = items.length - 1; i >= 0; i--) if (items[i].ly > hi) items[i].ly = hi;
+  return items;
+}
+
+// Tooltip
+function tipFor(box) {
+  let t = box.querySelector(".tip");
+  if (!t) { t = document.createElement("div"); t.className = "tip"; t.hidden = true; box.appendChild(t); }
+  return t;
+}
+function showTip(box, r, cx, cy) {
+  const t = tipFor(box);
+  t.innerHTML = `<b>${r.name}</b><div style="color:var(--ink2);font-size:12px;margin-bottom:6px">${r.split === "test" ? "Held-out test, 40 traces" : "Dev, 39 traces"} · ${r.id}</div>`
+    + `<div class="row"><span>TPR</span><span>${fmt(r.tpr)} (${fmt(r.tpr_ci[0])}–${fmt(r.tpr_ci[1])})</span></div>`
+    + `<div class="row"><span>TNR</span><span>${fmt(r.tnr)} (${fmt(r.tnr_ci[0])}–${fmt(r.tnr_ci[1])})</span></div>`
+    + `<div class="row"><span>F1 · Pass</span><span>${fmt(r.f1)} (${fmt(r.f1_ci[0])}–${fmt(r.f1_ci[1])})</span></div>`
+    + `<div class="row"><span>F1 · Fail</span><span>${fmt(r.f1_fail)}</span></div>`
+    + `<div class="row"><span>TP/FN/TN/FP</span><span>${r.tp}/${r.fn}/${r.tn}/${r.fp}</span></div>`
+    + `<div class="row"><span>Cost</span><span>${costText(r)}</span></div>`;
+  t.hidden = false;
+  const bw = box.clientWidth, tw = t.offsetWidth, th = t.offsetHeight;
+  let left = cx + 14, top = cy - th / 2;
+  if (left + tw > bw - 4) left = cx - tw - 14;
+  t.style.left = Math.max(4, left) + "px";
+  t.style.top = Math.max(4, top) + "px";
+}
+function hideTip(box) { const t = box.querySelector(".tip"); if (t) t.hidden = true; }
+function bindPoint(g, box, svg, r, x, y) {
+  const at = () => {
+    const sr = svg.getBoundingClientRect(), br = box.getBoundingClientRect();
+    const k = sr.width / svg.viewBox.baseVal.width;
+    showTip(box, r, sr.left - br.left + x * k, sr.top - br.top + y * k);
+  };
+  g.setAttribute("tabindex", "0");
+  g.setAttribute("aria-label", `${r.name}, ${r.split}: TPR ${fmt(r.tpr)}, TNR ${fmt(r.tnr)}, F1 ${fmt(r.f1)}, cost ${costText(r)}`);
+  g.addEventListener("mouseenter", at); g.addEventListener("focus", at);
+  g.addEventListener("click", at);
+  g.addEventListener("mouseleave", () => hideTip(box)); g.addEventListener("blur", () => hideTip(box));
+}
+
+function drawPlane() {
+  const svg = document.getElementById("planeSvg"), box = document.getElementById("planeBox");
+  const W = Math.max(340, box.clientWidth - 16), narrow = W < 560;
+  const H = narrow ? 420 : 470, m = {l:52, r: narrow ? 20 : 150, t:18, b:46};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const lo = 0.4, sx = v => m.l + (v - lo) / (1 - lo) * (W - m.l - m.r), sy = v => H - m.b - (v - lo) / (1 - lo) * (H - m.t - m.b);
+  const ticks = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+  for (const t of ticks) {
+    el("line", {x1:sx(t), x2:sx(t), y1:m.t, y2:H - m.b, class:"gridline"}, svg);
+    el("line", {x1:m.l, x2:W - m.r, y1:sy(t), y2:sy(t), class:"gridline"}, svg);
+    el("text", {x:sx(t), y:H - m.b + 16, "text-anchor":"middle", class:"tick"}, svg).textContent = t.toFixed(1);
+    el("text", {x:m.l - 8, y:sy(t) + 4, "text-anchor":"end", class:"tick"}, svg).textContent = t.toFixed(1);
+  }
+  el("text", {x:(m.l + W - m.r) / 2, y:H - 8, "text-anchor":"middle", class:"axis-label"}, svg).textContent = "TNR · human Fails the judge caught →";
+  const yl = el("text", {x:14, y:(m.t + H - m.b) / 2, "text-anchor":"middle", class:"axis-label", transform:`rotate(-90 14 ${(m.t + H - m.b) / 2})`}, svg);
+  yl.textContent = "TPR · human Passes the judge agreed with →";
+
+  // dev → test connector for v6
+  const d6 = RUNS[6], t6 = RUNS[7];
+  el("line", {x1:sx(d6.tnr), y1:sy(d6.tpr), x2:sx(t6.tnr), y2:sy(t6.tpr), stroke:"var(--ink3)", "stroke-width":1.2, "stroke-dasharray":"3 4"}, svg);
+
+  const labels = [];
+  RUNS.forEach(r => {
+    const x = sx(r.tnr), y = sy(r.tpr), c = `var(--${r.fam})`;
+    const g = el("g", {class:"pt"}, svg);
+    el("line", {x1:sx(r.tnr_ci[0]), x2:sx(r.tnr_ci[1]), y1:y, y2:y, stroke:c, "stroke-width":2, "stroke-linecap":"round", opacity:.45}, g);
+    el("line", {x1:x, x2:x, y1:sy(r.tpr_ci[0]), y2:sy(r.tpr_ci[1]), stroke:c, "stroke-width":2, "stroke-linecap":"round", opacity:.45}, g);
+    el("circle", {cx:x, cy:y, r:14, class:"hit"}, g);
+    drawMark(g, r, x, y, 13);
+    bindPoint(g, box, svg, r, x, y);
+    labels.push({r, x, y, side: r.pl === "l" ? "left" : "right"});
+  });
+  placeLabels(labels, 15, m.t + 6, H - m.b - 4).forEach(L => {
+    const left = L.side === "left";
+    el("text", {x: left ? L.x - 12 : L.x + 12, y:L.ly - 4, class:"pt-label", "text-anchor": left ? "end" : "start"}, svg).textContent = L.r.short;
+  });
+}
+
+let metric = "tnr";
+try { const saved = localStorage.getItem("hw5-tradeoff-metric"); if (saved && METRICS[saved]) metric = saved; } catch (e) {}
+
+function drawCost() {
+  const svg = document.getElementById("costSvg"), box = document.getElementById("costBox");
+  const W = Math.max(340, box.clientWidth - 16), narrow = W < 560;
+  const H = narrow ? 380 : 420, m = {l:52, r: narrow ? 16 : 24, t:18, b:52};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const laneW = narrow ? 58 : 84, gap = 18;
+  const xLo = m.l + laneW + gap, xHi = W - m.r - laneW - gap;
+  const lmin = Math.log10(0.02), lmax = Math.log10(1.0);
+  const sx = v => xLo + (Math.log10(v) - lmin) / (lmax - lmin) * (xHi - xLo);
+  const lowLane = m.l + laneW / 2, nrLane = W - m.r - laneW / 2;
+  const ylo = 0.4, sy = v => H - m.b - (v - ylo) / (1 - ylo) * (H - m.t - m.b);
+
+  // lanes
+  el("rect", {x:m.l, y:m.t, width:laneW, height:H - m.t - m.b, fill:"var(--bg)", opacity:.6, rx:4}, svg);
+  el("rect", {x:W - m.r - laneW, y:m.t, width:laneW, height:H - m.t - m.b, fill:"var(--bg)", opacity:.6, rx:4}, svg);
+  for (const t of [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) {
+    el("line", {x1:m.l, x2:W - m.r, y1:sy(t), y2:sy(t), class:"gridline"}, svg);
+    el("text", {x:m.l - 8, y:sy(t) + 4, "text-anchor":"end", class:"tick"}, svg).textContent = t.toFixed(1);
+  }
+  for (const t of [0.02, 0.05, 0.1, 0.2, 0.5, 1.0]) {
+    el("line", {x1:sx(t), x2:sx(t), y1:m.t, y2:H - m.b, class:"gridline"}, svg);
+    el("text", {x:sx(t), y:H - m.b + 16, "text-anchor":"middle", class:"tick"}, svg).textContent = "$" + (t < 0.1 ? t.toFixed(2) : t.toFixed(t < 1 ? 1 : 0));
+  }
+  el("text", {x:lowLane, y:H - m.b + 16, "text-anchor":"middle", class:"lane-label"}, svg).textContent = "< $0.01";
+  el("text", {x:nrLane, y:H - m.b + 16, "text-anchor":"middle", class:"lane-label"}, svg).textContent = "not recorded";
+  el("text", {x:(xLo + xHi) / 2, y:H - 10, "text-anchor":"middle", class:"axis-label"}, svg).textContent = "Cost per run, USD (log scale) →";
+  const mm = METRICS[metric];
+  const yl = el("text", {x:14, y:(m.t + H - m.b) / 2, "text-anchor":"middle", class:"axis-label", transform:`rotate(-90 14 ${(m.t + H - m.b) / 2})`}, svg);
+  yl.textContent = mm.label + " →";
+
+  // Jev's two runs share the < $0.01 lane; offset them so both stay visible.
+  let jevIdx = 0;
+  const labels = [];
+  RUNS.forEach(r => {
+    let x;
+    if (r.cost === null) x = nrLane;
+    else if (r.cost === "lt1") { x = lowLane + (jevIdx++ ? 10 : -10); }
+    else x = sx(r.cost);
+    const v = r[metric], y = sy(v), c = `var(--${r.fam})`;
+    const g = el("g", {class:"pt"}, svg);
+    if (mm.ci) el("line", {x1:x, x2:x, y1:sy(r[mm.ci][0]), y2:sy(r[mm.ci][1]), stroke:c, "stroke-width":2, "stroke-linecap":"round", opacity:.45}, g);
+    el("circle", {cx:x, cy:y, r:14, class:"hit"}, g);
+    drawMark(g, r, x, y, 13);
+    bindPoint(g, box, svg, r, x, y);
+    labels.push({r, x, y, v, side: x > W * 0.6 ? "left" : "right"});
+  });
+  placeLabels(labels, 15, m.t + 6, H - m.b - 4).forEach(L => {
+    const left = L.side === "left";
+    const tx = left ? L.x - 13 : L.x + 13;
+    const anchor = left ? "end" : "start";
+    const t = el("text", {x:tx, y:L.ly + 4, class:"pt-label", "text-anchor":anchor}, svg);
+    t.textContent = narrow ? fmt(L.v) : `${L.r.short}  `;
+    if (!narrow) { const s = el("tspan", {class:"pt-sub"}, t); s.textContent = fmt(L.v); }
+  });
+  document.getElementById("metricNote").textContent = mm.note;
+  document.querySelectorAll(".seg").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === metric)));
+}
+document.querySelectorAll(".seg").forEach(b => b.addEventListener("click", () => {
+  metric = b.dataset.m;
+  try { localStorage.setItem("hw5-tradeoff-metric", metric); } catch (e) {}
+  drawCost();
+}));
+
+function drawTable() {
+  const ci = (v, c) => `${fmt(v)} <span class="ci">${fmt(c[0])}–${fmt(c[1])}</span>`;
+  document.getElementById("tbody").innerHTML = RUNS.map(r => `
+    <tr class="${r.split}">
+      <td><div class="runname"><svg width="14" height="14" viewBox="-7 -7 14 14"><path d="${shapePath(SHAPE[r.fam], 11)}" ${r.split === "test" ? `fill="none" stroke="var(--${r.fam})" stroke-width="2"` : `fill="var(--${r.fam})"`}/></svg>${r.name} <span class="split ${r.split}">${r.split} · ${r.id}</span></div></td>
+      <td class="num">${ci(r.tpr, r.tpr_ci)}</td>
+      <td class="num">${ci(r.tnr, r.tnr_ci)}</td>
+      <td class="num">${ci(r.f1, r.f1_ci)}</td>
+      <td class="num">${fmt(r.f1_fail)}</td>
+      <td class="num">${r.tp} / ${r.fn} / ${r.tn} / ${r.fp}</td>
+      <td class="num">${costText(r)}</td>
+    </tr>`).join("");
+}
+
+
+const ROC = {"v3":{"n":39,"pos":23,"neg":16,"auc":0.89,"auc_ci":[0.772,0.976],"roc":[[0.0,0.0,-1.0],[0.0,0.0435,0.08],[0.0,0.087,0.09],[0.0,0.1304,0.1],[0.0,0.2609,0.12],[0.0,0.3478,0.17],[0.0,0.3913,0.19],[0.0,0.4348,0.24],[0.0,0.4783,0.3],[0.0,0.5217,0.36],[0.0,0.5652,0.44],[0.125,0.5652,0.46],[0.125,0.6087,0.47],[0.125,0.6522,0.48],[0.125,0.6957,0.5],[0.125,0.7826,0.54],[0.1875,0.7826,0.6],[0.1875,0.8261,0.65],[0.25,0.8261,0.67],[0.25,0.8696,0.69],[0.3125,0.8696,0.73],[0.3125,0.913,0.83],[0.375,0.913,0.89],[0.4375,0.9565,0.9],[0.625,0.9565,0.91],[0.6875,0.9565,0.92],[0.75,0.9565,0.93],[0.75,1.0,0.94],[0.9375,1.0,0.96],[1.0,1.0,2.0]],"op":[0.125,0.6957]},"v4":{"n":39,"pos":23,"neg":16,"auc":0.936,"auc_ci":[0.85,0.992],"roc":[[0.0,0.0,-1.0],[0.0,0.0435,0.05],[0.0,0.087,0.11],[0.0,0.1739,0.16],[0.0,0.2174,0.19],[0.0,0.3043,0.21],[0.0,0.3913,0.24],[0.0,0.4348,0.3],[0.0,0.4783,0.35],[0.0,0.5217,0.41],[0.0,0.5652,0.43],[0.0,0.6087,0.44],[0.0625,0.6522,0.48],[0.0625,0.6957,0.55],[0.0625,0.7391,0.56],[0.0625,0.7826,0.58],[0.125,0.7826,0.63],[0.125,0.8261,0.67],[0.1875,0.8261,0.68],[0.1875,0.8696,0.76],[0.1875,0.913,0.79],[0.25,0.913,0.82],[0.3125,0.9565,0.83],[0.4375,0.9565,0.87],[0.5,1.0,0.88],[0.5625,1.0,0.89],[0.625,1.0,0.91],[0.75,1.0,0.92],[0.875,1.0,0.94],[1.0,1.0,2.0]],"op":[0.0625,0.6957]}};
+const ROC_SERIES = [
+  {key:"v4", label:"Jev · one question", dash:null},
+  {key:"v3", label:"Jev · six questions", dash:"6 4"},
+];
+function thText(th) {
+  if (th <= 0) return "Fail for every trace";
+  if (th > 1) return "Pass for every trace";
+  return "Fail when P(Fail) ≥ " + th.toFixed(2);
+}
+function drawRoc() {
+  const svg = document.getElementById("rocSvg"), box = document.getElementById("rocBox");
+  const W = Math.max(340, box.clientWidth - 16), narrow = W < 560;
+  const side = Math.min(W - 72 - (narrow ? 16 : 230), 440);
+  const m = {l:56, t:16, b:46};
+  const H = side + m.t + m.b;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const sx = v => m.l + v * side, sy = v => m.t + (1 - v) * side;
+  for (const t of [0, 0.2, 0.4, 0.6, 0.8, 1]) {
+    el("line", {x1:sx(t), x2:sx(t), y1:sy(0), y2:sy(1), class:"gridline"}, svg);
+    el("line", {x1:sx(0), x2:sx(1), y1:sy(t), y2:sy(t), class:"gridline"}, svg);
+    el("text", {x:sx(t), y:sy(0) + 16, "text-anchor":"middle", class:"tick"}, svg).textContent = t.toFixed(1);
+    el("text", {x:sx(0) - 8, y:sy(t) + 4, "text-anchor":"end", class:"tick"}, svg).textContent = t.toFixed(1);
+  }
+  el("line", {x1:sx(0), y1:sy(0), x2:sx(1), y2:sy(1), stroke:"var(--ink3)", "stroke-width":1, "stroke-dasharray":"2 4"}, svg);
+  el("text", {x:sx(0.62), y:sy(0.55), class:"lane-label", transform:`rotate(-45 ${sx(0.62)} ${sy(0.55)})`, "text-anchor":"middle"}, svg).textContent = "chance";
+  el("text", {x:m.l + side / 2, y:H - 8, "text-anchor":"middle", class:"axis-label"}, svg).textContent = "1 − TNR · human Fails called Pass →";
+  const cy = m.t + side / 2;
+  el("text", {x:14, y:cy, "text-anchor":"middle", class:"axis-label", transform:`rotate(-90 14 ${cy})`}, svg).textContent = "TPR · human Passes called Pass →";
+  ROC_SERIES.forEach((S, si) => {
+    const R = ROC[S.key];
+    const d = R.roc.map((p, i) => (i ? "L" : "M") + sx(p[0]) + "," + sy(p[1])).join("");
+    el("path", {d, fill:"none", stroke:"var(--jev)", "stroke-width":2, "stroke-linejoin":"round", ...(S.dash ? {"stroke-dasharray":S.dash} : {})}, svg);
+    R.roc.forEach(p => {
+      const g = el("g", {class:"pt"}, svg);
+      el("circle", {cx:sx(p[0]), cy:sy(p[1]), r:8, class:"hit"}, g);
+      el("circle", {cx:sx(p[0]), cy:sy(p[1]), r:2.5, fill:"var(--jev)"}, g);
+      const show = () => {
+        const t = tipFor(box);
+        t.innerHTML = `<b>${S.label}</b><div style="color:var(--ink2);font-size:12px;margin-bottom:6px">${thText(p[2])}</div>`
+          + `<div class="row"><span>TPR</span><span>${fmt(p[1])} (${Math.round(p[1] * R.pos)}/${R.pos})</span></div>`
+          + `<div class="row"><span>TNR</span><span>${fmt(1 - p[0])} (${Math.round((1 - p[0]) * R.neg)}/${R.neg})</span></div>`;
+        t.hidden = false;
+        const sr = svg.getBoundingClientRect(), br = box.getBoundingClientRect(), k = sr.width / W;
+        const x = sr.left - br.left + sx(p[0]) * k, y = sr.top - br.top + sy(p[1]) * k;
+        let left = x + 12; if (left + t.offsetWidth > box.clientWidth - 4) left = x - t.offsetWidth - 12;
+        t.style.left = Math.max(4, left) + "px"; t.style.top = Math.max(4, y - t.offsetHeight / 2) + "px";
+      };
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("aria-label", `${S.label}, ${thText(p[2])}: TPR ${fmt(p[1])}, TNR ${fmt(1 - p[0])}`);
+      g.addEventListener("mouseenter", show); g.addEventListener("focus", show); g.addEventListener("click", show);
+      g.addEventListener("mouseleave", () => hideTip(box)); g.addEventListener("blur", () => hideTip(box));
+    });
+    // operating point at the 0.5 cutoff used in the runs
+    const ox = sx(R.op[0]), oy = sy(R.op[1]);
+    el("path", {d:shapePath("triangle", 13), transform:`translate(${ox},${oy})`, fill: si ? "var(--panel)" : "var(--jev)", stroke: si ? "var(--jev)" : "var(--panel)", "stroke-width":2, "pointer-events":"none"}, svg);
+    // direct label at the right of the plot
+    const lx = narrow ? sx(0.35) : sx(1) + 14, ly = narrow ? sy(0.12 + si * 0.09) : sy(0.93 - si * 0.16);
+    const t = el("text", {x:lx, y:ly, class:"pt-label"}, svg);
+    t.textContent = S.label;
+    const s2 = el("tspan", {x:lx, dy:15, class:"pt-sub"}, t);
+    s2.textContent = `AUC ${R.auc.toFixed(2)} (${R.auc_ci[0].toFixed(2)}–${R.auc_ci[1].toFixed(2)})`;
+    if (!narrow) { const s3 = el("tspan", {x:lx, dy:15, class:"pt-sub"}, t); s3.textContent = `at 0.5: TPR ${fmt(R.op[1])}, TNR ${fmt(1 - R.op[0])}`; }
+  });
+  el("text", {x:sx(ROC.v3.op[0]) + 12, y:sy(ROC.v3.op[1]) + 26, class:"pt-sub"}, svg).textContent = "0.5 cutoff";
+}
+document.getElementById("legend3").innerHTML =
+  `<span><svg viewBox="0 0 22 14" style="width:22px"><line x1="1" y1="7" x2="21" y2="7" stroke="var(--jev)" stroke-width="2"/></svg>Jev · one question</span>`
+  + `<span><svg viewBox="0 0 22 14" style="width:22px"><line x1="1" y1="7" x2="21" y2="7" stroke="var(--jev)" stroke-width="2" stroke-dasharray="6 4"/></svg>Jev · six questions</span>`
+  + `<span><svg viewBox="-7 -7 14 14"><path d="${shapePath("triangle", 11)}" fill="var(--jev)"/></svg>operating point at the 0.5 cutoff (hollow = six questions)</span>`;
+
+function drawAll() { drawPlane(); drawRoc(); drawCost(); }
+drawTable(); drawAll();
+let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAll, 120); });
+</script>
+</body>
+</html>
