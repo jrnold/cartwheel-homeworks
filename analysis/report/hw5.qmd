@@ -1,0 +1,571 @@
+---
+title: "HW5: an LLM judge for `narrates_or_overexplains`"
+jupyter: python3
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Code"
+    embed-resources: true
+execute:
+  cache: false
+---
+
+Code cells recompute the numbers from the saved labels, splits, and judge records, so rendering this file reproduces every number and figure offline:
+
+```bash
+uv run --with jupyter quarto render analysis/report/hw5.qmd
+```
+
+No cell calls a model.
+
+```{python}
+import difflib
+import json
+import re
+import sys
+from pathlib import Path
+
+# Run from anywhere inside the repository.
+ROOT = next(p for p in [Path.cwd(), *Path.cwd().parents] if (p / "pyproject.toml").exists())
+sys.path.insert(0, str(ROOT))
+
+import matplotlib.pyplot as plt
+import numpy as np
+from IPython.display import HTML, Markdown, display
+from matplotlib.lines import Line2D
+
+from analysis.helpers.tools import _wilson_interval as wilson
+
+MODE = "narrates_or_overexplains"
+STATE = ROOT / "analysis/state"
+PROMPTS = ROOT / "analysis/prompts"
+LABELS = {r["trace_id"]: r for r in map(json.loads, (STATE / f"hw5_labels/{MODE}.jsonl").read_text().splitlines())}
+LAB = {t: r["label"] for t, r in LABELS.items()}  # 1 = Pass, 0 = Fail
+SPLITS = json.loads((STATE / "splits.json").read_text())[MODE]
+INPUTS = {r["trace_id"]: r for r in json.loads((STATE / "hw5_trace_inputs.json").read_text())}
+DEV, TEST = SPLITS["dev"], SPLITS["test"]
+
+INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
+# Categorical slots 1-4 of the reference palette, one per model family. Two
+# fall below 3:1 contrast, so every mark also carries a text label.
+FAMILY = {"sol": "#2a78d6", "terra": "#eb6834", "luna": "#1baf7a", "jev": "#eda100"}
+FAMILY_NAME = {"sol": "gpt-5.6-sol", "terra": "gpt-5.6-terra", "luna": "gpt-5.6-luna", "jev": "Jev"}
+plt.rcParams.update({"figure.facecolor": SURF, "axes.facecolor": SURF, "axes.edgecolor": GRID,
+                     "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK, "font.size": 10})
+RNG = np.random.default_rng(7)
+
+
+def judge(version):
+    j = json.loads((STATE / f"judges/{MODE}-{version}.json").read_text())
+    return j, j["predictions"][j["prompt_hash"]], j["critiques"][j["prompt_hash"]]
+
+
+def confusion(pred, ids):
+    tp = sum(LAB[t] == 1 and pred[t] == 1 for t in ids)
+    fn = sum(LAB[t] == 1 and pred[t] == 0 for t in ids)
+    tn = sum(LAB[t] == 0 and pred[t] == 0 for t in ids)
+    fp = sum(LAB[t] == 0 and pred[t] == 1 for t in ids)
+    return tp, fn, tn, fp
+
+
+def metrics(pred, ids):
+    """Confusion counts, TPR/TNR with Wilson intervals, and balanced accuracy.
+
+    Balanced accuracy is (TPR + TNR) / 2. Its interval is a bootstrap that
+    resamples Passes and Fails separately (5,000 draws), matching how it is built.
+    """
+    tp, fn, tn, fp = confusion(pred, ids)
+    passes = np.array([pred[t] for t in ids if LAB[t] == 1])
+    fails = np.array([1 - pred[t] for t in ids if LAB[t] == 0])
+    boot = [(RNG.choice(passes, len(passes)).mean() + RNG.choice(fails, len(fails)).mean()) / 2
+            for _ in range(5000)]
+    tpr, tnr = tp / (tp + fn), tn / (tn + fp)
+    return dict(tp=tp, fn=fn, tn=tn, fp=fp, tpr=tpr, tnr=tnr, ba=(tpr + tnr) / 2,
+                tpr_ci=wilson(tp, tp + fn), tnr_ci=wilson(tn, tn + fp),
+                ba_ci=tuple(np.percentile(boot, [2.5, 97.5])))
+
+
+def jev_scores(version):
+    """Jev's P(Fail) per trace: the largest question score in the saved critique."""
+    _, pred, crit = judge(version)
+    scores = {t: max(float(x) for x in re.findall(r" ([0-9]+\.[0-9]+)", crit[t].split("Result:")[0]))
+              for t in crit}
+    # The saved verdicts must follow the 0.5 rule the run used.
+    assert all((scores[t] < 0.5) == (pred[t] == 1) for t in scores), version
+    return scores
+
+
+def best_threshold(scores, ids):
+    """The P(Fail) cut-off that maximizes dev balanced accuracy (Pass when below it).
+
+    Candidates are midpoints between observed scores; ties go to the cut-off
+    nearest 0.5. It is chosen on the same dev traces it is scored on.
+    """
+    s = np.unique([scores[t] for t in ids])
+    candidates = np.concatenate([[s[0] - 0.005], (s[:-1] + s[1:]) / 2, [s[-1] + 0.005]])
+
+    def ba(th):
+        tp, fn, tn, fp = confusion({t: int(scores[t] < th) for t in ids}, ids)
+        return tp / (tp + fn) / 2 + tn / (tn + fp) / 2
+
+    return max(candidates, key=lambda th: (round(ba(th), 9), -abs(th - 0.5)))
+
+
+def to_sentences(lines):
+    """Split lines into sentences, so an added sentence is its own diff line.
+    An indented line continues the line above it."""
+    out = []
+    for line in lines:
+        parts = re.split(r"(?<=[.!?:])\s+(?=[A-Z\"(`])", line)
+        out += [parts[0]] + ["  " + p for p in parts[1:]]
+    return out
+
+
+def prompt_lines(version):
+    return (PROMPTS / f"{MODE}-{version}.txt").read_text().splitlines()
+
+
+def jev_lines(name):
+    """A Jev question set flattened to text, one line per field."""
+    spec = json.loads((PROMPTS / f"{MODE}-{name}.json").read_text())
+    lines = [f"Combine: {spec['combine']}", f"Threshold: {spec['threshold']}"]
+    for q, body in spec["questions"].items():
+        lines += ["", f"Question {q}: {body['instructions']}",
+                  f"- Fail when: {body['criteria']['true']}", f"- Pass when: {body['criteria']['false']}"]
+    return lines
+
+
+def show_diff(a, b, name_a, name_b, context=1):
+    colors = {"+": ("#e6ffec", "#1a7f37"), "-": ("#ffebe9", "#cf222e"), "@": ("#ddf4ff", "#0969da")}
+    html = []
+    for line in difflib.unified_diff(to_sentences(a), to_sentences(b), name_a, name_b, n=context, lineterm=""):
+        bg, fg = ("#f6f8fa", INK2) if line.startswith(("---", "+++")) else colors.get(line[:1], ("transparent", INK))
+        text = "@@" if line.startswith("@@") else line  # hunk positions count sentences, not file lines
+        esc = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html.append(f'<div style="background:{bg};color:{fg};white-space:pre-wrap;padding:1px 8px">{esc}</div>')
+    display(HTML('<div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid #d0d7de;'
+                 f'border-radius:6px;overflow:hidden">{"".join(html)}</div>'))
+
+
+def style(ax, grid="both"):
+    ax.grid(axis=grid, color=GRID, lw=0.8)
+    ax.set_axisbelow(True)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+
+
+def family_legend(ax, families, **kw):
+    handles = [Line2D([], [], marker="o", ls="", color=FAMILY[f], label=FAMILY_NAME[f]) for f in families]
+    ax.legend(handles=handles, frameon=False, fontsize=8, **kw)
+```
+
+## The failure mode
+
+My judge detects one failure mode from Homework 4: **narrates or overexplains**.
+Cartwheel's reply should state the result directly, answer first, without narrating its own process or explaining more than the user needs.
+
+> ### Decision rule
+>
+> Judge only the final reply: it is the only message the user sees. Messages written before a tool call are not shown to the user and are not judged.
+>
+> **Fail** when the final reply does any of the following:
+>
+> - **N1 — Narrates the agent's own process.** It describes its lookups, searches, checks, or tool limits instead of the result, even briefly. Examples: “I checked order 8001 for your store, and the record shows …”; “I couldn't find a store named exactly ceramics, but when I searched …”; and “I don't have a tool to edit product pricing.”
+> - **N2 — Adds unneeded information.** It includes information the user did not ask for and does not need, such as another store's listings.
+> - **N3 — Overexplains policy.** It gives more than a one-line reason for the decision, including policy background, how store overrides interact with the platform default, generic policy notes, or policy already given.
+> - **N4 — Has a poor tone.** It sounds disrespectful, distrustful, or grudging.
+> - **N5 — Answers with a guess.** It states a guess or hedged value as the answer.
+> - **N6 — Buries the bottom line.** The direct answer—the status, yes or no, done or not done, the matches, the refusal, or a choice the user must make—is not in the first sentence, after at most one short apology. This includes putting the outcome after an order-identification line or block, placing a needed choice only at the end, or giving only part of the answer in the first sentence.
+>
+> **Pass** when the reply states the result first and respectfully, and every sentence is something the user asked for or needs.
+>
+> ### Always allowed
+>
+> - Order-detail blocks: status, dates, quantity, total, and eligibility.
+> - Store, order, and product IDs for every user.
+> - A short outcome statement, such as “I found your Northwind Books order and confirmed it is refund-eligible.”
+> - A one-line reason for the decision.
+> - Required reply content: for **ESC-1**, that the refund is queued for review, the ticket number, and follow-up time; for a refusal, its reason and next step; and for **RESP-3**, a missing-information disclosure.
+> - How and when the money returns when a refund was just issued.
+> - A policy explanation when the user asked about policy.
+> - A one-line lead-in directly into a list that is the answer.
+> - A narrated opener directly before a question the agent needs answered.
+> - A tentative pointer while asking the user to narrow the request, such as “It may have been the $9.00 one—which listing did you see?”
+> - A brief apology.
+>
+> ### Boundary with neighboring modes
+>
+> - **`exposes_internal_identifiers`:** Showing `cw-*` policy IDs or refund IDs to a shopper belongs there. Store, order, and product IDs are acceptable here.
+> - **`invents_or_contradicts_facts`:** A wrong or unsupported value belongs there however it is phrased. A guess offered as the answer fails here under N5 and there if the value is also wrong.
+> - **`incomplete_answer`:** Too little information belongs there; too much belongs here. A store number instead of a name fails there.
+> - **`reveals_order_existence`:** The wording of a refusal for a denied or unknown order, such as “I can't access that order,” belongs there.
+> - **`misapplied_escalation`:** Whether an escalation was required belongs there; how the reply describes an escalation belongs here.
+
+
+## Labels and split
+
+I labeled 99 conversations, one per conversation (one conversation had two traces): 58 Pass and 41 Fail, with Pass as 1.
+
+I split them into 20 training, 39 development, and 40 test conversations.
+
+```{python}
+rows = []
+for name in ("train", "dev", "test"):
+    ids = SPLITS[name]
+    rows.append(f"| {name} | {len(ids)} | {sum(LAB[t] for t in ids)} | {sum(1 - LAB[t] for t in ids)} |")
+n_pass = sum(LAB.values())
+rows.append(f"| **total** | **{len(LAB)}** | **{n_pass}** | **{len(LAB) - n_pass}** |")
+
+fields = {k for r in INPUTS.values() for k in r}
+assert fields == {"trace_id", "trace"}, fields
+display(Markdown(f"Seed {SPLITS['seed']}. Judge input fields: `{sorted(fields)}`.\n\n"
+                 "| Split | n | Pass | Fail |\n|---|---:|---:|---:|\n" + "\n".join(rows)))
+```
+
+## Prompt
+
+My prompt includes rubric-like criteria. I compared multiple models initially;
+chose Terra 5.6 then continued.
+
+::: {.callout-note collapse="true"}
+## The initial prompt (v0), as sent to judges v0–v2
+
+```{python}
+#| echo: false
+display(Markdown("```text\n" + (PROMPTS / f"{MODE}-v0.txt").read_text() + "\n```"))
+```
+:::
+
+Every dev run, sorted by balanced accuracy `(TPR + TNR) / 2`. Not ideal, but it
+is a single number. I would use F1, but we aren't using precision.
+
+```{python}
+jev = {v: jev_scores(v) for v in ("v3", "v4")}
+p_star = {v: best_threshold(jev[v], DEV) for v in jev}
+
+# (key, predictions, split, label, family, cost in USD, pre-run estimate range)
+RUNS = [
+    ("v0", judge("v0")[1], "dev", "gpt-5.6-sol · prompt v0", "sol", None, (0.77, 2.02)),
+    ("v1", judge("v1")[1], "dev", "gpt-5.6-terra · prompt v0", "terra", 0.30, None),
+    ("v2", judge("v2")[1], "dev", "gpt-5.6-luna · prompt v0", "luna", 0.04, None),
+    ("v3", judge("v3")[1], "dev", "Jev · six questions · p = 0.5", "jev", 0.003, None),
+    ("v3*", {t: int(s < p_star["v3"]) for t, s in jev["v3"].items()}, "dev",
+     f"Jev · six questions · p* = {p_star['v3']:.3f}", "jev", 0.003, None),
+    ("v4", judge("v4")[1], "dev", "Jev · one question · p = 0.5", "jev", 0.003, None),
+    ("v4*", {t: int(s < p_star["v4"]) for t, s in jev["v4"].items()}, "dev",
+     f"Jev · one question · p* = {p_star['v4']:.3f}", "jev", 0.003, None),
+    ("v5", judge("v5")[1], "dev", "gpt-5.6-terra · revision 1", "terra", 0.32, None),
+    ("v6", judge("v6")[1], "dev", "gpt-5.6-terra · revision 2", "terra", 0.34, None),
+]
+dev_runs = sorted(
+    [dict(key=k, split=s, label=lab, family=f, cost=c, cost_est=e, **metrics(p, SPLITS[s]))
+     for k, p, s, lab, f, c, e in RUNS],
+    key=lambda r: -r["ba"])
+test_run = dict(key="v6 test", split="test", label="gpt-5.6-terra · revision 2 (frozen)", family="terra",
+                cost=0.34, cost_est=None, **metrics(judge("v6")[1], TEST))
+ranked = dev_runs + [test_run]
+
+
+def cost_text(r):
+    if r["cost"] is None:
+        return f"not captured (est. ${r['cost_est'][0]:.2f}–{r['cost_est'][1]:.2f})"
+    return f"${r['cost']:.2f}" if r["cost"] >= 0.01 else "<$0.01"
+
+
+def ci(r, k):
+    return f"{r[k]:.2f} ({r[k + '_ci'][0]:.2f}–{r[k + '_ci'][1]:.2f})"
+
+
+display(Markdown(
+    "| Run | Split | Balanced accuracy (95% bootstrap) | TPR (95% Wilson) | TNR (95% Wilson) | TP / FN / TN / FP | Cost |\n"
+    "|---|---|---|---|---|---|---:|\n" + "\n".join(
+        f"| {'**' if r['key'] == 'v1' else ''}{r['key']} · {r['label']}{'**' if r['key'] == 'v1' else ''} "
+        f"| {r['split']} | {ci(r, 'ba')} | {ci(r, 'tpr')} | {ci(r, 'tnr')} "
+        f"| {r['tp']} / {r['fn']} / {r['tn']} / {r['fp']} | {cost_text(r)} |" for r in ranked)))
+```
+
+The same runs in the same order, with v1 (gpt-5.6-terra on the first prompt) in bold. v3 and v4 are the dev-only Jev comparison; v5 and v6 are my two prompt revisions.
+
+```{python}
+#| fig-height: 5.4
+fig, axes = plt.subplots(1, 3, figsize=(13, 5.4), sharey=True)
+ys = np.arange(len(ranked))[::-1]
+for ax, (title, k) in zip(axes, [("Balanced accuracy", "ba"), ("TPR (agrees with human Pass)", "tpr"),
+                                 ("TNR (catches human Fail)", "tnr")]):
+    style(ax, "x")
+    for y, r in zip(ys, ranked):
+        c, test, bold = FAMILY[r["family"]], r["split"] == "test", r["key"] == "v1"
+        ax.plot(r[f"{k}_ci"], [y, y], color=c, lw=2, alpha=0.6, solid_capstyle="round")
+        ax.plot(r[k], y, "D" if "*" in r["key"] else "o", ms=8, mfc=SURF if test else c, mec=c, mew=2)
+        ax.text(r[k], y - 0.3 if test else y + 0.3, f"{r[k]:.2f}", ha="center", va="top" if test else "bottom",
+                fontsize=8, color=INK if bold else INK2, fontweight="bold" if bold else "normal")
+    ax.set_xlim(0.4, 1.03)
+    ax.set_ylim(-0.9, len(ranked) - 0.4)
+    ax.set_title(title, fontsize=10, loc="left")
+    ax.axhline(0.5, color=INK2, lw=0.8, ls=(0, (3, 3)))
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+axes[0].set_yticks(ys)
+axes[0].set_yticklabels([f"{r['key']} · {r['label']}  [{r['split']}]" for r in ranked])
+for lab, r in zip(axes[0].get_yticklabels(), ranked):
+    lab.set_fontweight("bold" if r["key"] == "v1" else "normal")
+fig.legend(handles=[Line2D([], [], marker="o", ls="", color=FAMILY[f], label=FAMILY_NAME[f]) for f in FAMILY],
+           loc="upper right", ncol=4, frameon=False, fontsize=8, bbox_to_anchor=(1, 0.955))
+fig.suptitle("Dev runs sorted by balanced accuracy (n = 39); frozen v6 on test below the line (n = 40, hollow). "
+             "Diamonds: Jev at p*.", x=0.01, ha="left", fontsize=11)
+fig.text(0.01, 0.005, "Lines: 95% intervals (bootstrap for balanced accuracy, Wilson for TPR and TNR).",
+         fontsize=8, color=INK2)
+fig.tight_layout(rect=(0, 0.03, 1, 0.97))
+plt.show()
+```
+
+### TPR against TNR
+
+Each run is one point. The shaded ellipse spans its 95% Wilson intervals: TPR comes from the 23 human Passes and TNR from the 16 human Fails, so the two intervals are independent. Dashed lines mark equal balanced accuracy.
+
+```{python}
+#| fig-height: 6.4
+def ellipse(ax, cx, cy, xci, yci, color):
+    """An ellipse through the four interval ends; each quadrant has its own radii."""
+    t = np.linspace(0, 2 * np.pi, 200)
+    cos, sin = np.cos(t), np.sin(t)
+    x = cx + np.where(cos >= 0, xci[1] - cx, cx - xci[0]) * cos
+    y = cy + np.where(sin >= 0, yci[1] - cy, cy - yci[0]) * sin
+    ax.fill(x, y, color=color, alpha=0.10, lw=0)
+
+
+fig, ax = plt.subplots(figsize=(7.4, 6.4))
+style(ax)
+for b in (0.7, 0.8, 0.9):
+    xs = np.linspace(0.35, 1.05, 2)
+    ax.plot(xs, 2 * b - xs, color=GRID, lw=1, ls=(0, (4, 3)), zorder=0)
+    ax.text(1.02, 2 * b - 1.02, f"BA {b:.1f}", fontsize=7, color=INK2, va="center")
+for r in ranked:
+    ellipse(ax, r["tnr"], r["tpr"], r["tnr_ci"], r["tpr_ci"], FAMILY[r["family"]])
+# v2 and v4* share a point (21 / 2 / 13 / 3): the larger diamond sits under the circle.
+OFFSET = {"v2": (9, 5), "v4*": (9, -12), "v5": (8, -10), "v0": (8, 2), "v6 test": (8, 2)}
+for r in sorted(ranked, key=lambda r: "*" not in r["key"]):
+    c, test = FAMILY[r["family"]], r["split"] == "test"
+    ax.plot(r["tnr"], r["tpr"], "D" if "*" in r["key"] else "o", ms=13 if "*" in r["key"] else 8,
+            mfc=SURF if test else c, mec=SURF if not test else c, mew=1.5 if not test else 2)
+    ax.annotate(r["key"], (r["tnr"], r["tpr"]), xytext=OFFSET.get(r["key"], (8, -3)), textcoords="offset points",
+                fontsize=9, color=INK, fontweight="bold" if r["key"] == "v1" else "normal")
+ax.set_xlim(0.35, 1.08)
+ax.set_ylim(0.35, 1.05)
+ax.set_xlabel("TNR: human Fails the judge caught")
+ax.set_ylabel("TPR: human Passes the judge passed")
+ax.set_title("Top right is best. Hollow: frozen v6 on test; diamonds: Jev at p* "
+             "(v4* sits under v2).", fontsize=10, loc="left")
+family_legend(ax, FAMILY, loc="lower left")
+fig.tight_layout()
+plt.show()
+```
+
+### Balanced accuracy against cost
+
+Cost is what each dev run billed for 39 traces. The sol run's cost line was lost from the terminal, so it is shown at its pre-run estimate (hollow, with the estimated range). Jev billed under $0.01 per run, plotted at $0.003, and its four points are spread slightly left and right for legibility. Vertical lines are 95% bootstrap intervals.
+
+```{python}
+#| fig-height: 5.4
+fig, ax = plt.subplots(figsize=(8.4, 5.4))
+style(ax)
+ax.set_xscale("log")
+SPREAD = {"v3": 0.82, "v3*": 0.91, "v4": 1.10, "v4*": 1.22}
+for r in dev_runs:
+    c = FAMILY[r["family"]]
+    est = r["cost"] is None
+    x = np.sqrt(r["cost_est"][0] * r["cost_est"][1]) if est else r["cost"] * SPREAD.get(r["key"], 1)
+    if est:
+        ax.plot(r["cost_est"], [r["ba"]] * 2, color=c, lw=1.5, alpha=0.6)
+    ax.plot([x, x], r["ba_ci"], color=c, lw=1.5, alpha=0.6)
+    ax.plot(x, r["ba"], "D" if "*" in r["key"] else "o", ms=9, mfc=SURF if est else c, mec=c, mew=2)
+    ax.annotate(r["key"] + (" (est.)" if est else ""), (x, r["ba"]), xytext=(7, 3), textcoords="offset points",
+                fontsize=9, color=INK, fontweight="bold" if r["key"] == "v1" else "normal")
+ax.set_xlim(0.0015, 3)
+ax.set_xticks([0.003, 0.01, 0.03, 0.1, 0.3, 1, 3])
+ax.set_xticklabels(["$0.003", "$0.01", "$0.03", "$0.10", "$0.30", "$1", "$3"])
+ax.set_xlabel("Cost of the dev run (USD, log scale)")
+ax.set_ylabel("Balanced accuracy on dev")
+ax.set_title("Dev runs (n = 39): up is better, left is cheaper", fontsize=10, loc="left")
+family_legend(ax, FAMILY, loc="lower right")
+fig.tight_layout()
+plt.show()
+```
+
+## Jev comparison (dev only)
+
+Jev (`jev-latest`) returns a probability that each question is true instead of a written verdict, so it runs outside DocETL.
+
+The prompt needed to be adjusted for Jev.
+
+- v3 asks one question per Fail rule and fails the reply when any question reaches the cut-off
+- v4 asks a single question holding the whole definition
+
+Since Jev returns a probability, not a classification, we could cut at different
+probabilities to get results.
+
+Below is the ROC for `v3` and `v4`.
+Circles mark the 0.5 cut-off the runs used; diamonds mark *p\**. Axes match the scatter above: Pass is the positive class.
+
+```{python}
+#| fig-height: 5.8
+def roc(scores, ids):
+    y = np.array([LAB[t] for t in ids])
+    s = np.array([scores[t] for t in ids])
+    pts = [(0.0, 0.0)]
+    for th in np.unique(np.concatenate([s, [s.max() + 1]])):
+        passed = s < th
+        pts.append(((passed & (y == 0)).sum() / (y == 0).sum(), (passed & (y == 1)).sum() / (y == 1).sum()))
+    return sorted(set(pts))
+
+
+def auc(scores, ids):
+    """P(a human Fail scores higher than a human Pass); ties count half."""
+    f = np.array([scores[t] for t in ids if LAB[t] == 0])
+    p = np.array([scores[t] for t in ids if LAB[t] == 1])
+    return ((f[:, None] > p[None, :]).sum() + 0.5 * (f[:, None] == p[None, :]).sum()) / (len(f) * len(p))
+
+
+def auc_ci(scores, ids):
+    fails = [t for t in ids if LAB[t] == 0]
+    passes = [t for t in ids if LAB[t] == 1]
+    boot = []
+    for _ in range(5000):
+        f = RNG.choice(fails, len(fails))
+        p = RNG.choice(passes, len(passes))
+        fs, ps = np.array([scores[t] for t in f]), np.array([scores[t] for t in p])
+        boot.append(((fs[:, None] > ps[None, :]).sum() + 0.5 * (fs[:, None] == ps[None, :]).sum())
+                    / (len(fs) * len(ps)))
+    return np.percentile(boot, [2.5, 97.5])
+
+
+fig, ax = plt.subplots(figsize=(6.6, 5.8))
+style(ax)
+ax.plot([0, 1], [0, 1], color=GRID, lw=1, ls=(0, (3, 3)))
+by_key = {r["key"]: r for r in dev_runs}
+rows = []
+for v, ls, name in (("v3", "-", "six questions"), ("v4", "--", "one question")):
+    pts = roc(jev[v], DEV)
+    a, (lo, hi) = auc(jev[v], DEV), auc_ci(jev[v], DEV)
+    ax.step([p[0] for p in pts], [p[1] for p in pts], where="post", color=FAMILY["jev"], lw=1.8, ls=ls,
+            label=f"{v} · {name} (AUC {a:.2f})")
+    for key, marker in ((v, "o"), (v + "*", "D")):
+        r = by_key[key]
+        ax.plot(1 - r["tnr"], r["tpr"], marker, ms=9, color=FAMILY["jev"], mec=INK, mew=1)
+        ax.annotate(key, (1 - r["tnr"], r["tpr"]), xytext=(8, -4), textcoords="offset points", fontsize=9)
+    rows.append(f"| {v} · {name} | {a:.2f} ({lo:.2f}–{hi:.2f}) | {p_star[v]:.3f} "
+                f"| {by_key[v]['ba']:.2f} | {by_key[v + '*']['ba']:.2f} |")
+r1 = by_key["v1"]
+ax.plot(1 - r1["tnr"], r1["tpr"], "o", ms=9, color=FAMILY["terra"])
+ax.annotate("v1 (terra, for reference)", (1 - r1["tnr"], r1["tpr"]), xytext=(6, 9), textcoords="offset points",
+            fontsize=9, fontweight="bold")
+ax.set_xlim(-0.02, 1.0)
+ax.set_ylim(0, 1.03)
+ax.set_xlabel("False Pass rate (1 − TNR): human Fails the judge passed")
+ax.set_ylabel("TPR: human Passes the judge passed")
+ax.legend(frameon=False, fontsize=8, loc="lower right")
+fig.tight_layout()
+plt.show()
+
+display(Markdown("| Jev run | AUC (95% bootstrap) | p* | Balanced accuracy at 0.5 | Balanced accuracy at p* |\n"
+                 "|---|---|---:|---:|---:|\n" + "\n".join(rows)))
+```
+
+### Jev question sets diffed from prompt v0
+
+Each question set is flattened to text (the combine rule, then each question's instructions and its Fail and Pass criteria) and diffed sentence by sentence against prompt v0. Lines only in prompt v0 are red; lines only in the Jev set are green.
+
+::: {.callout-note collapse="true"}
+## Prompt v0 → Jev six questions (v3)
+
+```{python}
+#| echo: false
+show_diff(prompt_lines("v0"), jev_lines("jev-v0"), "prompt v0", "Jev six questions (jev-v0.json)")
+```
+:::
+
+::: {.callout-note collapse="true"}
+## Prompt v0 → Jev one question (v4)
+
+```{python}
+#| echo: false
+show_diff(prompt_lines("v0"), jev_lines("jev-v1"), "prompt v0", "Jev one question (jev-v1.json)")
+```
+:::
+
+## One development disagreement
+
+Here's a disagreement from my first dev run:
+
+> **User:** Just give me the price already.
+>
+> **Agent:** I found multiple products named **Heavy-Duty Vase**, so the price depends on the listing/store. The listed prices I found are:
+>
+> - **$9.00**
+> - **$134.75**
+> - **$149.50**
+> - **$254.75**
+> - **$281.00**
+>
+> The lowest current listed price I found is **$9.00**.
+
+I labeled it Pass. The judge said Fail. Its critique calls "the listed prices I found" narration of the search.
+
+```{python}
+TRACE = "b1dd5bac0139c6006dad82c5b99a9c17"
+verdict = {v: judge(v)[1][TRACE] for v in ("v1", "v5", "v6")}
+display(Markdown(
+    f"**Human label:** {'Pass' if LAB[TRACE] else 'Fail'}"
+    + f"\n\n**v1 verdict:** {'Pass' if verdict['v1'] else 'Fail'}. **v1 critique:** {judge('v1')[2][TRACE]}"
+    + f"\n\n**Later verdicts:** v5 {'Pass' if verdict['v5'] else 'Fail'}, v6 {'Pass' if verdict['v6'] else 'Fail'}."
+))
+```
+Fix: Narration means describing *how* you looked, not using the word "found" to present results. I revised the prompt.
+
+Side-effect: The judge started treating "I found…" as an excuse for replies that put the answer late, resulting in +3 false positives
+
+Fix: New revision said "I found" settles only the narration rule; the answer still has to come first.
+
+### What each revision changed
+
+```{python}
+for old, new, title in [("v0", "v1", "Judge v1 → v5: prompt v0 → revision 1"),
+                        ("v1", "v2", "Judge v5 → v6: revision 1 → revision 2")]:
+    display(Markdown(f"#### {title}"))
+    show_diff(prompt_lines(old), prompt_lines(new), f"prompt {old}", f"prompt {new}")
+
+display(Markdown("| Judge | Dev balanced accuracy | Dev TPR | Dev TNR | TP / FN / TN / FP |\n|---|---:|---:|---:|---|\n"
+                 + "\n".join(f"| {r['key']} | {r['ba']:.2f} | {r['tpr']:.2f} | {r['tnr']:.2f} "
+                             f"| {r['tp']} / {r['fn']} / {r['tn']} / {r['fp']} |"
+                             for k in ("v1", "v5", "v6") for r in [by_key[k]])))
+```
+
+## Test results, recalculated
+
+
+```{python}
+_, pred, _ = judge("v6")
+tp, fn, tn, fp = confusion(pred, TEST)
+print(f"TP={tp} FN={fn} TN={tn} FP={fp}")
+print(f"TPR={tp / (tp + fn):.3f} {wilson(tp, tp + fn)}  TNR={tn / (tn + fp):.3f} {wilson(tn, tn + fp)}")
+print(f"Balanced accuracy={test_run['ba']:.3f} "
+      f"[{test_run['ba_ci'][0]:.3f}, {test_run['ba_ci'][1]:.3f}] (95% bootstrap)")
+```
+
+## Would I use it?
+
+I'll use it going forward in the homeworks for now! I think any further work on this judge
+would be overfitting.
+
+But realistically, this process made me think more about what the SPEC needed
+to say and the UI needed to show.
+
+```{python}
+prev = json.loads((ROOT / f"analysis/report/prevalence-{MODE}-v6.json").read_text())
+display(Markdown("| Traces | n | Raw Fail rate | Corrected (95% CI) |\n|---|---:|---:|---|\n" + "\n".join(
+    f"| {k} | {v['n_unlabeled']} | {v['raw']:.2f} | {v['corrected']:.2f} ({v['ci_low']:.2f}–{v['ci_high']:.2f}) |"
+    for k, v in prev.items())))
+```
+
+## Close
