@@ -1,0 +1,32 @@
+{
+  "versions": [
+    {
+      "judge_id": "narrates_or_overexplains-v0",
+      "prompt_hash": "1faa98943568"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v1",
+      "prompt_hash": "7a7d038769e3"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v2",
+      "prompt_hash": "4659b8650078"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v3",
+      "prompt_hash": "35cabc7fbf02"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v4",
+      "prompt_hash": "9fc7e1249aa0"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v5",
+      "prompt_hash": "21b785a58d36"
+    },
+    {
+      "judge_id": "narrates_or_overexplains-v6",
+      "prompt_hash": "53799fd1ed10"
+    }
+  ]
+}

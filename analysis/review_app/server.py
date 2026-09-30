@@ -255,6 +255,10 @@ class ReviewHandler(BaseHTTPRequestHandler):
             self._send_json(graph_payload())
             return
 
+        if path == "/api/judges":
+            self._send_json(_judges_payload())
+            return
+
         if path in API_FILES:
             data = _state.read_json(
                 _state.state_path(API_FILES[path]), default=API_DEFAULTS[path]
@@ -324,6 +328,40 @@ class ReviewHandler(BaseHTTPRequestHandler):
         except Exception as exc:  # noqa: BLE001 - the local record already survived
             result["langfuse_error"] = f"{type(exc).__name__}: {exc}"[:200]
         self._send_json(result)
+
+
+def _judges_payload() -> dict[str, Any]:
+    """Each registered judge's verdicts and critiques for its current prompt.
+
+    Read-only: the HW5 review shows a judge's verdict and critique beside the
+    human label. Predictions use Pass = 1, Fail = 0.
+    """
+    out: dict[str, Any] = {}
+    splits = _state.read_json(_state.state_path("splits.json"), default={}) or {}
+    for path in sorted(_state.state_path("judges").glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        judge = _state.read_json(path, default={}) or {}
+        prompt_hash = judge.get("prompt_hash")
+        if not judge.get("judge_id") or not prompt_hash:
+            continue
+        preds = dict((judge.get("predictions") or {}).get(prompt_hash, {}))
+        crits = dict((judge.get("critiques") or {}).get(prompt_hash, {}))
+        # Test predictions stay hidden until the judge is frozen, so they
+        # cannot steer the choice of the final prompt.
+        if judge.get("status") != "frozen":
+            for tid in (splits.get(judge.get("mode"), {}) or {}).get("test", []):
+                preds.pop(tid, None)
+                crits.pop(tid, None)
+        out[judge["judge_id"]] = {
+            "mode": judge.get("mode"),
+            "model": judge.get("model"),
+            "status": judge.get("status"),
+            "created_at": judge.get("created_at"),
+            "predictions": preds,
+            "critiques": crits,
+        }
+    return out
 
 
 def main() -> None:

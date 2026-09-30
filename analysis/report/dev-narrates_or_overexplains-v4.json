@@ -1,0 +1,32 @@
+{
+  "judge_id": "narrates_or_overexplains-v4",
+  "model": "jev-latest",
+  "prompt_path": "analysis/prompts/narrates_or_overexplains-jev-v1.json",
+  "split": "dev",
+  "tpr": 0.6957,
+  "tnr": 0.9375,
+  "tpr_interval": [
+    0.4913,
+    0.844
+  ],
+  "tnr_interval": [
+    0.7167,
+    0.9889
+  ],
+  "agreement": 0.7949,
+  "tp": 16,
+  "fn": 7,
+  "tn": 15,
+  "fp": 1,
+  "n": 39,
+  "disagreements": [
+    "45797b1b3b137ba01160978a2ac5ef36",
+    "49f0c62fea141ab73236d4446b4eb653",
+    "693eb38472114b801d56bdf5380bc511",
+    "791ad08e6b55b2e883e06e4627ab24ce",
+    "8a7b68cb205b6758ac565ef18073ca72",
+    "b1dd5bac0139c6006dad82c5b99a9c17",
+    "cb3c7eaf2548dcf19ddc14b014be1af4",
+    "cdd173cd61973b71cf41a21def903325"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "judge_id": "narrates_or_overexplains-v0",
+  "model": "gpt-5.6-sol",
+  "prompt_path": "(registered prompt 1faa98943568)",
+  "split": "dev",
+  "tpr": 0.8261,
+  "tnr": 0.9375,
+  "tpr_interval": [
+    0.6286,
+    0.9302
+  ],
+  "tnr_interval": [
+    0.7167,
+    0.9889
+  ],
+  "agreement": 0.8718,
+  "tp": 19,
+  "fn": 4,
+  "tn": 15,
+  "fp": 1,
+  "n": 39,
+  "disagreements": [
+    "45797b1b3b137ba01160978a2ac5ef36",
+    "693eb38472114b801d56bdf5380bc511",
+    "7534da6cb5ae2b0839353587a83f0481",
+    "cad98979f6350b29971be7daaa1ecb86",
+    "cfa2975a6ee5a9d6cdd7a583ead4fbbe"
+  ]
+}

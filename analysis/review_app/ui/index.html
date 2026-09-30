@@ -328,6 +328,17 @@ textarea {
 .lbl button.pass.on { background: var(--pass-bg); border-color: var(--pass-line); color: var(--ink); }
 .lbl button.fail.on { background: var(--fail-bg); border-color: var(--fail-line); color: var(--ink); }
 
+/* ---- HW5 judges ---- */
+details.judge { border-top: 1px solid var(--line2); padding: 3px 0; font-size: 12px; }
+details.judge > summary { cursor: pointer; display: flex; gap: 6px; align-items: baseline; }
+details.judge .jv { font-weight: 600; min-width: 32px; }
+details.judge .jv.P { color: var(--pass); }
+details.judge .jv.F { color: var(--fail); }
+details.judge .jid { flex: 1; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+details.judge .jok { font-size: 11px; color: var(--faint); }
+details.judge .jno { font-size: 11px; color: var(--err); font-weight: 600; }
+details.judge .jc { margin: 4px 0 4px 38px; color: var(--ink2); white-space: pre-wrap; }
+
 /* ---- tables ---- */
 table.grid { border-collapse: collapse; width: 100%; font-size: 11.5px; }
 table.grid th, table.grid td {
@@ -846,6 +857,10 @@ const S = {
   // Worklist items marked done, from analysis/state/worklist_status.json:
   // {worklist name: {trace_id: ISO time}}.
   wlDone: {},
+  // HW5 judges: {judge_id: {mode, model, status, predictions, critiques}}.
+  // Predictions use Pass = 1. The server withholds test predictions until a
+  // judge is frozen.
+  judges: {},
   // The sampling design from analysis/state/sample_manifest.json, and the
   // trace_id -> batch name map derived from it. The map is single valued
   // because sample_batches.py asserts no trace is drawn into two batches.
@@ -1086,14 +1101,14 @@ async function api(path, body) {
 
 // ---------------------------------------------------------------- load
 async function load() {
-  const [pool, spec, ann, pat, suggs, labels, manifest, wl] = await Promise.all([
+  const [pool, spec, ann, pat, suggs, labels, manifest, wl, judges] = await Promise.all([
     api("/api/pool"), api("/api/spec"), api("/api/annotations"),
     api("/api/patterns"), api("/api/suggestions"), api("/api/labels"),
-    api("/api/manifest"), api("/api/worklist_status"),
+    api("/api/manifest"), api("/api/worklist_status"), api("/api/judges"),
   ]);
   S.pool = pool;
   S.spec = spec;
-  applyLive({ ann, pat, suggs, labels, wl, manifest });
+  applyLive({ ann, pat, suggs, labels, wl, judges, manifest });
   S.pool.forEach((t) => { S.byId[t.trace_id] = t; });
   $("#sec-spec > summary").title = "SPEC.md sha " + (spec.digest || "?").slice(0, 8);
   // Autocomplete for a mode's requirement source, so the id is picked from
@@ -1112,6 +1127,7 @@ const LIVE = [
   ["ann", "/api/annotations"], ["pat", "/api/patterns"],
   ["suggs", "/api/suggestions"], ["labels", "/api/labels"],
   ["manifest", "/api/manifest"], ["wl", "/api/worklist_status"],
+  ["judges", "/api/judges"],
 ];
 const POLL_MS = 2000;
 
@@ -1120,6 +1136,7 @@ function applyLive(d) {
   if ("pat" in d) S.modes = (d.pat && d.pat.modes) || [];
   if ("suggs" in d) S.suggs = Array.isArray(d.suggs) ? d.suggs : [];
   if ("labels" in d) S.labels = d.labels || {};
+  if ("judges" in d) S.judges = d.judges && typeof d.judges === "object" ? d.judges : {};
   if ("wl" in d) S.wlDone = d.wl && typeof d.wl === "object" && !Array.isArray(d.wl) ? d.wl : {};
   if ("manifest" in d) {
     const m = d.manifest;
@@ -1131,7 +1148,7 @@ function applyLive(d) {
       (b.picks || []).forEach((p) => { S.batchOf[p.trace_id] ??= b.name; });
     });
   }
-  if ("manifest" in d || "wl" in d) fillScopeFilter();
+  if ("manifest" in d || "wl" in d || "judges" in d) fillScopeFilter();
   Object.entries(d).forEach(([k, v]) => { S.sig[k] = JSON.stringify(v); });
 }
 
@@ -1205,6 +1222,13 @@ function fillScopeFilter() {
       esc(b.name)} (${count})</option>`);
   });
   opts.push(`<option value="offsample">off-manifest (${S.pool.length - n})</option>`);
+  // One option per judge of a current mode: traces where its verdict differs
+  // from the human label.
+  modeJudges().forEach(([jid, j]) => {
+    const d = judgeDisagreements(jid).length;
+    opts.push(`<option value="judge:${esc(jid)}">judge disagreements: ${esc(jid.replace(/^.*-(v\d+)$/, "$1"))} ${
+      esc(j.model)} (${d}/${Object.keys(j.predictions).length})</option>`);
+  });
   opts.push(`<option value="all">all traces (${S.pool.length})</option>`);
   $("#filter-scope").innerHTML = opts.join("");
   // With no manifest, "in sample" would select nothing, which reads as a
@@ -1220,6 +1244,10 @@ function visible() {
   // the first one decides whether reading it counts toward the 100.
   if (f === "sample") return S.pool.filter(inSample);
   if (f === "offsample") return S.pool.filter((t) => !inSample(t));
+  if (f.startsWith("judge:")) {
+    const ids = new Set(judgeDisagreements(f.slice(6)));
+    return S.pool.filter((t) => ids.has(t.trace_id));
+  }
   if (f.startsWith("batch:")) {
     const name = f.slice(6);
     // Every trace the batch lists, including ones counted in an earlier batch,
@@ -1958,9 +1986,48 @@ function renderLabels(t) {
       <button class="fail ${v === 1 ? "on" : ""}" data-m="${esc(m.name)}" data-v="1">F</button>
     </div>`;
   }).join("");
+  $("#labels").innerHTML += judgePanel(t);
   $("#labels").querySelectorAll("button[data-m]").forEach((b) => {
     b.onclick = () => setLabel(b.dataset.m, +b.dataset.v);
   });
+}
+
+// ---------------------------------------------------------------- HW5 judges
+// Judges whose mode is in the taxonomy, oldest version first.
+function modeJudges() {
+  const names = new Set(S.modes.map((m) => m.name));
+  return Object.entries(S.judges)
+    .filter(([, j]) => names.has(j.mode) && Object.keys(j.predictions || {}).length)
+    .sort(([, a], [, b]) => String(a.created_at).localeCompare(String(b.created_at)));
+}
+
+// The human label as Pass = 1 (the mode's label files store 1 = failure).
+function humanPass(mode, id) {
+  const rec = (S.labels[mode] || {})[id];
+  return rec ? 1 - rec.label : null;
+}
+
+function judgeDisagreements(jid) {
+  const j = S.judges[jid];
+  if (!j) return [];
+  return Object.entries(j.predictions)
+    .filter(([id, p]) => { const h = humanPass(j.mode, id); return h !== null && h !== p; })
+    .map(([id]) => id);
+}
+
+// Each judge's verdict and critique for this trace, beside the human label.
+function judgePanel(t) {
+  const rows = modeJudges().filter(([, j]) => t.trace_id in j.predictions);
+  if (!rows.length) return "";
+  return `<h4>Judges</h4>` + rows.map(([jid, j]) => {
+    const p = j.predictions[t.trace_id], h = humanPass(j.mode, t.trace_id);
+    const agree = h === null ? "" : h === p ? '<span class="jok">= you</span>' : '<span class="jno">≠ you</span>';
+    const crit = j.critiques[t.trace_id] || "";
+    return `<details class="judge"${h !== null && h !== p ? " open" : ""}>
+      <summary><span class="jv ${p ? "P" : "F"}">${p ? "Pass" : "Fail"}</span>
+        <span class="jid">${esc(jid.replace(/^.*-(v\d+)$/, "$1"))} · ${esc(j.model)}${j.status === "frozen" ? " · frozen" : ""}</span>${agree}</summary>
+      <div class="jc">${esc(crit)}</div></details>`;
+  }).join("");
 }
 
 // snake_case mode names read as prose in the panel and the grid headers.

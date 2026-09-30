@@ -1493,6 +1493,61 @@
       "quote": "Order 6039 had not shipped yet — its status was placed with no shipped date — so I cancelled it successfully.\n\nCurrent status: cancelled.",
       "ts": "2026-09-27T19:35:54.884Z",
       "source": "human"
+    },
+    {
+      "id": "amuko74m5nka6",
+      "trace_id": "704df2c3cba566b2de3d791d3e752086",
+      "session_id": "563d5296f8bb40a1bafc94fbca61c3b2",
+      "scenario_id": "support-0180",
+      "note": "This is extraneous information. Just needs to say 30 days from delivery.",
+      "anchor": "s16",
+      "quote": "Harbor Knits uses Cartwheel’s standard 30-day return window,",
+      "ts": "2026-09-28T03:10:47.069Z",
+      "source": "human"
+    },
+    {
+      "id": "amuko83iz28bv",
+      "trace_id": "4cb3ddec0a7cc88b80411b358450fa0d",
+      "session_id": "2bb1f1f93b034e08969e6cc5cc68f197",
+      "scenario_id": "support-0136",
+      "note": "User didn't ask for this.",
+      "anchor": "s4",
+      "quote": "Your store is using Cartwheel’s platform default return window and does not override it.",
+      "ts": "2026-09-28T03:11:32.316Z",
+      "source": "human"
+    },
+    {
+      "id": "amukoapxl9kpf",
+      "trace_id": "0e53f4e5f417745ca668783d28012cf5",
+      "session_id": "919070da1980444e854dc41c43fb74e0",
+      "scenario_id": "support-0238",
+      "note": "This is extra information at this time in the conversation.",
+      "anchor": "s10",
+      "quote": "nce you confirm the order ID, I’ll look up that order’s refund eligibility and proceed from there. If approved, refunds go back to the original payment method and usually arrive in 5–10 business days; refunds over $100 are queued for human review before any money moves",
+      "ts": "2026-09-28T03:13:34.666Z",
+      "source": "human"
+    },
+    {
+      "id": "amukoczu1dko1",
+      "trace_id": "cb1bdd24112dce17038b78061059fcf7",
+      "session_id": "5e455aefdf5b4d66820a6faf7bd0825d",
+      "scenario_id": "support-0247",
+      "note": "This is extra information, but actually useful context for shaping the user's expectations.",
+      "anchor": "s18",
+      "quote": "Approved refunds go back to the original payment method and usually arrive in 5–10 business days (cw-refunds).\nCartwheel charge disputes are handled by a human support agent, not automatically (cw-disputes).\nCartwheel’s dispute window is up to 60 days after delivery (cw-disputes). This order shows delivered on 2026-04-30, so a human will need to review what options are available.",
+      "ts": "2026-09-28T03:15:20.809Z",
+      "source": "human"
+    },
+    {
+      "id": "amukofguoz77i",
+      "trace_id": "4fe2b813cacdffc0072fd5f7e1048945",
+      "session_id": "1888096970b74edaafa4b6f93ecd99b3",
+      "scenario_id": "support-0005",
+      "note": "It should have looked up the titles of what's in the order",
+      "anchor": "s4",
+      "quote": "I don’t see the product title in the order lookup, but it does show this was a Northwind Books order.",
+      "ts": "2026-09-28T03:17:16.176Z",
+      "source": "human"
     }
   ]
 }

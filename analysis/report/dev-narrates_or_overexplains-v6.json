@@ -1,0 +1,26 @@
+{
+  "judge_id": "narrates_or_overexplains-v6",
+  "model": "gpt-5.6-terra",
+  "prompt_path": "(registered prompt 53799fd1ed10)",
+  "split": "dev",
+  "tpr": 1.0,
+  "tnr": 0.875,
+  "tpr_interval": [
+    0.8569,
+    1.0
+  ],
+  "tnr_interval": [
+    0.6398,
+    0.965
+  ],
+  "agreement": 0.9487,
+  "tp": 23,
+  "fn": 0,
+  "tn": 14,
+  "fp": 2,
+  "n": 39,
+  "disagreements": [
+    "704df2c3cba566b2de3d791d3e752086",
+    "cdd173cd61973b71cf41a21def903325"
+  ]
+}

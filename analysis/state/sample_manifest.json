@@ -2126,6 +2126,278 @@
           ]
         }
       ]
+    },
+    {
+      "name": "wl-hw5-uncertain",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "The most uncertain of Claude's unreviewed narrates labels before the HW5 export: single-sentence judgement calls and a label that conflicts with the reviewer's note.",
+      "selected_at": "2026-09-28T02:59:04+00:00",
+      "size": 9,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "704df2c3cba566b2de3d791d3e752086",
+          "reason": "Is this policy sentence the one-line reason, or background (N3)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "Refusing a return, the reply adds 'the window is counted from the delivery date, not the purchase date' and that the store uses the standard window.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "4cb3ddec0a7cc88b80411b358450fa0d",
+          "reason": "Is this policy sentence the one-line reason, or background (N3)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "Answers '30 days', then adds 'Your store is using Cartwheel's platform default return window and does not override it' (the cbb6f00b pattern you failed).",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "cdd173cd61973b71cf41a21def903325",
+          "reason": "Is this policy sentence the one-line reason, or background (N3)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "The user said 'I don't care about the fine print'; the reply confirms the ticket and adds 'Cartwheel disputes are reviewed by human support, not handled automatically'.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "0e53f4e5f417745ca668783d28012cf5",
+          "reason": "Refund timing when no refund was issued (N3)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "The agent only asks which order to refund, but adds refund method, 5–10 day timing and the over-$100 review rule. Differs from your Pass on 245cc112, where the refund had just been issued.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "cb1bdd24112dce17038b78061059fcf7",
+          "reason": "Refund timing on a dispute (N3)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "The user wants to dispute a charge; the reply adds refund method and 5–10 day timing plus dispute-window notes.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "4fe2b813cacdffc0072fd5f7e1048945",
+          "reason": "Missing-information disclosure or narration (N1)?",
+          "checks": [
+            "My label: FAIL. You have not reviewed it.",
+            "'I don't see the product title in the order lookup, but it does show this was a Northwind Books order.' RESP-3 allows saying information is missing; RESP-6 bars describing the lookup.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "cad98979f6350b29971be7daaa1ecb86",
+          "reason": "Your own note vs your detail ruling",
+          "checks": [
+            "My label: PASS. You have not reviewed it.",
+            "Refusing a cancellation, the reply says 'already shipped and was marked delivered' and adds that it isn't refund-eligible. Your note says 'If it was delivered, it implies that it was shipped'. Your ruling allows order details, so it is Pass.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "91f77f79b3df3de2d6f0d85419b23209",
+          "reason": "Support-user status reply: Pass under your detail ruling?",
+          "checks": [
+            "My label: PASS. You have not reviewed it.",
+            "'Order 6562 is showing as delivered, not still in transit', then total, refund eligibility and dates. Pass because order details are allowed; nothing else seems extra.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        },
+        {
+          "trace_id": "f4ac51fb8edfc271066172e7eac7f000",
+          "reason": "Support-user status reply: Pass under your detail ruling?",
+          "checks": [
+            "My label: PASS. You have not reviewed it.",
+            "'Order 7177 is delivered', then dates, quantity, total and refund eligibility ('not eligible in the order system'). Pass under the detail ruling.",
+            "Relabel in the Labels panel if you disagree; mark done (d) to accept."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-hw5-train",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "The HW5 training split, for choosing prompt examples. Proposed examples first.",
+      "selected_at": "2026-09-28T19:32:48+00:00",
+      "size": 20,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "7f2e8bcfe642dc217416ab7888a89862",
+          "reason": "Training split: FAIL (confirmed by reviewer) — proposed clear Fail",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "50c6af2af338cce790c8a3ab170c12af",
+          "reason": "Training split: PASS (claude unreviewed) — proposed clear Pass",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "44b9269f1ceecfd337c0c8115fd993ce",
+          "reason": "Training split: PASS (set by reviewer) — proposed borderline Pass",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "fe99e8f6b9c7444acd73f7c1e2caf33d",
+          "reason": "Training split: FAIL (set by reviewer) — proposed borderline Fail",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "0317bb73293411dc01b9577dc52735bd",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "177c18604b61a4612411654ddeac3b4c",
+          "reason": "Training split: FAIL (confirmed by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "415174a77da5b1068b5654b5d75d463f",
+          "reason": "Training split: FAIL (set by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "41e68abb1ace115b1d0f88a61213bcc5",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "58220a254399d6a85a80e6220c8120ce",
+          "reason": "Training split: FAIL (set by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "681a31760df2c03f6343385eef5eb811",
+          "reason": "Training split: FAIL (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "6a2c28665db0a00070e6636e90e7e8d3",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "6d77abadb76231334e3bc85612b3b8ff",
+          "reason": "Training split: FAIL (set by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "708d317f5baa2c3bd2fff32264ba61c2",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "862155f7ce1aa8180c1657cffbe47fdd",
+          "reason": "Training split: PASS (set by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "876c4690ccb5aa2f4b90d313199dd49f",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "8bad20df566b934bcadf23237120e105",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "c2e7306d7ee7a6226e5e68e62034d142",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "f40c900a0ac8c09689d0209842b5bc81",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "f6b7d73b685fdb17594dae4099e99384",
+          "reason": "Training split: PASS (claude unreviewed)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        },
+        {
+          "trace_id": "fc301510846d2936512cf3162415b19a",
+          "reason": "Training split: FAIL (set by reviewer)",
+          "checks": [
+            "Only training traces may be used as prompt examples."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wl-hw5-dev-v1",
+      "worklist": true,
+      "mode": "narrates_or_overexplains",
+      "method": "Dev disagreements between judge narrates_or_overexplains-v1 (gpt-5.6-terra) and the HW5 labels.",
+      "selected_at": "2026-09-28T21:24:29+00:00",
+      "size": 2,
+      "note": "Review worklist limited to traces already in the 100-trace sample; it adds no traces and does not count toward any batch.",
+      "picks": [
+        {
+          "trace_id": "b1dd5bac0139c6006dad82c5b99a9c17",
+          "reason": "terra (v1) says Fail; the label says Pass (claude unreviewed)",
+          "checks": [
+            "Read the judge's critique in the Labels panel.",
+            "Decide: the judge is wrong (fix the prompt), the label is wrong (relabel here; I re-export and recalculate), or the definition is unclear (clarify the boundary and recheck similar labels).",
+            "Tell me which, so the decision goes in hw5-log.md."
+          ]
+        },
+        {
+          "trace_id": "cfa2975a6ee5a9d6cdd7a583ead4fbbe",
+          "reason": "terra (v1) says Fail; the label says Pass (claude unreviewed)",
+          "checks": [
+            "Read the judge's critique in the Labels panel.",
+            "Decide: the judge is wrong (fix the prompt), the label is wrong (relabel here; I re-export and recalculate), or the definition is unclear (clarify the boundary and recheck similar labels).",
+            "Tell me which, so the decision goes in hw5-log.md."
+          ]
+        }
+      ]
     }
   ],
   "pool": "review_pool.json",
