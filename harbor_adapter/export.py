@@ -163,7 +163,7 @@ def _task_toml(case: dict[str, Any], judges: list[dict[str, Any]]) -> str:
         f"mode = {_toml_string(case['mode'])}",
         "",
         "[verifier]",
-        "timeout_sec = 300.0",
+        "timeout_sec = 600.0",
     ]
     keys = sorted({key for judge in judges if (key := _provider_key(judge["model"]))})
     if keys:
@@ -310,6 +310,11 @@ def cartwheel_judge(workspace: Path) -> bool:
         rows = json.loads(output_path.read_text())
     if len(rows) != 1:
         raise ValueError("judge returned an unexpected number of results")
+    # Keep the critique in the verifier log so a verdict can be reviewed later.
+    print("JUDGE_RESULT " + json.dumps(
+        {"critique": rows[0].get("critique"), "result": rows[0].get("result")},
+        ensure_ascii=False,
+    ))
     return _decode(rows[0]) == EXPECTED
 '''
     return (
@@ -344,6 +349,9 @@ ENV UV_LINK_MODE=copy
 ENV OPENAI_AGENTS_DISABLE_TRACING=1
 
 WORKDIR /app
+# Warm the uv cache with the verifier's exact packages so tests/test.sh does
+# not download DocETL's dependencies inside every trial's verifier timeout.
+RUN uvx --from 'harbor-rewardkit==0.2.1' --with 'docetl==0.3.0' rewardkit --help > /dev/null
 COPY cartwheel/pyproject.toml cartwheel/uv.lock cartwheel/README.md /app/
 RUN uv sync --frozen --no-dev --no-install-project
 COPY cartwheel/ /app/

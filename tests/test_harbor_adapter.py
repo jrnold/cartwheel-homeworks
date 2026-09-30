@@ -82,6 +82,7 @@ def test_export_preserves_cartwheel_formats_and_builds_harbor_task(
     assert "--- Trace to evaluate ---" in rubric
     assert '"critique": "string", "result": "string"' in rubric
     assert '"mode": "structured_output"' in rubric
+    assert 'print("JUDGE_RESULT "' in rubric
     assert "judge_trace_text" in rubric
     assert (output / "e-101" / "tests" / "test.sh").stat().st_mode & 0o111
     assert "harbor-rewardkit==0.2.1" in (
@@ -327,3 +328,73 @@ def test_capability_analysis_uses_5_10_and_15_observed_runs(
         "10",
         "15",
     }
+
+
+def _harbor_023_job(job: Path, case_id: str, rewards: list[int]) -> None:
+    """Harbor 0.23.0 layout: totals in the job result.json, one result.json
+    per trial directory. Directories are written in reverse start order."""
+    job.mkdir()
+    (job / "result.json").write_text(json.dumps({"n_total_trials": len(rewards)}))
+    for attempt in reversed(range(len(rewards))):
+        trial_dir = job / f"{case_id}__z{attempt:02d}"
+        trial_dir.mkdir()
+        trial_dir.joinpath("result.json").write_text(json.dumps({
+            "task_name": f"cartwheel/evals__{case_id}",
+            "trial_name": trial_dir.name,
+            "started_at": f"2026-09-29T22:{attempt:02d}:00",
+            "verifier_result": {"rewards": {"reward": rewards[attempt]}},
+            "agent_info": {"model_info": {"provider": "openai", "name": "gpt-x"}},
+            "exception_info": None,
+        }))
+
+
+def test_summary_reads_harbor_023_per_trial_results(tmp_path: Path) -> None:
+    cases_path = tmp_path / "cases.jsonl"
+    _write_cases(cases_path, [{
+        "id": "e-501",
+        "mode": "response_quality",
+        "input": {"role": "shopper", "user_id": 1, "message": "hello"},
+        "initial_state": {"world": "reseed", "fixture": None},
+        "expected": {"checks": [{"check": "reply_asks_question"}]},
+    }])
+    job = tmp_path / "job"
+    _harbor_023_job(job, "e-501", [1, 1, 0, 1, 1])
+
+    markdown, _ = summarize_job(
+        job, cases_path=cases_path, expected_attempts=5, classify=True
+    )
+
+    assert "`e-501`" in markdown
+    assert "| 4 | 5 |" in markdown
+
+
+def test_analysis_orders_harbor_023_trials_by_start_time(tmp_path: Path) -> None:
+    job = tmp_path / "job"
+    rewards = [1, 0, 0] + [1] * 12
+    _harbor_023_job(job, "e-502", rewards)
+
+    result = analyze_capability_job(job, "e-502")
+
+    assert result["rewards"] == rewards
+    assert result["trials"][0]["trial_name"] == "e-502__z00"
+    assert result["trial_order"].startswith("trial started_at order")
+    assert result["model"] == "openai/gpt-x"
+
+
+def test_verifier_packages_are_cached_in_the_image(tmp_path: Path) -> None:
+    cases_path = tmp_path / "cases.jsonl"
+    _write_cases(cases_path, [{
+        "id": "e-503",
+        "mode": "response_quality",
+        "kind": "regression",
+        "input": {"role": "shopper", "user_id": 1, "message": "hello"},
+        "initial_state": {"world": "reseed", "fixture": None},
+        "expected": {"assertions": ["asks"], "checks": [{"check": "reply_asks_question"}]},
+    }])
+    export_tasks(cases_path, tmp_path / "tasks", require_suite=False)
+    task = tmp_path / "tasks" / "e-503"
+
+    dockerfile = (task / "environment" / "Dockerfile").read_text()
+    warm = dockerfile.index("uvx --from 'harbor-rewardkit==0.2.1' --with 'docetl==0.3.0'")
+    assert warm < dockerfile.index("COPY cartwheel/")
+    assert tomllib.loads((task / "task.toml").read_text())["verifier"]["timeout_sec"] == 600.0
