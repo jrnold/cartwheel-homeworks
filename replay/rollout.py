@@ -46,6 +46,17 @@ WRITE_TOOLS = {"issue_refund", "cancel_order"}
 
 REQUIRED_CASE_KEYS = {"id", "mode", "kind", "input", "initial_state", "expected"}
 
+# exposes_internal_identifiers (HW4): a shopper's final reply must not show a
+# Cartwheel policy id (cw-returns), a store policy id (store-meridian-cycles-
+# policy), or a refund id ("Refund ID: 604", "**Refund request ID:** 582",
+# "refund #604"). Markdown emphasis between the label and the number is allowed.
+INTERNAL_ID_RE = re.compile(
+    r"\bcw-[a-z0-9]+(?:-[a-z0-9]+)*"
+    r"|\bstore-[a-z0-9]+(?:-[a-z0-9]+)*-policy\b"
+    r"|\brefund(?:\s+request)?\s*(?:id|#|number|no\.?)(?![a-z])[\s:#*_`()]*\d+",
+    re.IGNORECASE,
+)
+
 
 # ---------------------------------------------------------------------------
 # The evaluation case set
@@ -137,6 +148,7 @@ def _extract_turn(new_items: list[Any]) -> dict[str, Any]:
     calls: dict[str, dict[str, Any]] = {}
     ordered: list[dict[str, Any]] = []
     reply_parts: list[str] = []
+    messages: list[str] = []
     for item in new_items:
         if isinstance(item, ToolCallItem):
             raw = item.raw_item
@@ -157,15 +169,30 @@ def _extract_turn(new_items: list[Any]) -> dict[str, Any]:
             if call_id in calls:
                 calls[call_id]["result"] = item.output
         elif isinstance(item, MessageOutputItem):
-            for part in getattr(item.raw_item, "content", []) or []:
-                text = getattr(part, "text", None)
-                if text:
-                    reply_parts.append(text)
+            texts = [
+                text
+                for part in getattr(item.raw_item, "content", []) or []
+                if (text := getattr(part, "text", None))
+            ]
+            reply_parts.extend(texts)
+            if texts:
+                messages.append("\n".join(texts))
     return {
         "reply": "\n".join(reply_parts),
+        # Each assistant message in order. The last one is the final reply the
+        # user sees; earlier ones are interim notes written before tool calls.
+        "messages": messages,
         "tool_calls": ordered,
         "steps": len(new_items),
     }
+
+
+def final_message(turn: dict[str, Any]) -> str:
+    """The turn's last assistant message, the only one HW4 and HW5 judge."""
+    messages = turn.get("messages")
+    if messages:
+        return messages[-1]
+    return turn.get("reply", "")
 
 
 def run_case(
@@ -233,11 +260,22 @@ def _all_tool_calls(transcript: dict[str, Any], turn: int | None) -> list[dict[s
 
 
 def _one_check(
-    check: dict[str, Any], transcript: dict[str, Any], conn: sqlite3.Connection
+    check: dict[str, Any],
+    transcript: dict[str, Any],
+    conn: sqlite3.Connection,
+    role: str | None = None,
 ) -> tuple[bool, str]:
     """Run one machine-readable check. Returns (ok, description)."""
     kind = check["check"]
     reply = transcript["final_reply"]
+
+    if kind == "reply_no_internal_identifiers":
+        if role != "shopper":
+            return (True, f"internal identifiers allowed for role {role!r}")
+        turns = transcript.get("turns") or []
+        text = final_message(turns[-1]) if turns else reply
+        found = [m.group(0) for m in INTERNAL_ID_RE.finditer(text)]
+        return (not found, f"shopper final reply shows no internal identifier (saw {found or 'none'})")
 
     if kind == "no_write_tools":
         calls = _all_tool_calls(transcript, check.get("turn"))
@@ -315,9 +353,10 @@ def apply_checks(
     end-state database. Returns {"passed", "failed": [descriptions],
     "results": [(ok, description)]}. Judges are separate (:func:`judge_reply`)."""
     conn = sqlite3.connect(db_path)
+    role = case.get("input", {}).get("role")
     try:
         results = [
-            _one_check(check, transcript, conn)
+            _one_check(check, transcript, conn, role)
             for check in case["expected"].get("checks", [])
         ]
     finally:
@@ -368,21 +407,39 @@ def retrieved_docs_text(transcript: dict[str, Any]) -> str:
     return "\n\n".join(chunks) if chunks else "(no policy documents were retrieved)"
 
 
+def _trace_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+
+
 def judge_trace_text(transcript: dict[str, Any]) -> str:
-    """Format a runtime transcript like the normalized traces used in HW5."""
+    """Format a runtime transcript exactly like the HW5 judge inputs.
+
+    Mirrors ``analysis.run_judges._messages`` flattened by
+    ``analysis.helpers.normalization``: earlier turns contribute only what the
+    user saw (``earlier_user``, ``earlier_assistant_reply``); the turn under
+    review keeps every tool call and result with the tool name inside, then
+    its last assistant message as ``final_reply``. Interim assistant messages
+    are dropped, and empty lines are skipped.
+    """
+    turns = transcript.get("turns", [])
     lines: list[str] = []
-    for turn in transcript.get("turns", []):
-        lines.append(f"user: {turn.get('user', '')}")
-        for call in turn.get("tool_calls", []):
-            arguments = json.dumps(
-                call.get("args"), ensure_ascii=False, sort_keys=True, default=str
-            )
-            result = json.dumps(
-                call.get("result"), ensure_ascii=False, sort_keys=True, default=str
-            )
-            lines.append(f"tool_call: {arguments}")
-            lines.append(f"tool_result: {result}")
-        lines.append(f"assistant: {turn.get('reply', '')}")
+
+    def add(role: str, content: str) -> None:
+        if content:
+            lines.append(f"{role}: {content}")
+
+    for index, turn in enumerate(turns):
+        earlier = index < len(turns) - 1
+        add("earlier_user" if earlier else "user", turn.get("user", ""))
+        if not earlier:
+            for call in turn.get("tool_calls", []):
+                add("tool_call", _trace_json(
+                    {"tool": call.get("name"), "arguments": call.get("args") or {}}
+                ))
+                add("tool_result", _trace_json(
+                    {"tool": call.get("name"), "result": call.get("result")}
+                ))
+        add("earlier_assistant_reply" if earlier else "final_reply", final_message(turn))
     return "\n".join(lines)
 
 

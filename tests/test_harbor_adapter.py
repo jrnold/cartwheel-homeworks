@@ -81,6 +81,7 @@ def test_export_preserves_cartwheel_formats_and_builds_harbor_task(
     assert "MODEL = 'provider/frozen-judge-model'" in rubric
     assert "--- Trace to evaluate ---" in rubric
     assert '"critique": "string", "result": "string"' in rubric
+    assert '"mode": "structured_output"' in rubric
     assert "judge_trace_text" in rubric
     assert (output / "e-101" / "tests" / "test.sh").stat().st_mode & 0o111
     assert "harbor-rewardkit==0.2.1" in (

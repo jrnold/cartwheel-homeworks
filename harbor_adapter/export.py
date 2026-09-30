@@ -282,7 +282,12 @@ def cartwheel_judge(workspace: Path) -> bool:
                 + "Use specific evidence from the provided trace. Then return result "
                 + "as exactly Pass when the named failure is absent, or Fail when present."
             ),
-            output={"schema": {"critique": "string", "result": "string"}},
+            # Same output contract as the HW5 wrapper: OpenAI rejects DocETL's
+            # default function tools for gpt-5.6 models at default reasoning.
+            output={
+                "schema": {"critique": "string", "result": "string"},
+                "mode": "structured_output",
+            },
         )
         pipeline = Pipeline(
             name="cartwheel_judge",
