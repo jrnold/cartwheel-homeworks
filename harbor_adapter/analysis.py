@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from tests.eval.passk import pass_at_k
+from tests.eval.passk import pass_at_k, pass_at_k_uncertainty
 
 from harbor_adapter.summary import _reward, load_trial_results
 
@@ -16,6 +16,8 @@ def analyze_capability_job(
     case_id: str,
     *,
     expected_attempts: int = 15,
+    bootstrap_samples: int = 2000,
+    seed: int = 0,
 ) -> dict[str, Any]:
     """Return ordered rewards and pass@k estimates for one capability case."""
     all_trials = load_trial_results(job_dir)
@@ -74,6 +76,14 @@ def analyze_capability_job(
                 "pass_at_k": {
                     str(k): pass_at_k(n, successes, k) for k in ks
                 },
+                # Standard errors from the exact Hoeffding variance, the
+                # large-n approximation, and a bootstrap over these n runs.
+                "pass_at_k_uncertainty": {
+                    str(k): pass_at_k_uncertainty(
+                        observed, k, samples=bootstrap_samples, seed=seed
+                    )
+                    for k in ks
+                },
             }
         )
 
@@ -90,6 +100,7 @@ def analyze_capability_job(
         "n": len(rewards),
         "successes": sum(rewards),
         "comparisons": comparisons,
+        "bootstrap": {"samples": bootstrap_samples, "seed": seed},
     }
 
 
