@@ -23,8 +23,9 @@ reproduces them exactly.
 
 from __future__ import annotations
 
+from enum import StrEnum
 from math import comb
-from typing import Any
+from typing import TypedDict
 
 
 def pass_at_k(n: int, c: int, k: int) -> float:
@@ -58,10 +59,12 @@ def pass_at_k(n: int, c: int, k: int) -> float:
         pass_at_k(8, 6, 4) == 1.0  (only 2 failures, so every 4-subset hits
                                     a success)
     """
-    _check_counts(n, c, k)
-    if n - c < k:
+    ### YOUR CODE HERE (hw6)
+    _validate_counts(n, c, k)
+    if (n - c) < k:
         return 1.0
-    return 1.0 - comb(n - c, k) / comb(n, k)
+    else:
+        return 1.0 - comb(n - c, k) / comb(n, k)
 
 
 def pass_hat_k(n: int, c: int, k: int) -> float:
@@ -92,18 +95,45 @@ def pass_hat_k(n: int, c: int, k: int) -> float:
         pass_hat_k(8, 6, 4) == C(6,4)/C(8,4) == 15/70 == 0.2142857...
         pass_hat_k(8, 6, 8) == 0.0  (not all 8 succeeded)
     """
-    _check_counts(n, c, k)
+    ### YOUR CODE HERE (hw6)
+    _validate_counts(n, c, k)
     if c < k:
         return 0.0
-    return comb(c, k) / comb(n, k)
+    else:
+        return comb(c, k) / comb(n, k)
+
+
+def _validate_counts(n: int, c: int, k: int) -> None:
+    """Raise ValueError unless n >= 1, 0 <= c <= n, and 1 <= k <= n."""
+    if n < 1:
+        raise ValueError(f"n must be at least 1, got {n}")
+    if not 0 <= c <= n:
+        raise ValueError(f"c must be in [0, {n}], got {c}")
+    if not 1 <= k <= n:
+        raise ValueError(f"k must be in [1, {n}], got {k}")
+
+
+class Decision(StrEnum):
+    """Possible CI decisions for an evaluation case."""
+
+    BLOCK = "block"
+    PASS = "pass"
+
+class CaseDecision(TypedDict):
+    decision: Decision
+    reason: str
+
+class EvalKind(StrEnum):
+    CAPABILITY = "capability"
+    REGRESSION = "regression"
 
 
 def case_passes(
-    kind: str,
+    kind: EvalKind,
     passes: int,
     n: int,
     baseline_pass_rate: float | None = None,
-) -> dict[str, Any]:
+) -> CaseDecision:
     """Return the CI decision for one evaluation case run n times.
 
     The evaluation case set holds two kinds of case:
@@ -144,33 +174,27 @@ def case_passes(
         case_passes("capability", 2, 5, 0.6)     -> pass  (never blocks)
         case_passes("capability", 1, 5, 0.6)     -> pass  (never blocks)
     """
-    if kind not in {"regression", "capability"}:
+    ### YOUR CODE HERE (hw6)
+    if kind not in (EvalKind.REGRESSION, EvalKind.CAPABILITY):
         raise ValueError(f"kind must be 'regression' or 'capability', got {kind!r}")
-    if n < 1:
-        raise ValueError(f"n must be at least 1, got {n}")
     if not 0 <= passes <= n:
         raise ValueError(f"passes must be in [0, {n}], got {passes}")
-
-    failed = n - passes
-    if kind == "regression":
-        if failed:
-            return {
-                "decision": "block",
-                "reason": f"regression case failed {failed} of {n} runs",
-            }
-        return {"decision": "pass", "reason": f"regression case passed {n} of {n} runs"}
-
-    baseline = "" if baseline_pass_rate is None else f", baseline {baseline_pass_rate:g}"
-    return {
-        "decision": "pass",
-        "reason": f"capability case passed {passes} of {n}{baseline}, not blocking",
-    }
-
-
-def _check_counts(n: int, c: int, k: int) -> None:
-    if n < 1:
-        raise ValueError(f"n must be at least 1, got {n}")
-    if not 0 <= c <= n:
-        raise ValueError(f"c must be in [0, {n}], got {c}")
-    if not 1 <= k <= n:
-        raise ValueError(f"k must be in [1, {n}], got {k}")
+    if kind == EvalKind.REGRESSION and passes == n:
+        return {
+            "decision": Decision.PASS,
+            "reason": f"regression case passed {passes} of {n} runs."
+        }
+    elif kind == EvalKind.REGRESSION:
+        return {
+            "decision": Decision.BLOCK,
+            "reason": f"regression case failed {n - passes} of {n} runs."
+        }
+    else:
+        baseline = (
+            "no baseline" if baseline_pass_rate is None
+            else f"baseline {baseline_pass_rate:.2f}"
+        )
+        return {
+            "decision": Decision.PASS,
+            "reason": f"capability case passed {passes} of {n} runs, {baseline}, not blocking."
+        }
