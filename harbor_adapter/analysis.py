@@ -6,7 +6,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from tests.eval.passk import pass_at_k, pass_at_k_uncertainty
+from tests.eval.passk import (
+    pass_at_k,
+    pass_at_k_uncertainty,
+    pass_hat_k,
+    pass_hat_k_uncertainty,
+)
 
 from harbor_adapter.summary import _reward, load_trial_results
 
@@ -80,6 +85,16 @@ def analyze_capability_job(
                 # large-n approximation, and a bootstrap over these n runs.
                 "pass_at_k_uncertainty": {
                     str(k): pass_at_k_uncertainty(
+                        observed, k, samples=bootstrap_samples, seed=seed
+                    )
+                    for k in ks
+                },
+                # Reliability on the same runs: the chance all k attempts pass.
+                "pass_hat_k": {
+                    str(k): pass_hat_k(n, successes, k) for k in ks
+                },
+                "pass_hat_k_uncertainty": {
+                    str(k): pass_hat_k_uncertainty(
                         observed, k, samples=bootstrap_samples, seed=seed
                     )
                     for k in ks

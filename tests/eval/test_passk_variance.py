@@ -10,13 +10,18 @@ from tests.eval.passk import (
     pass_at_k_uncertainty,
     pass_at_k_variance,
     pass_at_k_variance_large_n,
+    pass_hat_k,
+    pass_hat_k_bootstrap,
+    pass_hat_k_uncertainty,
+    pass_hat_k_variance,
+    pass_hat_k_variance_large_n,
 )
 
 
-def _brute_force_variance(n: int, k: int, p: float) -> float:
-    """E[(pass_at_k - E pass_at_k)^2] summed over every c ~ Binomial(n, p)."""
+def _brute_force_variance(estimator, n: int, k: int, p: float) -> float:
+    """E[(estimate - E estimate)^2] summed over every c ~ Binomial(n, p)."""
     pmf = [comb(n, c) * p**c * (1 - p) ** (n - c) for c in range(n + 1)]
-    values = [pass_at_k(n, c, k) for c in range(n + 1)]
+    values = [estimator(n, c, k) for c in range(n + 1)]
     mean = sum(w * v for w, v in zip(pmf, values))
     return sum(w * (v - mean) ** 2 for w, v in zip(pmf, values))
 
@@ -25,7 +30,22 @@ def _brute_force_variance(n: int, k: int, p: float) -> float:
 @pytest.mark.parametrize("k", [1, 3, 5])
 @pytest.mark.parametrize("p", [0.0, 0.2, 0.5, 0.8, 1.0])
 def test_hoeffding_variance_matches_the_binomial_distribution(n: int, k: int, p: float) -> None:
-    assert pass_at_k_variance(n, k, p) == pytest.approx(_brute_force_variance(n, k, p), abs=1e-12)
+    assert pass_at_k_variance(n, k, p) == pytest.approx(
+        _brute_force_variance(pass_at_k, n, k, p), abs=1e-12
+    )
+    assert pass_hat_k_variance(n, k, p) == pytest.approx(
+        _brute_force_variance(pass_hat_k, n, k, p), abs=1e-12
+    )
+
+
+def test_pass_hat_k_is_pass_at_k_mirrored() -> None:
+    assert pass_hat_k_variance(15, 5, 0.8) == pytest.approx(pass_at_k_variance(15, 5, 0.2))
+    assert pass_hat_k_variance_large_n(15, 5, 0.8) == pytest.approx(
+        pass_at_k_variance_large_n(15, 5, 0.2)
+    )
+    boot = pass_hat_k_bootstrap([1] * 12 + [0] * 3, 3, samples=20000, seed=1)
+    assert boot["se"] == pytest.approx(pass_hat_k_variance(15, 3, 0.8) ** 0.5, rel=0.05)
+    assert pass_hat_k_uncertainty([0] * 5, 3)["se_bootstrap"] == 0.0
 
 
 def test_hoeffding_variance_special_cases() -> None:

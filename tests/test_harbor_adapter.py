@@ -379,6 +379,12 @@ def test_analysis_orders_harbor_023_trials_by_start_time(tmp_path: Path) -> None
     assert result["trials"][0]["trial_name"] == "e-502__z00"
     assert result["trial_order"].startswith("trial started_at order")
     assert result["model"] == "openai/gpt-x"
+    last = result["comparisons"][-1]
+    assert set(last["pass_hat_k"]) == set(last["pass_at_k"]) == {"1", "3", "5", "10", "15"}
+    assert last["pass_hat_k"]["15"] == 0.0  # two of the fifteen runs failed
+    assert set(last["pass_hat_k_uncertainty"]["5"]) == {
+        "se_exact", "se_large_n", "se_bootstrap", "bootstrap_ci95",
+    }
 
 
 def test_verifier_packages_are_cached_in_the_image(tmp_path: Path) -> None:

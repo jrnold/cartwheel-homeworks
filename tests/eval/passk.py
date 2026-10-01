@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import random
 import statistics
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from enum import StrEnum
 from math import comb
 from typing import TypedDict
@@ -204,12 +204,17 @@ def case_passes(
 
 
 # ---------------------------------------------------------------------------
-# Sampling variance of the pass@k estimator (Part E, local analysis only)
+# Sampling variance of the pass@k and pass^k estimators (Part E, local only)
 #
-# Each function describes the run-to-run noise in pass_at_k(n, c, k) when the
-# n runs are i.i.d. with per-run pass probability p. The true p is unknown, so
-# the analysis plugs in p_hat = c / n; at c = 0 or c = n every plug-in variance
-# is 0, which reflects the plug-in, not certainty.
+# Each function describes the run-to-run noise in pass_at_k(n, c, k) or
+# pass_hat_k(n, c, k) when the n runs are i.i.d. with per-run pass
+# probability p. The true p is unknown, so the analysis plugs in p_hat = c / n;
+# at c = 0 or c = n every plug-in variance is 0, which reflects the plug-in,
+# not certainty.
+#
+# Both estimators are U-statistics. pass@k's kernel is 1 - 1{all k runs fail}
+# and pass^k's is 1{all k runs pass}, so pass^k's variance is pass@k's with
+# p and q = 1 - p swapped.
 # ---------------------------------------------------------------------------
 
 
@@ -219,25 +224,37 @@ def _check_variance_args(n: int, k: int, p: float) -> None:
         raise ValueError(f"p must be in [0, 1], got {p}")
 
 
+def _all_same_variance(n: int, k: int, r: float) -> float:
+    """Hoeffding variance of the subset average of 1{all k runs have outcome r}.
+
+    Two size-k subsets that share j runs are both all-r with probability
+    r^(2k - j), so their covariance is zeta_j = r^(2k - j) - r^(2k), and
+
+        Var = sum_{j=1..k} C(k, j) C(n - k, k - j) / C(n, k) * zeta_j.
+    """
+    total = comb(n, k)
+    return sum(
+        comb(k, j) * comb(n - k, k - j) / total * (r ** (2 * k - j) - r ** (2 * k))
+        for j in range(1, k + 1)
+    )
+
+
 def pass_at_k_variance(n: int, k: int, p: float) -> float:
     """Exact Var(pass_at_k(n, c, k)) for c ~ Binomial(n, p), by Hoeffding.
 
-    pass@k is a U-statistic whose kernel is 1 - 1{all k runs fail}. Two size-k
-    subsets of the n runs that share j runs both fail entirely with
-    probability q^(2k - j), q = 1 - p, so with covariance
-    zeta_j = q^(2k - j) - q^(2k), and
-
-        Var = sum_{j=1..k} C(k, j) C(n - k, k - j) / C(n, k) * zeta_j.
-
-    Cost: O(k) terms.
+    zeta_j = q^(2k - j) - q^(2k) with q = 1 - p. Cost: O(k) terms.
     """
     _check_variance_args(n, k, p)
-    q = 1.0 - p
-    total = comb(n, k)
-    return sum(
-        comb(k, j) * comb(n - k, k - j) / total * (q ** (2 * k - j) - q ** (2 * k))
-        for j in range(1, k + 1)
-    )
+    return _all_same_variance(n, k, 1.0 - p)
+
+
+def pass_hat_k_variance(n: int, k: int, p: float) -> float:
+    """Exact Var(pass_hat_k(n, c, k)) for c ~ Binomial(n, p), by Hoeffding.
+
+    zeta_j = p^(2k - j) - p^(2k). Cost: O(k) terms.
+    """
+    _check_variance_args(n, k, p)
+    return _all_same_variance(n, k, p)
 
 
 def pass_at_k_variance_large_n(n: int, k: int, p: float) -> float:
@@ -251,21 +268,24 @@ def pass_at_k_variance_large_n(n: int, k: int, p: float) -> float:
     return k * k * p * q ** (2 * k - 1) / n
 
 
-def pass_at_k_bootstrap(
+def pass_hat_k_variance_large_n(n: int, k: int, p: float) -> float:
+    """Large-n approximation k^2 q p^(2k - 1) / n (the j = 1 term only).
+
+    Reliable only when k^2 / (n p) is small; poor for cases that usually fail.
+    Cost: O(1).
+    """
+    _check_variance_args(n, k, p)
+    q = 1.0 - p
+    return k * k * q * p ** (2 * k - 1) / n
+
+
+def _bootstrap(
     outcomes: Sequence[int],
     k: int,
-    *,
-    samples: int = 2000,
-    seed: int = 0,
+    estimator: Callable[[int, int, int], float],
+    samples: int,
+    seed: int,
 ) -> dict[str, float]:
-    """Nonparametric bootstrap of pass@k over the observed runs.
-
-    Resamples the n pass/fail outcomes with replacement ``samples`` times and
-    recomputes pass@k each time. Returns the bootstrap standard error and a
-    95% percentile interval. For i.i.d. 0/1 runs the bootstrap variance
-    converges to pass_at_k_variance(n, k, c / n) as ``samples`` grows.
-    Cost: O(samples * n).
-    """
     n = len(outcomes)
     _validate_counts(n, 0, k)
     if any(outcome not in (0, 1) for outcome in outcomes):
@@ -274,7 +294,7 @@ def pass_at_k_bootstrap(
         raise ValueError(f"samples must be at least 2, got {samples}")
     rng = random.Random(seed)
     estimates = sorted(
-        pass_at_k(n, sum(rng.choices(outcomes, k=n)), k) for _ in range(samples)
+        estimator(n, sum(rng.choices(outcomes, k=n)), k) for _ in range(samples)
     )
     cuts = statistics.quantiles(estimates, n=40, method="inclusive")
     return {
@@ -284,23 +304,68 @@ def pass_at_k_bootstrap(
     }
 
 
-def pass_at_k_uncertainty(
+def pass_at_k_bootstrap(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float]:
+    """Nonparametric bootstrap of pass@k over the observed runs.
+
+    Resamples the n pass/fail outcomes with replacement ``samples`` times and
+    recomputes pass@k each time. Returns the bootstrap standard error and a
+    95% percentile interval. For i.i.d. 0/1 runs the bootstrap variance
+    converges to pass_at_k_variance(n, k, c / n) as ``samples`` grows.
+    Cost: O(samples * n).
+    """
+    return _bootstrap(outcomes, k, pass_at_k, samples, seed)
+
+
+def pass_hat_k_bootstrap(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float]:
+    """Nonparametric bootstrap of pass^k; see :func:`pass_at_k_bootstrap`."""
+    return _bootstrap(outcomes, k, pass_hat_k, samples, seed)
+
+
+def _uncertainty(
     outcomes: Sequence[int],
     k: int,
-    *,
-    samples: int = 2000,
-    seed: int = 0,
+    exact: Callable[[int, int, float], float],
+    large_n: Callable[[int, int, float], float],
+    estimator: Callable[[int, int, int], float],
+    samples: int,
+    seed: int,
+) -> dict[str, float | list[float]]:
+    n = len(outcomes)
+    p_hat = sum(outcomes) / n
+    bootstrap = _bootstrap(outcomes, k, estimator, samples, seed)
+    return {
+        "se_exact": exact(n, k, p_hat) ** 0.5,
+        "se_large_n": large_n(n, k, p_hat) ** 0.5,
+        "se_bootstrap": bootstrap["se"],
+        "bootstrap_ci95": [bootstrap["ci95_low"], bootstrap["ci95_high"]],
+    }
+
+
+def pass_at_k_uncertainty(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
 ) -> dict[str, float | list[float]]:
     """Compare the three standard errors for one pass@k estimate.
 
     The exact and large-n values use the plug-in p_hat = c / n.
     """
-    n = len(outcomes)
-    p_hat = sum(outcomes) / n
-    bootstrap = pass_at_k_bootstrap(outcomes, k, samples=samples, seed=seed)
-    return {
-        "se_exact": pass_at_k_variance(n, k, p_hat) ** 0.5,
-        "se_large_n": pass_at_k_variance_large_n(n, k, p_hat) ** 0.5,
-        "se_bootstrap": bootstrap["se"],
-        "bootstrap_ci95": [bootstrap["ci95_low"], bootstrap["ci95_high"]],
-    }
+    return _uncertainty(
+        outcomes, k, pass_at_k_variance, pass_at_k_variance_large_n, pass_at_k,
+        samples, seed,
+    )
+
+
+def pass_hat_k_uncertainty(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float | list[float]]:
+    """Compare the three standard errors for one pass^k estimate.
+
+    The exact and large-n values use the plug-in p_hat = c / n.
+    """
+    return _uncertainty(
+        outcomes, k, pass_hat_k_variance, pass_hat_k_variance_large_n, pass_hat_k,
+        samples, seed,
+    )
