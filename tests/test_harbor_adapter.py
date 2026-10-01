@@ -387,6 +387,35 @@ def test_analysis_orders_harbor_023_trials_by_start_time(tmp_path: Path) -> None
     }
 
 
+def test_analysis_cli_accepts_a_regression_case(tmp_path: Path, monkeypatch) -> None:
+    from scripts import analyze_harbor_job
+
+    cases_path = tmp_path / "cases.jsonl"
+    _write_cases(cases_path, [{
+        "id": "e-504",
+        "mode": "response_quality",
+        "kind": "regression",
+        "input": {"role": "shopper", "user_id": 1, "message": "hello"},
+        "initial_state": {"world": "reseed", "fixture": None},
+        "expected": {"assertions": ["asks"], "checks": [{"check": "reply_asks_question"}]},
+    }])
+    job = tmp_path / "job"
+    _harbor_023_job(job, "e-504", [1] * 14 + [0])
+    out = tmp_path / "e-504-15.json"
+    monkeypatch.setattr("sys.argv", [
+        "analyze_harbor_job.py", str(job), "--case", "e-504",
+        "--cases", str(cases_path), "--out", str(out), "--bootstrap-samples", "200",
+    ])
+
+    analyze_harbor_job.main()
+
+    result = json.loads(out.read_text())
+    assert result["kind"] == "regression"
+    last = result["comparisons"][-1]
+    assert last["successes"] == 14
+    assert last["pass_hat_k"]["5"] == pytest.approx(10 / 15)
+
+
 def test_verifier_packages_are_cached_in_the_image(tmp_path: Path) -> None:
     cases_path = tmp_path / "cases.jsonl"
     _write_cases(cases_path, [{

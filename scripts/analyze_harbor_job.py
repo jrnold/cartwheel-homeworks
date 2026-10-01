@@ -1,4 +1,8 @@
-"""Write the Homework 6 pass@k comparison from a Harbor job."""
+"""Write the Homework 6 pass@k / pass^k comparison for one case from a Harbor job.
+
+Part E requires a capability case; a regression case can be analyzed the same
+way.
+"""
 
 from __future__ import annotations
 
@@ -25,13 +29,14 @@ def main() -> None:
     case = cases.get(args.case_id)
     if case is None:
         parser.error(f"unknown case id: {args.case_id}")
-    if case["kind"] != "capability":
-        parser.error(f"{args.case_id} is not a capability case")
+    if case["kind"] not in {"capability", "regression"}:
+        parser.error(f"{args.case_id} has no baseline classification")
     analysis = analyze_capability_job(
         args.job_dir,
         args.case_id,
         bootstrap_samples=args.bootstrap_samples,
         seed=args.seed,
+        kind=case["kind"],
     )
     write_analysis(args.out, analysis)
     print(f"Wrote {args.out}")

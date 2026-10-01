@@ -23,8 +23,14 @@ def analyze_capability_job(
     expected_attempts: int = 15,
     bootstrap_samples: int = 2000,
     seed: int = 0,
+    kind: str | None = None,
 ) -> dict[str, Any]:
-    """Return ordered rewards and pass@k estimates for one capability case."""
+    """Return ordered rewards and pass@k / pass^k estimates for one case.
+
+    Homework 6 requires a capability case; a regression case run the same way
+    shows how much its 5-of-5 baseline says about reliability. ``kind`` is
+    recorded in the result.
+    """
     all_trials = load_trial_results(job_dir)
     listed = "trial_results" in json.loads((job_dir / "result.json").read_text())
     trials = [
@@ -104,6 +110,7 @@ def analyze_capability_job(
 
     return {
         "case_id": case_id,
+        "kind": kind,
         "model": next(iter(models)),
         "trial_order": (
             "result.json trial_results order"
