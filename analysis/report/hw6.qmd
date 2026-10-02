@@ -11,19 +11,11 @@ execute:
   cache: false
 ---
 
-Code cells recompute every number from the committed case file, `ci-runs.json`, the `eval_results/` analyses, and the local Harbor job directories under `.harbor/jobs` (which are not committed). Rendering calls no model:
+Every number is computed from the committed files and the local Harbor jobs in `.harbor/jobs`. Rendering calls no model:
 
 ```bash
 uv run --with jupyter quarto render analysis/report/hw6.qmd
 ```
-
-The sections follow the five parts of the video:
-
-1. [The evaluation cases and the HW4 failure modes they cover](#cases)
-2. [One regression and one capability case, with five baseline runs each](#baseline)
-3. [pass@k and pass^k, using these results](#metrics)
-4. [The two GitHub Actions runs](#ci)
-5. [A capability case after 5, 10, and 15 observed runs](#trial-count)
 
 ```{python}
 import json
@@ -47,7 +39,8 @@ CI = json.loads((ROOT / "ci-runs.json").read_text())
 
 # Cases shown in the video.
 REGRESSION_EXAMPLE = "e-011"  # also the case broken on purpose in Part D
-CAPABILITY_EXAMPLE = "e-004"
+CAPABILITY_EXAMPLE = "e-002"
+PASSK_EXAMPLE = "e-004"  # Part C worked example; has a 15-run analysis
 # Part E analyses: case -> 15-run Harbor job. e-004 uses code checks only;
 # e-008 and e-009 are decided by the frozen narrates_or_overexplains-v6 judge.
 TRIAL_COUNT_JOBS = {
@@ -110,10 +103,6 @@ def table(headers, rows):
     return Markdown("\n".join(lines))
 
 
-def marks(rewards):
-    return " ".join("✓" if r == 1 else "✗" for r in rewards)
-
-
 def quote(text, highlight=False, literal=False):
     if literal:  # definitions use * as a wildcard (cw-*), not as emphasis
         text = text.replace("*", r"\*")
@@ -134,19 +123,19 @@ by_mode = {}
 for c in CASES.values():
     by_mode.setdefault(c["mode"], []).append(c["id"])
 display(Markdown(
-    f"There are **{len(CASES)} cases** from **{len(by_mode)} failure modes** observed in Homework 4. "
-    "Each case starts from the shopper or merchant message in an HW4 trace and runs in a freshly seeded database."
+    f"**{len(CASES)} cases** from **{len(by_mode)} HW4 failure modes**. "
+    "Each case reuses the user's message from an HW4 trace."
 ))
 display(table(
     ["Failure mode", "Cases", "How a run is scored"],
-    [(f"`{m}`", f"{len(ids)} ({', '.join(ids)})",
+    [(f"`{m}`", f"{len(ids)}",
       "code checks + frozen `narrates_or_overexplains-v6` judge" if any("judges" in CASES[i]["expected"] for i in ids)
       else "code checks only")
      for m, ids in by_mode.items()],
 ))
 ```
 
-The HW4 failure-mode definitions, as written in `analysis/state/patterns.json`:
+Mode definitions:
 
 ```{python}
 for m in by_mode:
@@ -155,7 +144,7 @@ for m in by_mode:
 
 ```{python}
 #| label: tbl-cases
-#| tbl-cap: "Cases. Checks are exact code checks; a judge is an accepted HW5 judge."
+#| tbl-cap: "Cases. Checks are code checks; the judge is from HW5."
 rows = []
 for cid, c in CASES.items():
     e = c["expected"]
@@ -172,25 +161,22 @@ display(table(["Case", "Mode", "Role", "User message", "HW4 trace / scenario", "
 
 ## 2. Baseline runs and classification {#baseline}
 
-Every case ran five times before it was classified. Five passes makes a case a **regression** case; any failure makes it a **capability** case, and the observed fraction becomes its `baseline_pass_rate`.
+Each case ran five times. 5/5 passes makes it a **regression** case; any failure makes it a **capability** case.
 
 ```{python}
 #| label: tbl-baseline
-#| tbl-cap: "Five baseline runs per case, in start order (✓ pass, ✗ fail)."
+#| tbl-cap: "Five baseline runs per case."
 rows = []
 for cid, ts in BASELINE.items():
-    rewards = [t["reward"] for t in ts]
-    c = sum(r == 1 for r in rewards)
+    c = sum(t["reward"] == 1 for t in ts)
     derived = "regression" if c == 5 else "capability"
     recorded = CASES[cid]["kind"]
     assert derived == recorded, cid
     rate = CASES[cid].get("baseline_pass_rate")
-    rows.append((cid, f"`{CASES[cid]['mode']}`", marks(rewards), f"{c}/5", recorded,
-                 "–" if rate is None else f"{rate:.1f}", BASELINE_JOB[cid]))
-display(table(["Case", "Mode", "Runs", "Passes", "Kind", "Baseline rate", "Harbor job"], rows))
+    rows.append((cid, f"`{CASES[cid]['mode']}`", f"{c}/5", recorded, "–" if rate is None else f"{rate:.1f}"))
+display(table(["Case", "Mode", "Passes", "Kind", "Baseline rate"], rows))
 kinds = [c["kind"] for c in CASES.values()]
-display(Markdown(f"Result: **{kinds.count('regression')} regression** and **{kinds.count('capability')} capability** cases. "
-                 "The recorded `kind` matches the five runs for every case."))
+display(Markdown(f"**{kinds.count('regression')} regression** and **{kinds.count('capability')} capability** cases."))
 ```
 
 ### Regression example
@@ -199,22 +185,16 @@ display(Markdown(f"Result: **{kinds.count('regression')} regression** and **{kin
 def show_case(cid, highlight=False):
     c, ts = CASES[cid], BASELINE[cid]
     display(Markdown(
-        f"**{cid}** (`{c['mode']}`, {c['input']['role']}): {marks(t['reward'] for t in ts)}, "
-        f"**{sum(t['reward'] == 1 for t in ts)}/5**, classified **{c['kind']}**.\n\n"
-        f"User message:\n\n{quote(c['input']['message'])}\n\n"
-        "Expected behavior:\n\n" + "\n".join(f"- {a}" for a in c["expected"]["assertions"])
+        f"**{cid}** (`{c['mode']}`): {sum(t['reward'] != 1 for t in ts)}/{len(ts)} fail, **{c['kind']}**.\n\n"
+        f"User:\n\n{quote(c['input']['message'])}\n\n"
+        "Expected:\n\n" + "\n".join(f"- {a}" for a in c["expected"]["assertions"])
     ))
-    rows = [(i + 1, "✓" if t["reward"] == 1 else "✗",
-             "–" if t["checks"] is None else ("pass" if t["checks"] == 1 else "fail"),
-             "–" if t["judge"] is None else ("pass" if t["judge"] == 1 else "fail"))
-            for i, t in enumerate(ts)]
-    display(table(["Run", "Reward", "Code checks", "Judge"], rows))
 
 
 show_case(REGRESSION_EXAMPLE)
 t = BASELINE[REGRESSION_EXAMPLE][0]
-display(Markdown(f"Final reply in run 1:\n\n{quote(t['reply'])}"
-                 + (f"\n\nJudge critique:\n\n{quote(t['critique'])}" if t["critique"] else "")))
+display(Markdown(f"Reply (run 1):\n\n{quote(t['reply'])}"
+                 + (f"\n\nJudge:\n\n{quote(t['critique'])}" if t["critique"] else "")))
 ```
 
 ### Capability example
@@ -223,24 +203,24 @@ display(Markdown(f"Final reply in run 1:\n\n{quote(t['reply'])}"
 show_case(CAPABILITY_EXAMPLE, highlight=True)
 ts = BASELINE[CAPABILITY_EXAMPLE]
 fail = next(t for t in ts if t["reward"] != 1)
-ok = next(t for t in ts if t["reward"] == 1)
+ok = next((t for t in ts if t["reward"] == 1), None)
 display(Markdown(
-    f"A failing run (run {ts.index(fail) + 1}); internal identifiers are marked ⟦like this⟧:\n\n{quote(fail['reply'], True)}\n\n"
-    f"A passing run (run {ts.index(ok) + 1}):\n\n{quote(ok['reply'], True)}"
+    f"Fail (run {ts.index(fail) + 1}), identifiers marked ⟦like this⟧:\n\n{quote(fail['reply'], True)}"
+    + (f"\n\nPass (run {ts.index(ok) + 1}):\n\n{quote(ok['reply'], True)}" if ok else "")
 ))
 ```
 
 ## 3. pass@k and pass^k {#metrics}
 
-From `n` observed runs with `c` passes, `tests/eval/passk.py` estimates two different things about `k` future attempts:
+With `c` passes in `n` runs:
 
-- **pass@k**, the chance that **at least one** of `k` attempts passes: $1 - \binom{n-c}{k} / \binom{n}{k}$. It measures **capability**: can the agent do this at all if it gets several tries?
-- **pass^k**, the chance that **all** `k` attempts pass: $\binom{c}{k} / \binom{n}{k}$. It measures **reliability**: will every user who asks get the right answer?
+- **pass@k** = chance **at least one** of `k` tries passes = $1 - \binom{n-c}{k} / \binom{n}{k}$. Measures **capability**.
+- **pass^k** = chance **all** `k` tries pass = $\binom{c}{k} / \binom{n}{k}$. Measures **reliability**.
 
-Both equal the pass rate $c/n$ at $k = 1$. As `k` grows, pass@k rises toward 1 and pass^k falls toward 0, unless the case always or never passes.
+At $k = 1$ both equal $c/n$. As `k` grows, pass@k goes up and pass^k goes down.
 
 ```{python}
-case = CAPABILITY_EXAMPLE
+case = PASSK_EXAMPLE
 res = json.loads((ROOT / f"eval_results/{case}-15.json").read_text())
 n, c = res["n"], res["successes"]
 ks = list(range(1, n + 1))
@@ -248,10 +228,8 @@ at = [pass_at_k(n, c, k) for k in ks]
 hat = [pass_hat_k(n, c, k) for k in ks]
 
 display(Markdown(
-    f"Worked example, **{case}** after its {n} Part E runs ({c} passes): "
-    f"pass@1 = pass^1 = {c / n:.2f}. With 3 attempts, the chance that at least one passes is "
-    f"pass@3 = {pass_at_k(n, c, 3):.2f}, but the chance that all three pass is only pass^3 = {pass_hat_k(n, c, 3):.2f}. "
-    f"At k = 5 the values are {pass_at_k(n, c, 5):.2f} and {pass_hat_k(n, c, 5):.2f}."
+    f"Example, **{case}** ({c}/{n} passed): pass@1 = {c / n:.2f}, "
+    f"pass@3 = {pass_at_k(n, c, 3):.2f}, pass^3 = {pass_hat_k(n, c, 3):.2f}."
 ))
 
 fig, ax = plt.subplots(figsize=(7, 3.4))
@@ -271,30 +249,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Shaded bands are 95% bootstrap percentile intervals: the observed runs are resampled with replacement 2,000 times and each estimate is recomputed. They show how much the estimate could move with a different draw of the same number of runs.
-
-At baseline (`n = 5`), every case's metrics and the CI rule from `case_passes`:
-
-```{python}
-#| label: tbl-metrics
-#| tbl-cap: "Baseline metrics (n = 5) and the CI decision each count would produce."
-rows = []
-for cid, ts in BASELINE.items():
-    c = sum(t["reward"] == 1 for t in ts)
-    kind = CASES[cid]["kind"]
-    d = case_passes(kind, c, 5, CASES[cid].get("baseline_pass_rate"))
-    rows.append((cid, kind, f"{c}/5", *(f"{pass_at_k(5, c, k):.2f}" for k in (1, 3, 5)),
-                 *(f"{pass_hat_k(5, c, k):.2f}" for k in (3, 5)), str(d["decision"])))
-display(table(["Case", "Kind", "Passes", "pass@1", "pass@3", "pass@5", "pass^3", "pass^5", "CI decision"], rows))
-```
-
-A regression case blocks CI on any failed run, which is the same as requiring pass^5 = 1 from five new runs. A capability case reports its numbers and never blocks. Even a reliable regression set fails sometimes: with `r` regression cases, each with per-run pass rate `p`, all `5r` runs pass with probability $p^{5r}$.
-
-```{python}
-r = kinds.count("regression")
-display(table([f"Per-run pass rate p", f"P(all {5 * r} regression runs pass) = p^{5 * r}"],
-              [(p, f"{p ** (5 * r):.3f}") for p in (0.95, 0.98, 0.99, 0.999)]))
-```
+Bands are 95% bootstrap intervals (2,000 resamples of the runs).
 
 ## 4. GitHub Actions runs {#ci}
 
@@ -308,16 +263,26 @@ for label, run in [("1. Intentional regression", CI["regression_run"]), ("2. Aft
                  str(d["decision"]), run["result"], f"[run]({run['url']})"))
 display(table(["Run", "Commit", "Change", f"{CI['case_id']} passes", f"{CI['case_id']} decision", "Job result", "Link"], rows))
 other = CI["regression_run"].get("other_blocked_cases")
-if other:
-    display(Markdown(f"Run 1 also blocked on: {', '.join(other)}."))
-display(Markdown(f"Explanation recorded in `ci-runs.json`:\n\n{quote(CI['explanation'])}"))
 ```
 
-Each run's page shows the job summary table (pass count, pass@1, pass@3, pass@5, pass^5, and CI decision for every case) and has the `hw6-evals` Harbor job directory as a downloadable artifact.
+Each run's page has the per-case summary table and the Harbor job as a download.
 
 ## 5. Trial counts: 5, 10, and 15 observed runs {#trial-count}
 
-Each case below ran 15 times on the same agent model as the baseline and CI runs. Each subset is the first `n` trials in Harbor's start order, as recorded in `eval_results/<case>-15.json`. **e-004** is the required Part E case (code checks only). **e-008** and **e-009** are capability cases decided by the frozen `narrates_or_overexplains-v6` judge.
+Each case ran 15 times. `n = 5` and `n = 10` use the first 5 and 10 runs. **e-004** is the required case; **e-008** and **e-009** use the judge.
+
+| Runs observed | Metrics |
+| --- | --- |
+| `n = 5` | pass@1, pass@3, pass@5 |
+| `n = 10` | pass@1, pass@3, pass@5 |
+| `n = 15` | pass@1, pass@3, pass@5, pass@10, pass@15 |
+
+
+::: {.callout-note}
+## Estimate is not stable even at n=15
+
+:::
+
 
 ```{python}
 RESULTS = {cid: json.loads((ROOT / f"eval_results/{cid}-15.json").read_text()) for cid in TRIAL_COUNT_JOBS}
@@ -329,55 +294,60 @@ for cid, job in TRIAL_COUNT_JOBS.items():
 rows = []
 for cid, res in RESULTS.items():
     rows.append((cid, f"`{CASES[cid]['mode']}`", res["model"], f"{CASES[cid]['baseline_pass_rate']:.1f}",
-                 marks(res["rewards"]), f"{res['successes']}/{res['n']}"))
-display(table(["Case", "Mode", "Agent model", "Baseline rate", "15 runs in order", "Passes"], rows))
+                 f"{res['successes']}/{res['n']}"))
+display(table(["Case", "Mode", "Agent model", "Baseline rate", "Passes"], rows))
 ```
 
 ```{python}
 #| label: tbl-trial-count
-#| tbl-cap: "pass@k at each observed run count, with the 95% bootstrap interval for pass@1."
+#| tbl-cap: "pass@k by number of runs, with a 95% interval for pass@1."
 for cid, res in RESULTS.items():
     rows = []
     for comp in res["comparisons"]:
         pak = comp["pass_at_k"]
         lo, hi = comp["pass_at_k_uncertainty"]["1"]["bootstrap_ci95"]
         rows.append((comp["n"], comp["successes"], f"{pak['1']:.2f} [{lo:.2f}, {hi:.2f}]",
-                     *(f"{pak[k]:.2f}" if k in pak else "–" for k in ("3", "5", "10", "15")),
-                     f"{comp['pass_hat_k']['5']:.2f}"))
+                     *(f"{pak[k]:.2f}" if k in pak else "–" for k in ("3", "5", "10", "15"))))
     display(Markdown(f"**{cid}**"))
-    display(table(["n", "Passes", "pass@1 [95% CI]", "pass@3", "pass@5", "pass@10", "pass@15", "pass^5"], rows))
+    display(table(["n", "Passes", "pass@1 [95% CI]", "pass@3", "pass@5", "pass@10", "pass@15"], rows))
 ```
 
 ```{python}
-fig, axes = plt.subplots(len(RESULTS), 3, figsize=(7.5, 6.6), sharex=True, sharey=True)
+NS = [5, 10, 15]
+KS = ("1", "3", "5", "10", "15")
+fig, axes = plt.subplots(len(RESULTS), len(KS), figsize=(10, 6.6), sharex=True, sharey=True)
 for row, (cid, res) in zip(axes, RESULTS.items()):
-    for ax, comp in zip(row, res["comparisons"]):
-        n_, c_ = comp["n"], comp["successes"]
-        ks = list(range(1, n_ + 1))
-        lo, hi = band(res["rewards"][:n_], ks, pass_at_k_bootstrap)
-        ax.fill_between(ks, lo, hi, color=SERIES[0], alpha=0.18, lw=0)
-        ax.plot(ks, [pass_at_k(n_, c_, k) for k in ks], color=SERIES[0], lw=2, marker="o", ms=3.5,
-                markeredgecolor=SURF, markeredgewidth=1)
-        ax.set_title(f"{cid}, n = {n_} ({c_} passed)", loc="left", color=INK, fontsize=9)
+    by_n = {comp["n"]: comp for comp in res["comparisons"]}
+    for ax, k in zip(row, KS):
+        ns = [n_ for n_ in NS if k in by_n[n_]["pass_at_k"]]  # pass@10 and pass@15 exist only at n = 15
+        ys = [by_n[n_]["pass_at_k"][k] for n_ in ns]
+        lo, hi = zip(*(by_n[n_]["pass_at_k_uncertainty"][k]["bootstrap_ci95"] for n_ in ns))
+        if len(ns) > 1:
+            ax.fill_between(ns, lo, hi, color=SERIES[0], alpha=0.18, lw=0)
+        else:
+            ax.errorbar(ns, ys, yerr=[[y - l for y, l in zip(ys, lo)], [h - y for y, h in zip(ys, hi)]],
+                        color=SERIES[0], alpha=0.5, lw=6, capsize=0)
+        ax.plot(ns, ys, color=SERIES[0], lw=2, marker="o", ms=5, markeredgecolor=SURF, markeredgewidth=1)
+        ax.set_title(f"{cid}, pass@{k}", loc="left", color=INK, fontsize=9)
         ax.grid(axis="y", color=GRID, lw=0.8)
-        ax.set_xlim(0.5, 15.5)
-        ax.set_xticks([1, 5, 10, 15])
-    row[0].set_ylabel("pass@k")
+        ax.set_xticks(NS)
+        ax.set_xlim(4, 16)
+    row[0].set_ylabel("Estimate")
 for ax in axes[-1]:
-    ax.set_xlabel("k")
+    ax.set_xlabel("n (observed runs)")
 axes[0][0].set_ylim(-0.03, 1.05)
-fig.suptitle("pass@k with 95% bootstrap intervals, from the first 5, 10, and 15 runs", x=0.01, ha="left", color=INK, fontsize=11)
+fig.suptitle("pass@k with 95% bootstrap intervals, by observed run count", x=0.01, ha="left", color=INK, fontsize=11)
 plt.tight_layout()
 plt.show()
 ```
 
-Each column uses only the first `n` runs, so a curve stops at `k = n`. The band is the same 95% bootstrap interval as in the tables. When every observed run failed (e-009 at `n = 5`), every resample also fails, so the band collapses to zero width. That reflects the small sample, not certainty.
+Shaded bands are 95% bootstrap intervals. pass@10 and pass@15 need at least 10 and 15 runs, so they appear only at `n = 15`. e-009 at `n = 5` has no band because every run failed; that is a small sample, not certainty.
 
-How much each estimate moved when runs were added:
+How much each estimate changed:
 
 ```{python}
 #| label: tbl-movement
-#| tbl-cap: "Change in pass@k between observed run counts."
+#| tbl-cap: "Change in pass@k as runs were added."
 def delta(x):
     return f"{x:+.2f}" if round(x, 2) else "0.00"
 
@@ -390,27 +360,3 @@ for cid, res in RESULTS.items():
                      delta(by_n[10][k] - by_n[5][k]), delta(by_n[15][k] - by_n[10][k])))
 display(table(["Case", "Metric", "n = 5", "n = 10", "n = 15", "Δ 5→10", "Δ 10→15"], rows))
 ```
-
-### What the judge said in e-008 and e-009
-
-In both judge-decided cases the code checks passed every run, so the judge decides each outcome.
-
-```{python}
-for cid in ("e-008", "e-009"):
-    ts = trials(TRIAL_COUNT_JOBS[cid], cid)
-    display(Markdown(
-        f"**{cid}**: code checks passed {sum(t['checks'] == 1 for t in ts)}/{len(ts)}, "
-        f"judge passed {sum(t['judge'] == 1 for t in ts)}/{len(ts)}."
-    ))
-    passing = [t for t in ts if t["judge"] == 1]
-    failing = [t for t in ts if t["judge"] == 0]
-    for t in passing + failing[:1]:
-        verdict = "Judge pass" if t["judge"] == 1 else "Judge fail (example)"
-        display(Markdown(f"*{verdict}, run {ts.index(t) + 1}.* Reply:\n\n{quote(t['reply'])}\n\nCritique:\n\n{quote(t['critique'])}"))
-```
-
-::: {.callout-note}
-## Your conclusion (to write)
-
-Is the estimate stable between 10 and 15 runs? Use the Δ 10→15 column and the pass@1 intervals above. The handout asks you to say so if 15 runs did not produce a stable estimate.
-:::
