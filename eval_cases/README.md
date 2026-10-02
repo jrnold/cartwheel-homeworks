@@ -2,6 +2,16 @@
 
 `cases.jsonl` contains the evaluation cases used by the Homework 6 CI workflow. Each line contains one JSON record. The adapter converts each record into one Harbor task.
 
+## Editing cases
+
+Edit `cases.yaml`, the readable source, and then compile it into the `cases.jsonl` file that the adapter, CI, and replay tools read:
+
+```bash
+uv run python scripts/yaml_jsonl.py compile eval_cases/cases.yaml eval_cases/cases.jsonl
+```
+
+Commit both files. `tests/test_yaml_jsonl.py` fails when `cases.jsonl` is out of date with `cases.yaml`; the same check is available as `--check` on the compile command. The helper also converts an existing JSONL file into YAML (`to-yaml`), and works for any file that holds a list of records.
+
 Homework 6 requires at least 10 cases from at least two failure modes observed in Homework 4. The final set must contain at least one regression case and one capability case. Expanding the set to 30 cases is a stretch goal.
 
 ## Case fields

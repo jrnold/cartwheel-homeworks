@@ -6,9 +6,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-from tests.eval.passk import pass_at_k
+from tests.eval.passk import (
+    pass_at_k,
+    pass_at_k_uncertainty,
+    pass_hat_k,
+    pass_hat_k_uncertainty,
+)
 
-from harbor_adapter.summary import _reward
+from harbor_adapter.summary import _reward, load_trial_results
 
 
 def analyze_capability_job(
@@ -16,15 +21,21 @@ def analyze_capability_job(
     case_id: str,
     *,
     expected_attempts: int = 15,
+    bootstrap_samples: int = 2000,
+    seed: int = 0,
+    kind: str | None = None,
 ) -> dict[str, Any]:
-    """Return ordered rewards and pass@k estimates for one capability case."""
-    result_path = job_dir / "result.json"
-    if not result_path.exists():
-        raise FileNotFoundError(f"Harbor result not found: {result_path}")
-    result = json.loads(result_path.read_text())
+    """Return ordered rewards and pass@k / pass^k estimates for one case.
+
+    Homework 6 requires a capability case; a regression case run the same way
+    shows how much its 5-of-5 baseline says about reliability. ``kind`` is
+    recorded in the result.
+    """
+    all_trials = load_trial_results(job_dir)
+    listed = "trial_results" in json.loads((job_dir / "result.json").read_text())
     trials = [
         trial
-        for trial in result.get("trial_results", [])
+        for trial in all_trials
         if str(trial.get("task_name", "")).endswith(case_id)
     ]
     if len(trials) != expected_attempts:
@@ -76,18 +87,42 @@ def analyze_capability_job(
                 "pass_at_k": {
                     str(k): pass_at_k(n, successes, k) for k in ks
                 },
+                # Standard errors from the exact Hoeffding variance, the
+                # large-n approximation, and a bootstrap over these n runs.
+                "pass_at_k_uncertainty": {
+                    str(k): pass_at_k_uncertainty(
+                        observed, k, samples=bootstrap_samples, seed=seed
+                    )
+                    for k in ks
+                },
+                # Reliability on the same runs: the chance all k attempts pass.
+                "pass_hat_k": {
+                    str(k): pass_hat_k(n, successes, k) for k in ks
+                },
+                "pass_hat_k_uncertainty": {
+                    str(k): pass_hat_k_uncertainty(
+                        observed, k, samples=bootstrap_samples, seed=seed
+                    )
+                    for k in ks
+                },
             }
         )
 
     return {
         "case_id": case_id,
+        "kind": kind,
         "model": next(iter(models)),
-        "trial_order": "result.json trial_results order",
+        "trial_order": (
+            "result.json trial_results order"
+            if listed
+            else "trial started_at order from each trial's result.json"
+        ),
         "trials": trial_records,
         "rewards": rewards,
         "n": len(rewards),
         "successes": sum(rewards),
         "comparisons": comparisons,
+        "bootstrap": {"samples": bootstrap_samples, "seed": seed},
     }
 
 

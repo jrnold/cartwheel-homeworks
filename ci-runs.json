@@ -1,0 +1,21 @@
+{
+  "pull_request": "https://github.com/jrnold/cartwheel-homeworks/pull/15",
+  "case_id": "e-011",
+  "agent_model": "gpt-5.6-terra",
+  "regression_run": {
+    "url": "https://github.com/jrnold/cartwheel-homeworks/actions/runs/36802831747",
+    "commit": "7d07c41",
+    "change": "Temporary system-prompt instruction: when a merchant asks about a policy, walk through the full policy background before answering.",
+    "result": "blocked",
+    "selected_case": {"kind": "regression", "trials": 5, "observed_passes": 3},
+    "other_blocked_cases": ["e-012"]
+  },
+  "revert_run": {
+    "url": "https://github.com/jrnold/cartwheel-homeworks/actions/runs/36803867922",
+    "commit": "1802b82",
+    "change": "git revert of 7d07c41",
+    "result": "passed",
+    "selected_case": {"kind": "regression", "trials": 5, "observed_passes": 5}
+  },
+  "explanation": "The instruction made the frozen narrates_or_overexplains-v6 judge fail e-011 in 2 of 5 runs, and the regression rule blocks on any failed run, so CI run 1 blocked. After the revert, e-011 passed all 5 runs and CI run 2 passed, so the original behavior returned. Five passes do not prove the regression is gone for good: if the per-run pass rate were p, all 15 regression trials pass with probability p^15."
+}

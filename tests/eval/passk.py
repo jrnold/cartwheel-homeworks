@@ -23,8 +23,12 @@ reproduces them exactly.
 
 from __future__ import annotations
 
+import random
+import statistics
+from collections.abc import Callable, Sequence
+from enum import StrEnum
 from math import comb
-from typing import Any
+from typing import TypedDict
 
 
 def pass_at_k(n: int, c: int, k: int) -> float:
@@ -59,7 +63,11 @@ def pass_at_k(n: int, c: int, k: int) -> float:
                                     a success)
     """
     ### YOUR CODE HERE (hw6)
-    raise NotImplementedError("hw6: implement pass_at_k")
+    _validate_counts(n, c, k)
+    if (n - c) < k:
+        return 1.0
+    else:
+        return 1.0 - comb(n - c, k) / comb(n, k)
 
 
 def pass_hat_k(n: int, c: int, k: int) -> float:
@@ -91,15 +99,44 @@ def pass_hat_k(n: int, c: int, k: int) -> float:
         pass_hat_k(8, 6, 8) == 0.0  (not all 8 succeeded)
     """
     ### YOUR CODE HERE (hw6)
-    raise NotImplementedError("hw6: implement pass_hat_k")
+    _validate_counts(n, c, k)
+    if c < k:
+        return 0.0
+    else:
+        return comb(c, k) / comb(n, k)
+
+
+def _validate_counts(n: int, c: int, k: int) -> None:
+    """Raise ValueError unless n >= 1, 0 <= c <= n, and 1 <= k <= n."""
+    if n < 1:
+        raise ValueError(f"n must be at least 1, got {n}")
+    if not 0 <= c <= n:
+        raise ValueError(f"c must be in [0, {n}], got {c}")
+    if not 1 <= k <= n:
+        raise ValueError(f"k must be in [1, {n}], got {k}")
+
+
+class Decision(StrEnum):
+    """Possible CI decisions for an evaluation case."""
+
+    BLOCK = "block"
+    PASS = "pass"
+
+class CaseDecision(TypedDict):
+    decision: Decision
+    reason: str
+
+class EvalKind(StrEnum):
+    CAPABILITY = "capability"
+    REGRESSION = "regression"
 
 
 def case_passes(
-    kind: str,
+    kind: EvalKind,
     passes: int,
     n: int,
     baseline_pass_rate: float | None = None,
-) -> dict[str, Any]:
+) -> CaseDecision:
     """Return the CI decision for one evaluation case run n times.
 
     The evaluation case set holds two kinds of case:
@@ -141,4 +178,248 @@ def case_passes(
         case_passes("capability", 1, 5, 0.6)     -> pass  (never blocks)
     """
     ### YOUR CODE HERE (hw6)
-    raise NotImplementedError("hw6: implement case_passes")
+    if kind not in (EvalKind.REGRESSION, EvalKind.CAPABILITY):
+        raise ValueError(f"kind must be 'regression' or 'capability', got {kind!r}")
+    if not 0 <= passes <= n:
+        raise ValueError(f"passes must be in [0, {n}], got {passes}")
+    if kind == EvalKind.REGRESSION and passes == n:
+        return {
+            "decision": Decision.PASS,
+            "reason": f"regression case passed {passes} of {n} runs."
+        }
+    elif kind == EvalKind.REGRESSION:
+        return {
+            "decision": Decision.BLOCK,
+            "reason": f"regression case failed {n - passes} of {n} runs."
+        }
+    else:
+        baseline = (
+            "no baseline" if baseline_pass_rate is None
+            else f"baseline {baseline_pass_rate:.2f}"
+        )
+        return {
+            "decision": Decision.PASS,
+            "reason": f"capability case passed {passes} of {n} runs, {baseline}, not blocking."
+        }
+
+
+# ---------------------------------------------------------------------------
+# Sampling variance of the pass@k and pass^k estimators (Part E, local only)
+#
+# Each function describes the run-to-run noise in pass_at_k(n, c, k) or
+# pass_hat_k(n, c, k) when the n runs are i.i.d. with per-run pass
+# probability p. The true p is unknown, so the analysis plugs in p_hat = c / n;
+# at c = 0 or c = n every plug-in variance is 0, which reflects the plug-in,
+# not certainty.
+#
+# Both estimators are U-statistics. pass@k's kernel is 1 - 1{all k runs fail}
+# and pass^k's is 1{all k runs pass}, so pass^k's variance is pass@k's with
+# p and q = 1 - p swapped.
+# ---------------------------------------------------------------------------
+
+
+def _check_variance_args(n: int, k: int, p: float) -> None:
+    _validate_counts(n, 0, k)
+    if not 0.0 <= p <= 1.0:
+        raise ValueError(f"p must be in [0, 1], got {p}")
+
+
+def _all_same_variance(n: int, k: int, r: float) -> float:
+    """Hoeffding variance of the subset average of 1{all k runs have outcome r}.
+
+    Two size-k subsets that share j runs are both all-r with probability
+    r^(2k - j), so their covariance is zeta_j = r^(2k - j) - r^(2k), and
+
+        Var = sum_{j=1..k} C(k, j) C(n - k, k - j) / C(n, k) * zeta_j.
+    """
+    total = comb(n, k)
+    return sum(
+        comb(k, j) * comb(n - k, k - j) / total * (r ** (2 * k - j) - r ** (2 * k))
+        for j in range(1, k + 1)
+    )
+
+
+def pass_at_k_variance(n: int, k: int, p: float) -> float:
+    """Exact Var(pass_at_k(n, c, k)) for c ~ Binomial(n, p), by Hoeffding.
+
+    zeta_j = q^(2k - j) - q^(2k) with q = 1 - p. Cost: O(k) terms.
+    """
+    _check_variance_args(n, k, p)
+    return _all_same_variance(n, k, 1.0 - p)
+
+
+def pass_hat_k_variance(n: int, k: int, p: float) -> float:
+    """Exact Var(pass_hat_k(n, c, k)) for c ~ Binomial(n, p), by Hoeffding.
+
+    zeta_j = p^(2k - j) - p^(2k). Cost: O(k) terms.
+    """
+    _check_variance_args(n, k, p)
+    return _all_same_variance(n, k, p)
+
+
+def pass_at_k_variance_large_n(n: int, k: int, p: float) -> float:
+    """Large-n approximation k^2 p q^(2k - 1) / n (the j = 1 term only).
+
+    Reliable only when k^2 / (n q) is small; at n <= 15 it can be off by
+    orders of magnitude for cases that usually pass. Cost: O(1).
+    """
+    _check_variance_args(n, k, p)
+    q = 1.0 - p
+    return k * k * p * q ** (2 * k - 1) / n
+
+
+def pass_hat_k_variance_large_n(n: int, k: int, p: float) -> float:
+    """Large-n approximation k^2 q p^(2k - 1) / n (the j = 1 term only).
+
+    Reliable only when k^2 / (n p) is small; poor for cases that usually fail.
+    Cost: O(1).
+    """
+    _check_variance_args(n, k, p)
+    q = 1.0 - p
+    return k * k * q * p ** (2 * k - 1) / n
+
+
+def _bootstrap(
+    outcomes: Sequence[int],
+    k: int,
+    estimator: Callable[[int, int, int], float],
+    samples: int,
+    seed: int,
+) -> dict[str, float]:
+    n = len(outcomes)
+    _validate_counts(n, 0, k)
+    if any(outcome not in (0, 1) for outcome in outcomes):
+        raise ValueError("outcomes must be 0 or 1")
+    if samples < 2:
+        raise ValueError(f"samples must be at least 2, got {samples}")
+    rng = random.Random(seed)
+    estimates = sorted(
+        estimator(n, sum(rng.choices(outcomes, k=n)), k) for _ in range(samples)
+    )
+    cuts = statistics.quantiles(estimates, n=40, method="inclusive")
+    return {
+        "se": statistics.stdev(estimates),
+        "ci95_low": cuts[0],
+        "ci95_high": cuts[-1],
+    }
+
+
+def pass_at_k_bootstrap(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float]:
+    """Nonparametric bootstrap of pass@k over the observed runs.
+
+    Resamples the n pass/fail outcomes with replacement ``samples`` times and
+    recomputes pass@k each time. Returns the bootstrap standard error and a
+    95% percentile interval. For i.i.d. 0/1 runs the bootstrap variance
+    converges to pass_at_k_variance(n, k, c / n) as ``samples`` grows.
+    Cost: O(samples * n).
+    """
+    return _bootstrap(outcomes, k, pass_at_k, samples, seed)
+
+
+def pass_hat_k_bootstrap(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float]:
+    """Nonparametric bootstrap of pass^k; see :func:`pass_at_k_bootstrap`."""
+    return _bootstrap(outcomes, k, pass_hat_k, samples, seed)
+
+
+def _binomial_cdf(c: int, n: int, p: float) -> float:
+    """P(X <= c) for X ~ Binomial(n, p)."""
+    return sum(comb(n, j) * p**j * (1.0 - p) ** (n - j) for j in range(c + 1))
+
+
+def _solve_decreasing(f: Callable[[float], float], target: float) -> float:
+    """The p in [0, 1] with f(p) == target, for f decreasing in p (bisection)."""
+    lo, hi = 0.0, 1.0
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if f(mid) > target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def clopper_pearson(n: int, c: int, level: float = 0.95) -> tuple[float, float]:
+    """Exact (Clopper-Pearson) interval for the per-run pass probability p.
+
+    The lower bound solves P(X >= c | p) = alpha / 2 and the upper bound
+    solves P(X <= c | p) = alpha / 2, with alpha = 1 - level. Coverage is at
+    least ``level`` for every p, so the interval is conservative. At c = 0 the
+    lower bound is 0, and at c = n the upper bound is 1.
+    """
+    _validate_counts(n, c, 1)
+    if not 0.0 < level < 1.0:
+        raise ValueError(f"level must be in (0, 1), got {level}")
+    alpha = 1.0 - level
+    low = 0.0 if c == 0 else _solve_decreasing(lambda p: _binomial_cdf(c - 1, n, p), 1.0 - alpha / 2)
+    high = 1.0 if c == n else _solve_decreasing(lambda p: _binomial_cdf(c, n, p), alpha / 2)
+    return low, high
+
+
+def pass_at_k_clopper_pearson(n: int, c: int, k: int, level: float = 0.95) -> tuple[float, float]:
+    """Clopper-Pearson interval for pass@k = 1 - (1 - p)^k.
+
+    pass@k increases with p, so mapping both ends of :func:`clopper_pearson`
+    gives an interval with the same coverage (at least ``level``). Unlike the
+    bootstrap, it is not degenerate at c = 0 or c = n. At k near n the
+    unbiased point estimate can fall outside it.
+    """
+    _validate_counts(n, c, k)
+    low, high = clopper_pearson(n, c, level)
+    return 1.0 - (1.0 - low) ** k, 1.0 - (1.0 - high) ** k
+
+
+def pass_hat_k_clopper_pearson(n: int, c: int, k: int, level: float = 0.95) -> tuple[float, float]:
+    """Clopper-Pearson interval for pass^k = p^k; see :func:`pass_at_k_clopper_pearson`."""
+    _validate_counts(n, c, k)
+    low, high = clopper_pearson(n, c, level)
+    return low**k, high**k
+
+
+def _uncertainty(
+    outcomes: Sequence[int],
+    k: int,
+    exact: Callable[[int, int, float], float],
+    large_n: Callable[[int, int, float], float],
+    estimator: Callable[[int, int, int], float],
+    samples: int,
+    seed: int,
+) -> dict[str, float | list[float]]:
+    n = len(outcomes)
+    p_hat = sum(outcomes) / n
+    bootstrap = _bootstrap(outcomes, k, estimator, samples, seed)
+    return {
+        "se_exact": exact(n, k, p_hat) ** 0.5,
+        "se_large_n": large_n(n, k, p_hat) ** 0.5,
+        "se_bootstrap": bootstrap["se"],
+        "bootstrap_ci95": [bootstrap["ci95_low"], bootstrap["ci95_high"]],
+    }
+
+
+def pass_at_k_uncertainty(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float | list[float]]:
+    """Compare the three standard errors for one pass@k estimate.
+
+    The exact and large-n values use the plug-in p_hat = c / n.
+    """
+    return _uncertainty(
+        outcomes, k, pass_at_k_variance, pass_at_k_variance_large_n, pass_at_k,
+        samples, seed,
+    )
+
+
+def pass_hat_k_uncertainty(
+    outcomes: Sequence[int], k: int, *, samples: int = 2000, seed: int = 0
+) -> dict[str, float | list[float]]:
+    """Compare the three standard errors for one pass^k estimate.
+
+    The exact and large-n values use the plug-in p_hat = c / n.
+    """
+    return _uncertainty(
+        outcomes, k, pass_hat_k_variance, pass_hat_k_variance_large_n, pass_hat_k,
+        samples, seed,
+    )
