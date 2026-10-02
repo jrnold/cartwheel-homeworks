@@ -325,6 +325,60 @@ def pass_hat_k_bootstrap(
     return _bootstrap(outcomes, k, pass_hat_k, samples, seed)
 
 
+def _binomial_cdf(c: int, n: int, p: float) -> float:
+    """P(X <= c) for X ~ Binomial(n, p)."""
+    return sum(comb(n, j) * p**j * (1.0 - p) ** (n - j) for j in range(c + 1))
+
+
+def _solve_decreasing(f: Callable[[float], float], target: float) -> float:
+    """The p in [0, 1] with f(p) == target, for f decreasing in p (bisection)."""
+    lo, hi = 0.0, 1.0
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if f(mid) > target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def clopper_pearson(n: int, c: int, level: float = 0.95) -> tuple[float, float]:
+    """Exact (Clopper-Pearson) interval for the per-run pass probability p.
+
+    The lower bound solves P(X >= c | p) = alpha / 2 and the upper bound
+    solves P(X <= c | p) = alpha / 2, with alpha = 1 - level. Coverage is at
+    least ``level`` for every p, so the interval is conservative. At c = 0 the
+    lower bound is 0, and at c = n the upper bound is 1.
+    """
+    _validate_counts(n, c, 1)
+    if not 0.0 < level < 1.0:
+        raise ValueError(f"level must be in (0, 1), got {level}")
+    alpha = 1.0 - level
+    low = 0.0 if c == 0 else _solve_decreasing(lambda p: _binomial_cdf(c - 1, n, p), 1.0 - alpha / 2)
+    high = 1.0 if c == n else _solve_decreasing(lambda p: _binomial_cdf(c, n, p), alpha / 2)
+    return low, high
+
+
+def pass_at_k_clopper_pearson(n: int, c: int, k: int, level: float = 0.95) -> tuple[float, float]:
+    """Clopper-Pearson interval for pass@k = 1 - (1 - p)^k.
+
+    pass@k increases with p, so mapping both ends of :func:`clopper_pearson`
+    gives an interval with the same coverage (at least ``level``). Unlike the
+    bootstrap, it is not degenerate at c = 0 or c = n. At k near n the
+    unbiased point estimate can fall outside it.
+    """
+    _validate_counts(n, c, k)
+    low, high = clopper_pearson(n, c, level)
+    return 1.0 - (1.0 - low) ** k, 1.0 - (1.0 - high) ** k
+
+
+def pass_hat_k_clopper_pearson(n: int, c: int, k: int, level: float = 0.95) -> tuple[float, float]:
+    """Clopper-Pearson interval for pass^k = p^k; see :func:`pass_at_k_clopper_pearson`."""
+    _validate_counts(n, c, k)
+    low, high = clopper_pearson(n, c, level)
+    return low**k, high**k
+
+
 def _uncertainty(
     outcomes: Sequence[int],
     k: int,
